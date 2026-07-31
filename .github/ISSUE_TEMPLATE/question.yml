@@ -1,0 +1,82 @@
+name: "🙋‍♂️ Question Template"
+description: "프론트엔드 개발 과정에서 발생한 설계, 구현, 기술 선택 등에 대한 질문을 작성합니다."
+title: "[QUESTION] "
+labels: ["question", "help wanted"]
+assignees: []
+
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: "🙋‍♂️ 질문 내용"
+      description: "무엇이 궁금한지 명확하고 구체적으로 작성해주세요."
+      placeholder: "예) Next.js App Router 환경에서 해당 페이지는 SSR과 SSG 중 어떤 방식을 사용하는 것이 적절할까요?"
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: "🤔 질문 배경 (Context)"
+      description: "어떤 작업을 진행하던 중 이 질문이 생겼는지 설명해주세요."
+      placeholder: |
+        예)
+        PT 목록 페이지를 구현하고 있습니다.
+        사용자 위치 기반 데이터를 조회해야 하는데,
+        SSR과 CSR 중 어떤 방식이 적절한지 고민이 생겼습니다.
+    validations:
+      required: true
+
+  - type: textarea
+    id: tried
+    attributes:
+      label: "🛠 시도해본 내용 (What I've Tried)"
+      description: "직접 찾아보거나 테스트해본 내용이 있다면 작성해주세요."
+      placeholder: |
+        예)
+        - Next.js 공식 문서를 확인했습니다.
+        - useEffect 기반 CSR 구현을 시도했습니다.
+        - 서버 컴포넌트에서 fetch를 사용해 보았습니다.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: "📂 질문 카테고리"
+      options:
+        - Next.js
+        - React
+        - TypeScript
+        - Tailwind CSS
+        - API 연동
+        - 상태 관리
+        - 성능 최적화
+        - 렌더링 전략 (SSR/SSG/ISR/CSR)
+        - 폴더 구조
+        - 인증 / 인가
+        - 테스트
+        - 기타
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-opinion
+    attributes:
+      label: "💡 원하는 답변 방향"
+      description: "어떤 관점의 답변을 원하는지 작성해주세요."
+      placeholder: |
+        예)
+        - 실무에서는 어떻게 사용하는지
+        - 성능 관점에서 어떤 선택이 좋은지
+        - 유지보수 측면에서 어떤 구조가 적절한지
+        - 팀 프로젝트 기준 추천 방식
+
+  - type: textarea
+    id: references
+    attributes:
+      label: "📎 관련 코드 및 참고 자료"
+      description: "관련 코드, 에러 로그, 문서 링크 등을 첨부해주세요."
+      render: typescript
+    validations:
+      required: false

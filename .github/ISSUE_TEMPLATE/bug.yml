@@ -1,0 +1,92 @@
+name: "🚨🐛 Bug Report Template 🐛🚨"
+description: "프론트엔드 화면, UI, 상태관리, API 연동 등에서 발생한 버그를 제보하는 이슈입니다."
+title: "[BUG] "
+labels: ["bug"]
+assignees: []
+
+body:
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: "🐛 버그 설명"
+      description: "어떤 문제가 발생했는지 명확하고 간결하게 작성해주세요."
+      placeholder: "예) 로그인 버튼 클릭 시 로딩 상태가 종료되지 않고 무한 로딩이 발생합니다."
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce-steps
+    attributes:
+      label: "🔄 재현 방법"
+      description: "버그가 발생하는 과정을 순서대로 작성해주세요."
+      value: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: "✅ 예상 결과"
+      description: "정상 동작 시 기대되는 결과를 작성해주세요."
+      placeholder: "예) 로그인 성공 후 메인 페이지로 이동되어야 합니다."
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: "❌ 실제 결과"
+      description: "현재 실제로 발생하는 결과를 작성해주세요."
+      placeholder: "예) 버튼 클릭 후 로딩 스피너만 표시되고 페이지 이동이 되지 않습니다."
+    validations:
+      required: true
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: "📸 스크린샷 / 화면 녹화"
+      description: "버그 화면, 콘솔 오류, 네트워크 탭 등을 첨부해주세요."
+
+  - type: textarea
+    id: console-log
+    attributes:
+      label: "📎 Console Error / Network Log"
+      description: "브라우저 콘솔 에러 또는 Network 탭의 응답 내용을 첨부해주세요."
+      render: shell
+
+  - type: dropdown
+    id: browser
+    attributes:
+      label: "🌐 브라우저"
+      description: "문제가 발생한 브라우저를 선택해주세요."
+      options:
+        - Chrome
+        - Edge
+        - Safari
+        - Firefox
+        - Mobile Browser
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: "🖥 실행 환경"
+      description: "버그가 발생한 환경을 선택해주세요."
+      options:
+        - Local (로컬 개발 환경)
+        - Dev (개발 서버)
+        - Prod (운영 서버)
+    validations:
+      required: true
+
+  - type: input
+    id: page-path
+    attributes:
+      label: "📍 발생 페이지"
+      description: "버그가 발생한 페이지 경로를 입력해주세요."
+      placeholder: "/login, /pt/find, /mypage"
