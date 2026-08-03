@@ -1,5 +1,11 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { Geist } from "next/font/google";
+import { cn } from "@/lib/utils";
+import Header from "@/components/layout/Header";
+import Sidebar from "@/components/layout/Sidebar";
+
+const geist = Geist({ subsets: ['latin'], variable: '--font-sans' });
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -13,9 +19,14 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="en" className={cn("font-sans", geist.variable)}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col overflow-auto scrollbar-hide">
+        <Header />
+        <div className="flex pt-16">
+          {children}
+        </div>
+      </body>
     </html>
   );
 }
