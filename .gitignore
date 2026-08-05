@@ -11,6 +11,7 @@
 !.yarn/versions
 .env*
 .docs*
+docs*
 .ai*
 AGENTS.md
 CLAUDE.md
