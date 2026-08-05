@@ -11,13 +11,13 @@
 !.yarn/versions
 .env*
 .docs*
-.ai/*
+.ai*
 AGENTS.md
 CLAUDE.md
 docker-compose.yml
 docker-compose.deploy.yml
 docker-compose.dev.yml
-
+documents
 
 # testing
 /coverage
