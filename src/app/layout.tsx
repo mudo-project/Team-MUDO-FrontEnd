@@ -21,9 +21,11 @@ export default function RootLayout({
     <html
       lang="en" className={cn("font-sans", geist.variable)}
     >
-      <body className="min-h-full flex flex-col overflow-auto scrollbar-hide">
-        <Header />
-        <div className="flex pt-16">
+      <body className="min-h-full flex overflow-auto scrollbar-hide">
+        <Sidebar />
+
+        <div className="flex-1">
+          <Header />
           {children}
         </div>
       </body>
