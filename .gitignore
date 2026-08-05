@@ -11,7 +11,7 @@
 !.yarn/versions
 .env*
 .docs*
-.ai/*
+.ai*
 AGENTS.md
 CLAUDE.md
 docker-compose.yml
