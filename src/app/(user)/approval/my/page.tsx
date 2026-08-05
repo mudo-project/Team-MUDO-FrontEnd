@@ -13,11 +13,10 @@ export default function Page() {
             <div className="flex h-[39px] w-full items-start border-b border-[#D7E8DB]">
                 {approvalTabs.map((tab) => (
                     <button
-                        className={`h-[39px] px-[18px] pb-[10px] pt-[9px] text-[13px] leading-[19.5px] ${
-                            tab.active
-                                ? "border-b-2 border-[#0F172A] font-semibold text-[#0F172A]"
-                                : "font-normal text-[#64748B]"
-                        }`}
+                        className={`h-[39px] px-[18px] pb-[10px] pt-[9px] text-[13px] leading-[19.5px] ${tab.active
+                            ? "border-b-2 border-[#0F172A] font-semibold text-[#0F172A]"
+                            : "font-normal text-[#64748B]"
+                            }`}
                         key={tab.label}
                         type="button"
                     >
