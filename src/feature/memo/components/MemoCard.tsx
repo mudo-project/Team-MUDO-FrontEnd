@@ -1,5 +1,6 @@
-import { EllipsisVertical, Plus, X } from "lucide-react";
+import { EllipsisVertical } from "lucide-react";
 
+// 임시로 사용할 더미데이터 입니다. 추후 API 연동을 진행하면서 삭제할 예정입니다.
 type Memo = {
   id: number;
   title: string;
@@ -9,7 +10,6 @@ type Memo = {
   background: string;
 };
 
-// 임시로 사용할 더미데이터 입니다. 추후 API 연동을 진행하면서 삭제할 예정입니다.
 const memos: Memo[] = [
   {
     id: 1,
@@ -53,45 +53,8 @@ const memos: Memo[] = [
   },
 ];
 
-export default function MemoPage() {
-  return (
-    <main className="min-h-[calc(100dvh-3.25rem)] bg-white text-[#172033]">
-      <section 
-        className="ml-auto flex min-h-[calc(100dvh-3.25rem)] w-full max-w-[420px] flex-col border-l border-[#E6EBE7] bg-white shadow-[-8px_0_18px_rgba(15,23,42,0.05)]" 
-        aria-labelledby="memo-title"
-      >
-        <header className="flex h-[50px] shrink-0 items-center justify-between border-b border-[#E6EBE7] px-3">
-          <h1 id="memo-title" className="text-[15px] font-bold tracking-[-0.03em]">
-            메모 
-            <span className="ml-1 text-[11px] font-medium text-[#94A3B8]">5</span>
-          </h1>
-          <div className="flex items-center gap-2">
-            <button 
-              className="inline-flex h-7 items-center gap-1 rounded-md bg-[#172033] px-2.5 text-[11px] font-medium text-white"
-              type="button"
-            >
-              <Plus className="size-3.5" strokeWidth={2.2} />
-              새 메모
-            </button>
-            <button 
-              aria-label="메모 패널 닫기"
-              className="inline-flex size-7 items-center justify-center text-[#94A3B8]"
-              type="button"
-            >
-              <X className="size-4" strokeWidth={1.8} />
-            </button>
-          </div>
-        </header>
-
-        <div className="flex h-9 shrink-0 items-center justify-between border-b border-[#E6EBE7] px-3">
-          <div className="flex overflow-hidden rounded-md border border-[#E0E6E1] text-[10px]">
-            <button className="bg-[#172033] px-2.5 py-1 font-medium text-white" type="button">최신순</button>
-            <button className="border-l border-[#E0E6E1] px-2.5 py-1 text-[#718096]" type="button">오래된순</button>
-            <button className="border-l border-[#E0E6E1] px-2.5 py-1 text-[#718096]" type="button">☆ 자유배치</button>
-          </div>
-          <span className="text-[10px] text-[#94A3B8]">자동 배치 중</span>
-        </div>
-
+export default function MemoCard() {
+    return (
         <div className="grid grid-cols-1 content-start gap-2 overflow-y-auto p-3 sm:grid-cols-2">
           {memos.map((memo) => (
             <article 
@@ -110,7 +73,5 @@ export default function MemoPage() {
             </article>
           ))}
         </div>
-      </section>
-    </main>
-  );
+    )
 }
