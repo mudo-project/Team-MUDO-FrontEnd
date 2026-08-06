@@ -24,7 +24,7 @@ export default function RootLayout({
       <body className="min-h-full flex overflow-auto scrollbar-hide">
         <Sidebar />
 
-        <div className="flex-1">
+        <div className="min-w-0 flex-1">
           <Header />
           {children}
         </div>
