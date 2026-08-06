@@ -28,20 +28,20 @@ type MenuItem = {
 
 const menuItems: MenuItem[] = [
     { label: "홈", href: "/", icon: Home },
-    { label: "템플릿", href: "#", icon: PanelTop },
-    { label: "메신저", href: "#", icon: MessageSquare, count: 3 },
-    { label: "공지사항", href: "#", icon: Bell, count: 2 },
+    { label: "템플릿", href: "/template", icon: PanelTop },
+    { label: "메신저", href: "/messenger", icon: MessageSquare, count: 3 },
+    { label: "공지사항", href: "/notice", icon: Bell, count: 2 },
     { label: "전자결재", href: "#", icon: FileCheck2, count: 3 },
     { label: "워크스페이스", href: "/workspace", icon: Grid2X2 },
-    { label: "근태", href: "#", icon: Clock3 },
-    { label: "재무", href: "#", icon: WalletCards },
+    { label: "근태", href: "/attendance", icon: Clock3 },
+    { label: "재무", href: "/finance", icon: WalletCards },
     { label: "원생관리", href: "#", icon: GraduationCap },
-    { label: "일정", href: "#", icon: CalendarDays },
-    { label: "시간표", href: "#", icon: Grid2X2 },
+    { label: "일정", href: "/schedule", icon: CalendarDays },
+    { label: "시간표", href: "/timetable", icon: Grid2X2 },
     { label: "구성원", href: "#", icon: Users },
     { label: "역할 설정", href: "#", icon: Shield, active: true },
-    { label: "설정", href: "#", icon: Settings },
-    { label: "메모", href: "#", icon: NotebookPen },
+    { label: "설정", href: "/setting", icon: Settings },
+    { label: "메모", href: "/memo", icon: NotebookPen },
 ];
 
 export default function Sidebar() {
