@@ -46,7 +46,7 @@ const menuItems: MenuItem[] = [
 
 export default function Sidebar() {
     return (
-        <aside className="flex h-screen w-[219px] shrink-0 flex-col bg-[#0F172A] text-[#CBD5E1]">
+        <aside className="hidden md:flex h-screen w-[219px] shrink-0 flex-col bg-[#0F172A] text-[#CBD5E1]">
             <div className="flex h-13 shrink-0 items-center border-b border-white/8 px-4">
                 <div className="flex h-6 w-6 items-center justify-center rounded-[6px] bg-[#2C8D50]">
                     <GraduationCap className="h-4 w-4 text-white" strokeWidth={1.8} />
