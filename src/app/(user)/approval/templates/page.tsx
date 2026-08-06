@@ -1,107 +1,28 @@
-import Link from "next/link";
-import { Plus } from "lucide-react";
+import ApprovalNavBar from "@/feature/approval/components/ApprovalNavBar";
+import TemplateItem from "@/feature/approval/components/TemplateItem";
 
-const approvalTabs = [
-    { label: "내가 신청한 결재", href: "/approval/my" },
-    { label: "내게 온 결재", href: "/approval/received" },
-    { label: "전체", href: "/approval/all" },
-    { label: "템플릿 관리", href: "/approval/templates", active: true },
-];
-
-const tableColumns = ["템플릿 이름", "생성자", "결재 라인", "생성일"];
-
-const templates = [
-    {
-        name: "연가 신청서",
-        creator: "정다은",
-        approvalLine: ["1. 이민준", "2. 김지수"],
-        createdAt: "2025.01.02",
-    },
-    {
-        name: "지출결의서",
-        creator: "정다은",
-        approvalLine: ["1. 정다은", "2. 김지수"],
-        createdAt: "2025.01.02",
-    },
-    {
-        name: "초과근무 신청",
-        creator: "정다은",
-        approvalLine: ["1. 이민준", "2. 김지수"],
-        createdAt: "2025.01.05",
-    },
-    {
-        name: "업무보고서",
-        creator: "정다은",
-        approvalLine: ["1. 김지수"],
-        createdAt: "2025.01.05",
-    },
-];
 
 export default function Page() {
     return (
-        <main className="min-h-[calc(100dvh-52px)] w-full bg-[#FCFCFC] px-8 py-7">
-            <div className="flex h-[39px] w-full items-center border-b border-[#D7E8DB]">
-                {approvalTabs.map((tab) => (
-                    <Link
-                        className={`h-[39px] px-[18px] pb-[10px] pt-[9px] text-[13px] leading-[19.5px] ${
-                            tab.active
-                                ? "border-b-2 border-[#0F172A] font-semibold text-[#0F172A]"
-                                : "font-normal text-[#64748B]"
-                        }`}
-                        href={tab.href}
-                        key={tab.label}
-                    >
-                        {tab.label}
-                    </Link>
-                ))}
+        <main className="min-h-[calc(100dvh-52px)] w-full bg-[#FCFCFC] px-2 py-4 sm:px-2.5 md:px-4 md:py-5 lg:px-8 lg:py-7">
+            <ApprovalNavBar buttonType='템플릿 추가' />
 
-                <button
-                    className="mb-2 ml-auto flex items-center gap-1.5 rounded-[8px] bg-[#0F172A] px-3.5 py-1.5 text-[12px] font-medium leading-[18px] text-white"
-                    type="button"
-                >
-                    <Plus className="size-3.5" strokeWidth={2} />
-                    템플릿 추가
-                </button>
-            </div>
 
-            <section className="mt-5 w-full overflow-hidden rounded-[10px] border border-[#D7E8DB] bg-white">
-                <div className="grid h-[37px] grid-cols-[minmax(0,1fr)_120px_180px_90px] items-center border-b border-[#D7E8DB] px-5 text-[11px] font-medium leading-[16.5px] text-[#B0B8C1]">
-                    {tableColumns.map((column) => (
-                        <p key={column}>{column}</p>
-                    ))}
+            <section className="mt-3 w-full overflow-hidden border md:mt-4 rounded-[10px] border-[#D7E8DB] bg-white lg:mt-5">
+                <div className="grid h-9 grid-cols-9 items-center border-b border-[#D7E8DB] px-1 text-[10px] font-medium leading-[16.5px] text-[#B0B8C1] sm:px-2 md:h-[37px] md:px-3 md:text-[11px] lg:grid-cols-11 lg:px-5">
+                    <p className="col-span-4 lg:col-span-6">템플릿 이름</p>
+                    <p className="col-span-1">생성자</p>
+                    <p className="col-span-3">결재 라인</p>
+                    <p className="col-span-1">생성일</p>
                 </div>
 
-                {templates.map((template) => (
-                    <div
-                        className="grid h-[49px] grid-cols-[minmax(0,1fr)_120px_180px_90px] items-center border-b border-[#F7F8F9] px-5 last:border-b-0"
-                        key={template.name}
-                    >
-                        <p className="text-[13px] font-medium leading-[19.5px] text-[#0F172A]">
-                            {template.name}
-                        </p>
-                        <p className="text-[12px] font-normal leading-[18px] text-[#64748B]">
-                            {template.creator}
-                        </p>
-                        <div className="flex items-center gap-1">
-                            {template.approvalLine.map((approver, index) => (
-                                <div className="flex items-center gap-1" key={approver}>
-                                    <span className="rounded-[20px] bg-[#FCFCFC] px-2 py-0.5 text-[11px] font-normal leading-[16.5px] text-[#0F172A]">
-                                        {approver}
-                                    </span>
-                                    {index < template.approvalLine.length - 1 && (
-                                        <span className="text-[10px] font-normal leading-[15px] text-[#D0D5DC]">
-                                            →
-                                        </span>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                        <p className="text-[12px] font-normal leading-[18px] text-[#B0B8C1]">
-                            {template.createdAt}
-                        </p>
-                    </div>
-                ))}
+                <TemplateItem />
+                <TemplateItem />
             </section>
+
+            <p className="mt-3 w-full rounded-none border border-transparent bg-transparent py-10 text-center text-[10px] font-normal leading-[19.5px] text-[#C0C8D0] md:mt-4 md:rounded-[10px] md:border-[#D7E8DB] md:bg-white md:py-14 md:text-[12px] lg:mt-5 lg:py-[61px] lg:text-[13px]">
+                템플릿 문서가 없습니다
+            </p>
         </main>
     );
 }
