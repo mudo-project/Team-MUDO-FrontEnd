@@ -1,11 +1,5 @@
-'use client'
-
-import { Calendar } from "@/components/ui/calendar";
-import { format } from "date-fns";
-import { ko } from "date-fns/locale"
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useState } from "react";
-
+import WorkList from "@/feature/workspace/components/WorkList";
+import WorkspaceDailyHeader from "@/feature/workspace/components/WorkspaceDailyHeader";
 
 const columns = [
     {
@@ -42,102 +36,43 @@ const columns = [
 ];
 
 export default function Page() {
-    const [calendarDate, setCalendarDate] = useState<Date | undefined>(new Date())
-
-    const openCalendar = () => {
-
-    }
-
-    const prevDate = () => {
-        if (calendarDate) {
-            const newDate = new Date(calendarDate);
-            setCalendarDate(new Date(newDate.setDate(newDate.getDate() - 1)))
-        }
-    }
-
-    const nextDate = () => {
-        if (calendarDate) {
-            const newDate = new Date(calendarDate);
-            setCalendarDate(new Date(newDate.setDate(newDate.getDate() + 1)))
-        }
-    }
 
 
 
     return (
         <main className="min-h-screen bg-[#FCFDFE] text-[#202A3C]">
-            <header className="border-b border-[#E9ECF1] px-5 pt-4 pb-3">
-                <div className="flex gap-4">
-                    <button onClick={prevDate}><ChevronLeft /></button>
-                    <button onClick={openCalendar} className="font-semibold">{calendarDate && (format(calendarDate, 'yyyy년 MM월 dd일 (E)', { locale: ko }))}</button>
-                    <button onClick={nextDate}><ChevronRight /></button>
-                </div>
-                {/* <Calendar
-                    mode="single"
-                    selected={calendarDate}
-                    onSelect={setCalendarDate}
-                    locale={ko}
-                /> */}
-                <p className="mt-2 text-[13px] text-[#B5BDC8]">업무 7건</p>
-            </header>
+            <WorkspaceDailyHeader />
 
-            <section className="px-5 py-5">
-                <div className="grid grid-cols-3 gap-4">
+            <section className="px-2 py-4 sm:px-3 md:px-4 md:py-5 lg:px-6">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-3 lg:gap-4">
                     {columns.map((column) => (
-                        <section className="w-full" key={column.title}>
-                            <div className="mb-3 flex items-center gap-2">
-                                <span className={`h-2 w-2 rounded-full ${column.dotColor}`} />
-                                <h2 className="text-[13px] font-semibold">{column.title}</h2>
-                                <span className="rounded-full bg-[#F0F2F5] px-2 py-0.5 text-[11px] text-[#A5ADBA]">
-                                    {column.count}
-                                </span>
-                            </div>
-
-                            <div className="space-y-2">
-                                {column.cards.map((card) => (
-                                    <article
-                                        className="min-h-26.5 w-full rounded-[9px] border border-[#DEE2E8] bg-white px-4 py-3"
-                                        key={card.title}
-                                    >
-                                        <span className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-[11px] leading-none ${column.badgeClass}`}>
-                                            <span className={`h-1.5 w-1.5 rounded-full ${column.badgeDot}`} />
-                                            {column.title}
-                                        </span>
-                                        <h3 className="mt-3 text-[14px] font-semibold wrap-break-word">{card.title}</h3>
-                                        <div className="mt-3 flex items-center text-[11px] text-[#AEB6C3]">
-                                            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#EEF1F4] text-[7px] font-semibold text-[#515B6C]">
-                                                {card.owner}
-                                            </span>
-                                            <span className="ml-2">{card.date}</span>
-                                            <span className="ml-auto">◌ card?.comments</span>
-                                        </div>
-                                    </article>
-                                ))}
-
-                                <button className="flex h-9 w-full items-center rounded-[8px] border border-dashed border-[#E1E5EA] px-4 text-[13px] text-[#C2C8D1]">
-                                    <span className="mr-2 text-lg font-light">＋</span> 업무 추가
-                                </button>
-                            </div>
-                        </section>
+                        <WorkList key={column.title} column={column} />
                     ))}
                 </div>
 
-                <section className="mt-5 border-t border-dashed border-[#E5E8ED] pt-5">
-                    <div className="flex items-center gap-2 text-[13px]">
-                        <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full border border-[#C5CBD4] text-[9px] text-[#AAB2BD]">·</span>
-                        <h2 className="font-semibold text-[#7E8795]">지연</h2>
-                        <span className="rounded-full bg-[#F0F2F5] px-2 py-0.5 text-[11px] text-[#A5ADBA]">1</span>
-                        <p className="text-[12px] text-[#C1C7D0]">기한이 지난 업무입니다. 상태를 업데이트하거나 완료 처리해주세요.</p>
+                <section className="mt-4 border-t border-dashed border-[#E5E8ED] pt-4 md:mt-5 md:pt-5">
+                    <div className="flex items-center gap-1 text-[10px] leading-[16px] sm:gap-1.5 sm:text-[11px] lg:gap-2 lg:text-[12px] lg:leading-[18px]">
+                        <span className={`h-2 w-2 rounded-full bg-[#DF6C82]`} />
+                        <h2 className="text-[10px] leading-[16px] font-semibold sm:text-[11px] lg:text-[12px] lg:leading-[18px]">지연</h2>
+                        <span className="rounded-full bg-[#F0F2F5] px-[7px] py-px text-[10px] leading-[15px] text-[#A5ADBA]">1</span>
                     </div>
+                    <p className="w-full pl-0.5 text-[10px] leading-[15px] text-[#C1C7D0] md:pl-1 lg:text-[11px] lg:leading-[16.5px]">기한이 지난 업무입니다. 상태를 업데이트하거나 완료 처리해주세요.</p>
 
-                    <article className="mt-3 h-[107px] w-[247px] rounded-[9px] border border-[#DEE2E8] bg-white px-4 py-3">
-                        <span className="inline-flex items-center gap-1 rounded-full bg-[#FFF0F3] px-2 py-1 text-[11px] leading-none text-[#D45D76]">
-                            <span className="h-1.5 w-1.5 rounded-full bg-[#DF6C82]" /> 지연
+
+                    <article
+                        className="min-h-24 w-full md:w-1/3 rounded-[7px] border border-[#DEE2E8] bg-white px-2 py-3 sm:px-2.5 md:min-h-25 md:px-3 lg:min-h-26.5 lg:rounded-[9px] lg:px-4 lg:py-[14px]"
+                    >
+                        <span className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] leading-[15px] sm:px-2 lg:text-[11px] lg:leading-[16.5px] bg-[#FFF0F3]  text-[#D45D76]`}>
+                            <span className={`h-1.5 w-1.5 rounded-full bg-[#DF6C82]`} />
+                            지연
                         </span>
-                        <h3 className="mt-3 text-[14px] font-semibold tracking-[-0.015em]">방학 중 교실 냉방 스케줄 조정</h3>
-                        <div className="mt-3 flex items-center text-[11px] text-[#AEB6C3]">
-                            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#EEF1F4] text-[7px] font-semibold text-[#515B6C]">윤해</span>
+                        <h3 className="mt-1.5 text-[10px] leading-[15px] font-medium wrap-break-word md:mt-2 md:text-[12px] md:leading-[17px] lg:text-[13px] lg:leading-[18px]">지연업무입니다</h3>
+                        <div className="mt-2 flex items-center text-[10px] leading-[15px] text-[#AEB6C3] lg:mt-2.5 lg:text-[11px] lg:leading-[16.5px]">
+                            <span className="flex h-[18px] w-[18px] items-center justify-center rounded-full bg-[#EEF1F4] text-[7px] font-semibold text-[#515B6C]">
+                                담당
+                            </span>
                             <span className="ml-2">~08.05</span>
+                            <span className="ml-auto">◌ card?.comments</span>
                         </div>
                     </article>
                 </section>
