@@ -9,6 +9,7 @@ type Memo = {
   background: string;
 };
 
+// 임시로 사용할 더미데이터 입니다. 추후 API 연동을 진행하면서 삭제할 예정입니다.
 const memos: Memo[] = [
   {
     id: 1,
@@ -55,17 +56,28 @@ const memos: Memo[] = [
 export default function MemoPage() {
   return (
     <main className="min-h-[calc(100dvh-3.25rem)] bg-white text-[#172033]">
-      <section className="ml-auto flex min-h-[calc(100dvh-3.25rem)] w-full max-w-[420px] flex-col border-l border-[#E6EBE7] bg-white shadow-[-8px_0_18px_rgba(15,23,42,0.05)]" aria-labelledby="memo-title">
+      <section 
+        className="ml-auto flex min-h-[calc(100dvh-3.25rem)] w-full max-w-[420px] flex-col border-l border-[#E6EBE7] bg-white shadow-[-8px_0_18px_rgba(15,23,42,0.05)]" 
+        aria-labelledby="memo-title"
+      >
         <header className="flex h-[50px] shrink-0 items-center justify-between border-b border-[#E6EBE7] px-3">
           <h1 id="memo-title" className="text-[15px] font-bold tracking-[-0.03em]">
-            메모 <span className="ml-1 text-[11px] font-medium text-[#94A3B8]">5</span>
+            메모 
+            <span className="ml-1 text-[11px] font-medium text-[#94A3B8]">5</span>
           </h1>
           <div className="flex items-center gap-2">
-            <button className="inline-flex h-7 items-center gap-1 rounded-md bg-[#172033] px-2.5 text-[11px] font-medium text-white" type="button">
+            <button 
+              className="inline-flex h-7 items-center gap-1 rounded-md bg-[#172033] px-2.5 text-[11px] font-medium text-white"
+              type="button"
+            >
               <Plus className="size-3.5" strokeWidth={2.2} />
               새 메모
             </button>
-            <button aria-label="메모 패널 닫기" className="inline-flex size-7 items-center justify-center text-[#94A3B8]" type="button">
+            <button 
+              aria-label="메모 패널 닫기"
+              className="inline-flex size-7 items-center justify-center text-[#94A3B8]"
+              type="button"
+            >
               <X className="size-4" strokeWidth={1.8} />
             </button>
           </div>
@@ -82,7 +94,11 @@ export default function MemoPage() {
 
         <div className="grid grid-cols-1 content-start gap-2 overflow-y-auto p-3 sm:grid-cols-2">
           {memos.map((memo) => (
-            <article className="relative min-h-[130px] rounded-md px-3 pb-3 pt-2.5" key={memo.id} style={{ backgroundColor: memo.background, borderTop: `2px solid ${memo.accent}` }}>
+            <article 
+              className="relative min-h-[130px] rounded-md px-3 pb-3 pt-2.5"
+              key={memo.id}
+              style={{ backgroundColor: memo.background, borderTop: `2px solid ${memo.accent}` }}
+            >
               <button aria-label={`${memo.title} 더보기`} className="absolute right-2 top-2 text-[#53606E]" type="button">
                 <EllipsisVertical className="size-3.5" strokeWidth={1.8} />
               </button>
