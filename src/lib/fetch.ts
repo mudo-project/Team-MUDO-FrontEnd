@@ -1,6 +1,4 @@
-//fetch => 인증 처리를 위한 fetch 개조
-'use server'
-
+import "server-only";
 import { cookies } from "next/headers";
 import { refreshGet } from "./stateError";
 

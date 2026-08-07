@@ -1,4 +1,8 @@
+'use server'
+
 import { login } from "@/service/auth.service"
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 interface ActionState {
     success: boolean;
@@ -19,13 +23,9 @@ export const loginAction = async (prevState: ActionState, formData: FormData): P
 
     const payload: LoginRequest = { username, password }
 
+    let response
     try {
-        await login(payload)
-
-        return {
-            success: false,
-            message: '로그인에 성공하였습니다'
-        }
+        response = await login(payload);
     } catch (error) {
         let errorMessage: string = '알 수 없는 오류입니다. 재시도해주세요.'
         if (error instanceof Error) {
@@ -37,4 +37,35 @@ export const loginAction = async (prevState: ActionState, formData: FormData): P
             message: errorMessage
         }
     }
+
+    const resData = (await response.json()) as LoginResponse;
+
+    const cookieStore = await cookies();
+
+    cookieStore.set('accessToken', resData.data.accessToken, {
+        httpOnly: true,
+        maxAge: 60 * 60,
+        path: '/'
+    });
+
+    //백에서 보낸 쿠키 헤더 가져오기
+    const setCookieHeaders: string[] = response.headers.getSetCookie?.() ?? [];
+
+
+    const newRefreshToken = setCookieHeaders.find((cookie) => cookie.startsWith("refreshToken="))
+    const newRefreshValue = newRefreshToken?.split(';')[0].replace('refreshToken=', '');
+
+    if (newRefreshValue) {
+        cookieStore.set('refreshToken', newRefreshValue, {
+            httpOnly: true,
+            maxAge: 60 * 60 * 3,
+            path: '/'
+        });
+    }
+
+    return {
+        success: true,
+        message: '로그인 성공'
+    }
+
 }
