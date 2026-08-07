@@ -1,5 +1,6 @@
 import Header from "@/components/layout/Header";
 import Sidebar from "@/components/layout/Sidebar";
+import MemoContainer from "@/feature/memo/components/MemoContainer";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
     return (
@@ -10,6 +11,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 <Header />
                 {children}
             </div>
+            <MemoContainer />
         </section>
     );
 }

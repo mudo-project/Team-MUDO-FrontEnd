@@ -2,9 +2,6 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
-import Header from "@/components/layout/Header";
-import Sidebar from "@/components/layout/Sidebar";
-import MemoContainer from "@/feature/memo/components/MemoContainer";
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-sans' });
 
@@ -22,15 +19,8 @@ export default function RootLayout({
     <html
       lang="en" className={cn("font-sans", geist.variable)}
     >
-      <body className="min-h-full flex overflow-auto scrollbar-hide">
-        <Sidebar />
-
-        <div className="min-w-0 flex-1">
-          <Header />
-          {children}
-        </div>
-
-        <MemoContainer />
+      <body>
+        {children}
       </body>
     </html>
   );
