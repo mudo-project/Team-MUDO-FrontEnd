@@ -2,7 +2,6 @@
 
 import { login } from "@/service/auth.service"
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 
 interface ActionState {
     success: boolean;
@@ -45,7 +44,8 @@ export const loginAction = async (prevState: ActionState, formData: FormData): P
     cookieStore.set('accessToken', resData.data.accessToken, {
         httpOnly: true,
         maxAge: 60 * 60,
-        path: '/'
+        path: '/',
+        sameSite: "lax" as const,
     });
 
     //백에서 보낸 쿠키 헤더 가져오기
@@ -59,7 +59,8 @@ export const loginAction = async (prevState: ActionState, formData: FormData): P
         cookieStore.set('refreshToken', newRefreshValue, {
             httpOnly: true,
             maxAge: 60 * 60 * 3,
-            path: '/'
+            path: '/',
+            sameSite: "lax" as const,
         });
     }
 
