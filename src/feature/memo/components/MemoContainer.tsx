@@ -54,6 +54,13 @@ export default function MemoContainer() {
     const isOpen = useMemoStore((state) => state.isOpen)
     const toggleMemo = useMemoStore((state) => state.toggleMemo)
     const [isCreating, setIsCreating] = useState(false)
+    const [sortOrder, setSortOrder] = useState<"latest" | "oldest">("latest")
+    const sortedMemos = [...INITIAL_MEMOS].sort((firstMemo, secondMemo) => {
+      const firstDate = Number(firstMemo.time.replace(".", ""));
+      const secondDate = Number(secondMemo.time.replace(".", ""));
+
+      return sortOrder === "latest" ? secondDate - firstDate : firstDate - secondDate;
+    });
 
     if (!isOpen) return null;
 
@@ -87,11 +94,11 @@ export default function MemoContainer() {
         </div>
       </header>
 
-      <MemoFilter/>
+      <MemoFilter sortOrder={sortOrder} onChangeSortOrder={setSortOrder} />
 
       <MemoCard
         createForm={isCreating && <MemoCreateForm onCancel={() => setIsCreating(false)} onSave={() => setIsCreating(false)} />}
-        memos={INITIAL_MEMOS}
+        memos={sortedMemos}
       />
     </aside>
     )
