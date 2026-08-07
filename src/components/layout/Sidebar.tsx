@@ -4,11 +4,12 @@ import { useSidebarStore } from "@/store/useSidebarStore";
 import NavLink from "./NavLink";
 import { ChevronsLeft, GraduationCap } from "lucide-react";
 import CloseSidebar from "./CloseSidebar";
+import OpenMemo from "./OpenMemo";
 
 type MenuItem = {
     label: string;
     href: string;
-    icon: 'Home' | "PanelTop" | "MessageSquare" | "Bell" | "FileCheck2" | "Grid2X2" | "Clock3" | "WalletCards" | "GraduationCap" | "CalendarDays" | "Users" | "Shield" | "Settings" | "NotebookPen",
+    icon: 'Home' | "PanelTop" | "MessageSquare" | "Bell" | "FileCheck2" | "Grid2X2" | "Clock3" | "WalletCards" | "GraduationCap" | "CalendarDays" | "Users" | "Shield" | "Settings",
     count?: number;
     active?: boolean;
     dividerAfter?: boolean;
@@ -29,7 +30,6 @@ const menuItems: MenuItem[] = [
     { label: "구성원", href: "/members", icon: 'Users' },
     { label: "역할 설정", href: "/role", icon: 'Shield', active: true },
     { label: "설정", href: "/setting", icon: 'Settings' },
-    { label: "메모", href: "/memo", icon: 'NotebookPen' },
 ];
 
 export default function Sidebar() {
@@ -50,6 +50,7 @@ export default function Sidebar() {
                     <NavLink key={item.label} href={item.href} icon={item.icon} count={item.count} >
                         {item.label}
                     </NavLink>))}
+                <OpenMemo />
             </nav>
 
             <button className="mt-auto flex h-[52px] w-full shrink-0 items-center border-t border-white/8 px-4 text-left">
