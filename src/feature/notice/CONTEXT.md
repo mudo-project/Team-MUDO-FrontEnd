@@ -1,7 +1,7 @@
 # Notice(공지사항) Domain — CONTEXT
 > 배치 경로: `src/feature/notice/CONTEXT.md`
 > 목적: 이 문서를 읽은 사람 또는 AI 에이전트가 공지사항 도메인이 **무엇을 하는 도메인이고, 어떤 기능이 있으며, 어떤 조각으로 이루어져 있는지** 파악할 수 있게 한다.
-> 구현 상태: **미구현 (정적 프로토타입 + 컴포넌트 뼈대)**. `src/app/(user)/notice/page.tsx`에 더미 데이터를 렌더링하는 목록 화면만 존재한다. 검색, 공지 작성/수정/삭제, 상단 고정, 상세조회, 이전·다음 네비게이션은 모두 미구현이다. `src/feature/notice/components/`에 컴포넌트명만 표시하는 뼈대 파일(`NoticeList`, `NoticeListItem`, `NoticeDetail`, `NoticeCreateForm`, `NoticeEditForm`, `NoticeSearch`, `NoticeNavigation`, `NoticeFileList`)이 생성되어 있으며, 실제 로직은 아직 없다.
+> 구현 상태: **부분 구현**. `NoticeCreateForm`은 모달 열기/닫기(내용이 길어져도 `max-h-[85vh] overflow-y-auto`로 모달 내부 스크롤), 제목·내용 필수값 검증(`react-hook-form` + `zod`)까지 동작하는 클라이언트 컴포넌트로 구현되어 있다(실제 등록·저장 로직은 없음). 파일 첨부·미리보기·삭제는 `NoticeFileUpload`로 분리되어 있으며, 아직 폼 검증에는 편입되지 않았다. `NoticeList`는 더미 데이터를 렌더링한다. 검색, 목록 항목 클릭 이동, 공지 수정/삭제, 상단 고정, 상세조회, 이전·다음 네비게이션은 아직 미구현이다. `NoticeListItem`, `NoticeDetail`, `NoticeEditForm`, `NoticeNavigation`, `NoticeFileList`는 컴포넌트명만 표시하는 뼈대 상태다.
 
 ---
 
@@ -98,13 +98,18 @@ Sidebar의 공지사항 메뉴(`src/components/layout/Sidebar.tsx`, `href: "/not
 | 제목 검색 | 상단 검색 입력 | 제목 기준으로 목록 필터링 |
 | 검색 결과 없음 안내 | 검색 결과 0건 | "검색 결과가 없습니다" 표시 |
 
-### 4.3 공지 작성 — 미구현
+### 4.3 공지 작성 — 부분 구현
 
-| 기능 | 트리거 | 동작 |
-|---|---|---|
-| 작성 모달 열기 | 상단 `공지 작성` 클릭 | 제목·내용·첨부파일·상단 고정 입력 모달 표시 |
-| 필수값 검증 | 모달 등록 시 | 제목·내용 미입력 시 등록 불가 (첨부파일·상단 고정은 선택) |
-| 상단 고정 등록 | 모달에서 상단 고정 체크 후 등록 | 목록 최상단에 고정되어 노출 |
+| 기능 | 트리거 | 동작 | 상태 |
+|---|---|---|---|
+| 작성 모달 열기/닫기 | 상단 `공지 작성` 클릭 / X·취소·오버레이 클릭 | 제목·내용·첨부파일·상단 고정 입력 모달 표시/닫힘 (`useModal` 훅 사용) | 구현 완료 |
+| 파일 첨부 | 첨부 영역 클릭 후 파일 선택 | 선택한 파일이 목록에 추가되어 파일명·크기 표시 | 구현 완료 |
+| 파일 미리보기 | 첨부된 파일의 `미리보기` 클릭 | 새 탭에서 파일 미리보기 (`URL.createObjectURL`) | 구현 완료 |
+| 파일 삭제 | 첨부된 파일의 `X` 클릭 | 해당 파일을 목록에서 제거 | 구현 완료 |
+| 모달 내부 스크롤 | 첨부파일이 많아 모달 내용이 길어짐 | 모달이 화면 밖으로 나가지 않고 `max-h-[85vh]` 안에서 내부 스크롤 | 구현 완료 |
+| 필수값 검증 | 모달 등록 시 | 제목·내용 미입력 시 필드 아래 에러 메시지 표시하고 제출 막음 (`react-hook-form` + `zod`, `src/lib/noticeCreateSchema.ts`). 첨부파일·상단 고정은 검증 대상 아님(선택값이라 규칙 없이 타입만 선언) | 구현 완료 |
+| 공지 등록 저장 | 모달 `등록` 클릭 (검증 통과 시) | 실제 공지 목록에 반영·서버 저장 | 미구현 (현재는 검증 통과 시 모달을 닫고 입력값을 초기화만 함) |
+| 상단 고정 등록 | 모달에서 상단 고정 체크 후 등록 | 목록 최상단에 고정되어 노출 | 미구현 |
 
 ### 4.4 상세조회 — 미구현
 
@@ -173,14 +178,16 @@ Sidebar의 공지사항 메뉴(`src/components/layout/Sidebar.tsx`, `href: "/not
 | **NoticeSearch** | 제목 검색 입력. 검색 결과 없음 상태 처리 |
 | **NoticeList** | 공지 목록. 항목이 없으면 "등록된 공지가 없습니다" 표시 |
 | **NoticeListItem** | 목록 항목 1건. 고정 여부·제목·첨부 여부·작성자·날짜 표시, 클릭 시 `/notice/[id]` 상세조회로 이동 |
-| **NoticeCreateForm** | 공지 작성 모달. 제목·내용·첨부파일·상단 고정 입력. 목록 화면(`page.tsx`)에서 열림 |
-| **NoticeEditForm** | 공지 수정 모달. 기존 값이 채워진 상태로 `NoticeCreateForm`과 동일한 입력 구성. 상세조회 화면(`NoticeDetail`)에서 열림 |
+| **NoticeCreateForm** | 클라이언트 컴포넌트. `공지 작성` 트리거 버튼과 작성 모달을 함께 소유한다(`useModal` 훅으로 열림/닫힘 상태 관리). `page.tsx`가 서버 컴포넌트로 유지되도록 트리거 버튼도 이 컴포넌트 안에 둠. 제목·내용은 `react-hook-form`의 `useForm` + `src/lib/noticeCreateSchema.ts`(`zodResolver`)로 검증하고, 상단 고정은 검증 규칙 없이 폼 값(타입)으로만 등록. 첨부파일 입력은 `NoticeFileUpload`를 그대로 배치(아직 폼 검증에는 편입 안 됨). 실제 등록 저장 로직은 아직 없음 |
+| **NoticeFileUpload** | 클라이언트 컴포넌트. `NoticeCreateForm`에서 분리된 첨부파일 전용 컴포넌트. 파일 추가/미리보기(`URL.createObjectURL`)/삭제를 자체 `useState`로 관리하고, 언마운트 시(모달이 닫혀 조건부 렌더링에서 빠질 때) 미리보기 URL을 `useEffect` cleanup으로 정리. `NoticeEditForm`에서도 재사용될 예정 |
+| **NoticeEditForm** | 공지 수정 모달. 기존 값이 채워진 상태로 `NoticeCreateForm`과 동일한 입력 구성(`NoticeFileUpload` 포함). 상세조회 화면(`NoticeDetail`)에서 열림 |
 | **NoticeDetail** | 상세조회 화면 셸. `/notice/[id]` 페이지에서 사용. 고정 표시·작성자 전용 버튼(고정 등록/수정/삭제)·작성자·작성일·조회수·읽음수·본문·이전/다음 네비게이션을 이 안에서 배치 (Header를 별도 컴포넌트로 분리하지 않음) |
 | **NoticeFileList** | 첨부파일 목록. 파일명·크기·다운로드 버튼 |
 | **NoticeNavigation** | 상세조회 하단 이전/다음 공지 이동. 대상 없을 때 안내 문구 표시 |
 
 > `memo` 도메인이 작성 폼과 수정 폼을 `MemoCreateForm` / `MemoEditForm`으로 분리한 것과 동일하게, 공지도 작성 폼과 수정 폼을 분리하는 구조로 확정.
 > `memo` 도메인의 `MemoContainer`가 Header를 별도 컴포넌트로 분리하지 않은 것과 동일하게, 목록 화면(`page.tsx`)과 `NoticeDetail`도 각자의 Header 영역을 내부에 직접 작성한다.
+> `NoticeFileUpload`(작성/수정 폼에서 첨부·미리보기·삭제)와 `NoticeFileList`(상세조회에서 읽기 전용 목록·다운로드)는 이름이 비슷하지만 역할이 다른 별개 컴포넌트다. 혼동 방지를 위해 의도적으로 이름을 다르게 두었다.
 
 ### 관계
 
@@ -190,10 +197,12 @@ notice/page.tsx                    (목록 화면, /notice)
 ├── NoticeList
 │   └── NoticeListItem[]           (클릭 시 /notice/[id] 이동)
 └── NoticeCreateForm                (작성 버튼 클릭 시)
+    └── NoticeFileUpload
 
 notice/[id]/page.tsx               (상세조회 화면, /notice/[id])
 └── NoticeDetail
     ├── NoticeEditForm             (수정 버튼 클릭 시)
+    │   └── NoticeFileUpload
     ├── NoticeFileList
     └── NoticeNavigation
 ```
