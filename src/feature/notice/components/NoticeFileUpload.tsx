@@ -8,6 +8,11 @@ type AttachedFile = {
     previewUrl: string;
 };
 
+export type ExistingFile = {
+    name: string;
+    size: string;
+};
+
 // 업로드한 파일 크기 확인
 function formatFileSize(bytes: number) {
     if (bytes < 1024) return `${bytes} B`;
@@ -21,10 +26,11 @@ function getFileExtension(fileName: string) {
     return parts.length > 1 ? parts[parts.length - 1].toUpperCase() : "FILE";
 }
 
-export default function NoticeFileUpload() {
+export default function NoticeFileUpload({ initialFiles }: { initialFiles?: ExistingFile[] }) {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const attachedFilesRef = useRef<AttachedFile[]>([]);
     const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([]);
+    const [existingFiles, setExistingFiles] = useState<ExistingFile[]>(initialFiles ?? []);
 
     useEffect(() => {
         attachedFilesRef.current = attachedFiles;
@@ -57,6 +63,10 @@ export default function NoticeFileUpload() {
         });
     };
 
+    const removeExistingFile = (name: string) => {
+        setExistingFiles((prev) => prev.filter((item) => item.name !== name));
+    };
+
     const previewFile = (previewUrl: string) => {
         window.open(previewUrl, "_blank");
     };
@@ -81,8 +91,34 @@ export default function NoticeFileUpload() {
                 />
             </label>
 
-            {attachedFiles.length > 0 && (
+            {(existingFiles.length > 0 || attachedFiles.length > 0) && (
                 <div className="mt-2 flex flex-col gap-2">
+                    {existingFiles.map((file) => (
+                        <div
+                            className="flex h-[50px] w-full items-center gap-2.5 rounded-[8px] border border-[#D7E8DB] bg-[#FCFCFC] px-3"
+                            key={file.name}
+                        >
+                            <span className="flex size-7 shrink-0 items-center justify-center rounded-[6px] bg-[#EEF2FF] text-[9px] font-bold text-[#3B4A66]">
+                                {getFileExtension(file.name)}
+                            </span>
+                            <span className="w-full min-w-0">
+                                <strong className="block truncate text-[13px] font-normal text-[#0F172A]">
+                                    {file.name}
+                                </strong>
+                                <span className="block text-[11px] text-[#64748B]">
+                                    {file.size}
+                                </span>
+                            </span>
+                            <button
+                                aria-label={`${file.name} 삭제`}
+                                className="shrink-0 text-[#C0C8D0] hover:cursor-pointer"
+                                onClick={() => removeExistingFile(file.name)}
+                                type="button"
+                            >
+                                <X className="size-3.5" strokeWidth={1.5} />
+                            </button>
+                        </div>
+                    ))}
                     {attachedFiles.map(({ file, previewUrl }) => (
                         <div
                             className="flex h-[50px] w-full items-center gap-2.5 rounded-[8px] border border-[#D7E8DB] bg-[#FCFCFC] px-3"
