@@ -4,6 +4,7 @@ import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
 import Header from "@/components/layout/Header";
 import Sidebar from "@/components/layout/Sidebar";
+import MemoContainer from "@/feature/memo/components/MemoContainer";
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-sans' });
 
@@ -28,6 +29,8 @@ export default function RootLayout({
           <Header />
           {children}
         </div>
+
+        <MemoContainer />
       </body>
     </html>
   );

@@ -9,7 +9,6 @@ import {
     Grid2X2,
     Home,
     MessageSquare,
-    NotebookPen,
     PanelTop,
     Settings,
     Shield,
@@ -23,11 +22,11 @@ import { usePathname } from "next/navigation";
 interface NavLinkProps {
     href: string,
     children: string,
-    icon: 'Home' | "PanelTop" | "MessageSquare" | "Bell" | "FileCheck2" | "Grid2X2" | "Clock3" | "WalletCards" | "GraduationCap" | "CalendarDays" | "Users" | "Shield" | "Settings" | "NotebookPen",
+    icon: 'Home' | "PanelTop" | "MessageSquare" | "Bell" | "FileCheck2" | "Grid2X2" | "Clock3" | "WalletCards" | "GraduationCap" | "CalendarDays" | "Users" | "Shield" | "Settings",
     count?: number
 }
 
-const Icon = { Home: Home, PanelTop: PanelTop, MessageSquare: MessageSquare, Bell: Bell, FileCheck2: FileCheck2, Grid2X2: Grid2X2, Clock3: Clock3, WalletCards: WalletCards, GraduationCap: GraduationCap, CalendarDays: CalendarDays, Users: Users, Shield: Shield, Settings: Settings, NotebookPen: NotebookPen }
+const Icon = { Home: Home, PanelTop: PanelTop, MessageSquare: MessageSquare, Bell: Bell, FileCheck2: FileCheck2, Grid2X2: Grid2X2, Clock3: Clock3, WalletCards: WalletCards, GraduationCap: GraduationCap, CalendarDays: CalendarDays, Users: Users, Shield: Shield, Settings: Settings }
 
 export default function NavLink({ href, children, icon, count }: NavLinkProps) {
     const SidebarIcon = Icon[icon]
