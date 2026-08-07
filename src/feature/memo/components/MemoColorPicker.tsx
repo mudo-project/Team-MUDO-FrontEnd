@@ -33,15 +33,15 @@ export default function MemoColorPicker({ selectedColor, onChange }: MemoColorPi
 
         return (
           <button
-            aria-label={`메모 색상 ${color.background}`}
+            aria-label={`메모 색상 ${color.accent}`}
             aria-pressed={isSelected}
-            className="inline-flex size-6 shrink-0 items-center justify-center rounded-full border border-white/70"
+            className="inline-flex size-6 shrink-0 items-center justify-center rounded-full border-2 border-white"
             key={color.background}
-            style={{ backgroundColor: color.background }}
+            style={{ backgroundColor: color.accent }}
             type="button"
             onClick={() => onChange(color)}
           >
-            {isSelected && <Check className="size-4 text-[#172033]" strokeWidth={2.3} />}
+            {isSelected && <Check className="size-4 text-white" strokeWidth={2.3} />}
           </button>
         );
       })}
