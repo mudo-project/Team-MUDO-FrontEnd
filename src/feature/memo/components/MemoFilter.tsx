@@ -4,9 +4,7 @@ export default function MemoFilter() {
           <div className="flex overflow-hidden rounded-md border border-[#E0E6E1] text-[10px]">
             <button className="bg-[#172033] px-2.5 py-1 font-medium text-white" type="button">최신순</button>
             <button className="border-l border-[#E0E6E1] px-2.5 py-1 text-[#718096]" type="button">오래된순</button>
-            <button className="border-l border-[#E0E6E1] px-2.5 py-1 text-[#718096]" type="button">☆ 자유배치</button>
           </div>
-          <span className="text-[10px] text-[#94A3B8]">자동 배치 중</span>
         </div>
     )
 }

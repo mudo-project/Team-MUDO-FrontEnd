@@ -6,6 +6,6 @@ type MemoStore = {
 };
 
 export const useMemoStore = create<MemoStore>((set) => ({
-    isOpen: true,
+    isOpen: false,
     toggleMemo: () => set((state) => ({ isOpen: !state.isOpen })),
 }))
