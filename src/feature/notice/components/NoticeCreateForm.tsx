@@ -45,7 +45,7 @@ export default function NoticeCreateForm() {
                     onClick={closeAndReset}
                 >
                     <form
-                        className="fixed top-1/2 left-1/2 z-1000 max-h-[85vh] w-[560px] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-[14px] bg-white p-7 shadow-[0_8px_40px_rgba(22,34,54,0.18)]"
+                        className="fixed top-1/2 left-1/2 z-1000 max-h-[85vh] w-[560px] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-[14px] bg-white p-7 shadow-[0_8px_40px_rgba(22,34,54,0.18)] scrollbar-hide"
                         onClick={(event) => event.stopPropagation()}
                         onSubmit={handleSubmit(onSubmit)}
                     >
