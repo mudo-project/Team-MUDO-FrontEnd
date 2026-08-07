@@ -35,17 +35,15 @@ export const refreshGet = async () => {
             throw new Error(message);
         }
 
-        //어세스 토큰 재발급시 저장
         cookieStore.set('accessToken', resData.data.accessToken, {
-            httpOnly: true,   // 자바스크립트 접근 불가(xss 방지)
-            maxAge: 60 * 60,   // 15분
-            path: '/'
+            httpOnly: true,
+            maxAge: 60 * 60,
+            path: '/',
+            sameSite: "lax" as const,
         })
 
-        //만약 리프레시도 같이 새로 건너온다면 저장
-        //getSetCookie()는 응답 헤더에 들어있는 Set-Cookie 값들을 배열로 꺼내는 함수
-        const setCookieHeaders: string[] =
-            response.headers.getSetCookie?.() ?? [];
+
+        const setCookieHeaders: string[] = response.headers.getSetCookie?.() ?? [];
 
 
         const newRefreshToken = setCookieHeaders.find((cookie) => cookie.startsWith("refreshToken="))
@@ -55,7 +53,8 @@ export const refreshGet = async () => {
             cookieStore.set('refreshToken', newRefreshValue, {
                 httpOnly: true,
                 maxAge: 60 * 60 * 3,
-                path: '/'
+                path: '/',
+                sameSite: "lax" as const
             });
         }
 

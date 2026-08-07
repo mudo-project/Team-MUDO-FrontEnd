@@ -1,7 +1,9 @@
 import LoginForm from "@/feature/auth/components/LoginForm";
+import { login } from "@/service/auth.service";
 import { GraduationCap } from "lucide-react";
 
-export default function Page() {
+export default async function Page() {
+
     return (
         <main className="flex min-h-screen w-full items-center justify-center bg-[#FCFCFC] p-6">
             <div className="w-full max-w-[420px]">

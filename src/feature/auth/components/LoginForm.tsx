@@ -23,7 +23,6 @@ export default function LoginForm() {
         }
     }, [state])
 
-    toast.success('asdf')
     return (
         <form
             action={loginFormAction}
