@@ -101,10 +101,9 @@ export const getWorkspaceDetailAction = async (
     }
 };
 
-export const createWorkspaceAction = async (
-    payload: CreateWorkspaceRequest,
-): Promise<WorkspaceActionResult<CreateWorkspaceData>> => {
-    const name = payload.name.trim();
+export const createWorkspaceAction = async (prevState: WorkspaceActionResult<CreateWorkspaceData>, formData: FormData): Promise<WorkspaceActionResult<CreateWorkspaceData>> => {
+    const name = formData.get('name') as string;
+    const memberIds = formData.getAll('memberIds') as [];
 
     if (!name || name.length > 100) {
         return {
@@ -113,15 +112,18 @@ export const createWorkspaceAction = async (
         };
     }
 
-    if (payload.memberIds?.some((id) => !isPositiveInteger(id))) {
+    if (memberIds?.some((id) => !isPositiveInteger(id))) {
         return {
             success: false,
             message: "참여자 번호가 올바르지 않습니다.",
         };
     }
+    const payload = {
+        name, memberIds
+    }
 
     try {
-        const response = await createWorkspace({ ...payload, name });
+        const response = await createWorkspace(payload);
 
         return {
             success: true,
