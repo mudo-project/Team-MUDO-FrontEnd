@@ -2,10 +2,38 @@
 
 import { ChevronsLeft, ChevronsRight } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { getWorkspaceListAction, WorkspaceActionResult } from "../actions";
+import { WorkspaceListData } from "../type";
+import WorkspaceNavLink from "./WorkspaceNavLink";
+
 
 export default function WorkspaceSidebar() {
     const [open, setOpen] = useState<boolean>(true);
+    const [workspaceList, setWorkspaceList] = useState<{
+        loading: boolean;
+        error: string;
+        data: WorkspaceListData[];
+    }>({
+        loading: false,
+        error: '',
+        data: []
+    })
+
+    useEffect(() => {
+        setWorkspaceList({ ...workspaceList, loading: true })
+        const fetchWorkspace = async () => {
+            const response: WorkspaceActionResult<WorkspaceListData[]> = await getWorkspaceListAction();
+            setWorkspaceList({
+                loading: false,
+                error: response.success ? '' : response.message,
+                data: response.data ?? []
+            })
+
+        }
+
+        fetchWorkspace();
+    }, [])
 
     return (
         <aside className={`${open ? 'w-[230px]' : 'w-[50px]'}  shrink-0 border-r border-[#E7EAF0] bg-white`}>
@@ -39,19 +67,15 @@ export default function WorkspaceSidebar() {
                 </Link>
 
                 <div className="mx-1 mt-1.5 border-t border-[#EFF1F4]" />
-                <div className="h-[calc(100dvh-170px)] scrollbar-hide overflow-auto">
-                    <Link
-                        href="/workspace/daily"
-                        className="mt-2 block rounded-[7px] bg-[#F5F6F8] px-3 py-[9px]"
-                    >
-                        <strong className="block text-[13px] leading-[19.5px] font-semibold">8월 학사 운영</strong>
-                        <span className="mt-0.5 block text-[11px] leading-[16.5px] text-[#AEB6C2]">참여자 3명 · 7건</span>
-                    </Link>
-
-                    <Link href="/workspace/repeat" className="my-0.5 block rounded-[7px] px-3 py-[9px]">
-                        <strong className="block text-[13px] leading-[19.5px] font-medium">신규 강사 온보딩</strong>
-                        <span className="mt-0.5 block text-[11px] leading-[16.5px] text-[#AEB6C2]">참여자 3명 · 4건</span>
-                    </Link>
+                <div className="h-[calc(100dvh-170px)] scrollbar-hide overflow-auto pt-2">
+                    {workspaceList.data.map((workspace) => {
+                        return (
+                            <WorkspaceNavLink workspace={workspace} />
+                        )
+                    })}
+                    {workspaceList.data.length === 0 && (
+                        <p> 생성된 워크스페이스가 없습니다</p>
+                    )}
                 </div>
             </nav>
         </aside>
