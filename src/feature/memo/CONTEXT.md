@@ -172,7 +172,7 @@
 | **MemoFilter** | 정렬 필터 UI(구현 완료). `sortOrder`/`onChangeSortOrder` props를 받는 controlled 컴포넌트로, 클릭 시 실제로 `MemoContainer`의 정렬 기준을 바꿈 |
 | **MemoCard** | 메모 목록 그리드 렌더링(구현 완료). `openedMenuId`(열린 카드), `menuMode`(`"menu"`/`"color"`/`"delete"`), `editedMemoId`(편집 중인 카드) state로 카드별 UI 전환을 관리하고, `createForm` prop으로 받은 `MemoCreateForm`을 그리드 맨 앞에 함께 렌더링 |
 | **MemoCardMenu** | 케밥 메뉴 UI(구현 완료). `onEdit`/`onChangeColor`/`onDelete` props로 `MemoCard`의 모드 전환을 트리거함 (실제 저장/적용/삭제는 `MemoCard`에도 없음) |
-| **MemoColorPicker** | 색상 선택 UI(구현 완료). `selectedColor`/`onChange` props를 받는 controlled 컴포넌트로, `MemoCreateForm`/`MemoEditForm`뿐 아니라 `MemoCard`의 인라인 색상 변경 UI에서도 재사용됨. 팔레트가 12색 헥스값이라 API의 5색 enum과 맞지 않음(5. 데이터 참고, 백엔드 확인 중) |
+| **MemoColorPicker** | 색상 선택 UI(구현 완료). `selectedColor`/`onChange` props를 받는 controlled 컴포넌트로, `MemoCreateForm`/`MemoEditForm`뿐 아니라 `MemoCard`의 인라인 색상 변경 UI에서도 재사용됨. 팔레트 12색과 API `color` enum(`ROSE`/`MUSTARD`/`SAGE`/`BLUE`/`LAVENDER`/`PINK`/`SLATE`/`PEACH`/`TEAL`/`OLIVE`/`CLAY`/`INDIGO`, `.docs/api/memo/apiIntegration.md`)이 1:1로 확정됨. 다만 `MemoColor` 타입(`accent`/`background`)엔 아직 이 enum 값을 담는 필드가 없어서, 실제 API 연동 시 각 팔레트 항목에 색상 키를 추가해야 함 |
 
 > `approval` 도메인이 생성/수정 모달을 분리(`CreateApprovalModal` / `UpdateApprovalModal`)해 쓰는 것과 동일하게, 메모도 작성 폼과 수정 폼을 분리하는 구조로 확정.
 
