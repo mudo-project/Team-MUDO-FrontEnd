@@ -22,10 +22,12 @@ const MEMO_COLOR_CODES: MemoColorCode[] = [
     "INDIGO",
 ];
 
+// 메모 목록조회 액션
 export const getMemoListAction = async (sort?: MemoSortOrder): Promise<MemoData[]> => {
     return getMemoList(sort);
 }
 
+// 메모 생성 액션
 export const createMemoAction = async (
     title: string,
     content: string,
@@ -77,6 +79,7 @@ export const createMemoAction = async (
     }
 }
 
+// 메모 수정 액션
 export const updateMemoAction = async (
     memoId: number,
     title: string,
@@ -119,6 +122,7 @@ export const updateMemoAction = async (
     }
 }
 
+// 메모 색상 변경 액션
 export const changeMemoColorAction = async (
     memoId: number,
     color: MemoColorCode
@@ -150,6 +154,7 @@ export const changeMemoColorAction = async (
     }
 }
 
+// 메모 삭제 액션
 export const deleteMemoAction = async (memoId: number): Promise<MemoActionState> => {
     try {
         await deleteMemo(memoId);

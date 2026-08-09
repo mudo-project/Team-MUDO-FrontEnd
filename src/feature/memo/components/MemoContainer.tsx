@@ -1,68 +1,63 @@
 'use client'
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Plus, X } from "lucide-react";
+import { toast } from "sonner";
+import { createMemoAction, getMemoListAction } from "../actions";
 import MemoCard from "./MemoCard";
 import MemoCreateForm from "./MemoCreateForm";
 import MemoFilter from "./MemoFilter";
+import type { MemoColor } from "./MemoColorPicker";
 import { useMemoStore } from "@/store/useMemoStore";
 
-const INITIAL_MEMOS = [
-  {
-    id: 1,
-    title: "9월 시간표 초안",
-    content: ["수학A반 월·수·금", "영어B반 화·목 오후 5시", "과학D반 토 오전"],
-    time: "08.04",
-    accent: "#6F9B7B",
-    background: "#EDF4EE",
-  },
-  {
-    id: 2,
-    title: "8월 강사 회의 준비",
-    content: ["- PPT 슬라이드 최종 확인", "- 참석자 명단 출력", "- 음료·다과 주문 (8/16 마감)"],
-    time: "08.03",
-    accent: "#B29A57",
-    background: "#F7F2E2",
-  },
-  {
-    id: 3,
-    title: "비품 구매 요청",
-    content: ["화이트보드 마커 × 20", "지우개 × 5", "출석부 × 3권", "→ 정다는 행정팀 전달"],
-    time: "08.02",
-    accent: "#B7837C",
-    background: "#F8EEEE",
-  },
-  {
-    id: 4,
-    title: "수강생 오리엔테이션 체크리스트",
-    content: ["입학 안내문 발송 완료", "교재 배부 8/17", "반 배정표 게시판 부착 필요"],
-    time: "07.31",
-    accent: "#7890B8",
-    background: "#EEF2FA",
-  },
-  {
-    id: 5,
-    title: "개인 메모",
-    content: ["강도현 강사 면담 일정 잡기 (8월 중)", "박서연 연가 복귀 확인"],
-    time: "07.29",
-    accent: "#8977AE",
-    background: "#F2EFF8",
-  },
-];
+type SortOrder = "latest" | "oldest";
+
+const SORT_ORDER_TO_API: Record<SortOrder, MemoSortOrder> = {
+    latest: "NEWEST",
+    oldest: "OLDEST",
+};
 
 export default function MemoContainer() {
     const isOpen = useMemoStore((state) => state.isOpen)
     const toggleMemo = useMemoStore((state) => state.toggleMemo)
     const [isCreating, setIsCreating] = useState(false)
-    const [sortOrder, setSortOrder] = useState<"latest" | "oldest">("latest")
-    const sortedMemos = [...INITIAL_MEMOS].sort((firstMemo, secondMemo) => {
-      const firstDate = Number(firstMemo.time.replace(".", ""));
-      const secondDate = Number(secondMemo.time.replace(".", ""));
+    const [sortOrder, setSortOrder] = useState<SortOrder>("latest")
+    const [memos, setMemos] = useState<MemoData[]>([])
+    const [isLoading, setIsLoading] = useState(false)
 
-      return sortOrder === "latest" ? secondDate - firstDate : firstDate - secondDate;
-    });
+    const fetchMemos = useCallback(async () => {
+        setIsLoading(true);
+
+        try {
+            const data = await getMemoListAction(SORT_ORDER_TO_API[sortOrder]);
+            setMemos(data);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : "메모 목록 조회에 실패하였습니다.";
+            toast.error(message);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [sortOrder]);
+
+    useEffect(() => {
+        if (isOpen) {
+            fetchMemos();
+        }
+    }, [isOpen, fetchMemos]);
 
     if (!isOpen) return null;
+
+    const handleCreate = async (title: string, content: string, color: MemoColor) => {
+        const result = await createMemoAction(title, content, color.code);
+
+        if (result.success) {
+            toast.success(result.message);
+            setIsCreating(false);
+            fetchMemos();
+        } else {
+            toast.error(result.message);
+        }
+    };
 
     return (
     <aside
@@ -72,7 +67,7 @@ export default function MemoContainer() {
       <header className="flex h-[50px] shrink-0 items-center justify-between border-b border-[#E6EBE7] px-3">
         <h1 id="memo-title" className="text-[15px] font-bold tracking-[-0.03em]">
           메모
-          <span className="ml-1 text-[11px] font-medium text-[#94A3B8]">{INITIAL_MEMOS.length}</span>
+          <span className="ml-1 text-[11px] font-medium text-[#94A3B8]">{memos.length}</span>
         </h1>
         <div className="flex items-center gap-2">
           <button
@@ -97,8 +92,10 @@ export default function MemoContainer() {
       <MemoFilter sortOrder={sortOrder} onChangeSortOrder={setSortOrder} />
 
       <MemoCard
-        createForm={isCreating && <MemoCreateForm onCancel={() => setIsCreating(false)} onSave={() => setIsCreating(false)} />}
-        memos={sortedMemos}
+        createForm={isCreating && <MemoCreateForm onCancel={() => setIsCreating(false)} onSave={handleCreate} />}
+        isLoading={isLoading}
+        memos={memos}
+        onRefresh={fetchMemos}
       />
     </aside>
     )

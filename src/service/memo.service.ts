@@ -1,6 +1,7 @@
 import { fetchWithAuth } from "@/lib/fetch";
 import { getErrorMessage } from "@/lib/stateError";
 
+// 메모 목록 조회 API
 export const getMemoList = async (sort?: MemoSortOrder): Promise<MemoData[]> => {
     const query = sort ? `?sort=${sort}` : "";
     const response = await fetchWithAuth(`/api/memos${query}`);
@@ -19,6 +20,7 @@ export const getMemoList = async (sort?: MemoSortOrder): Promise<MemoData[]> => 
     return resData.data;
 }
 
+// 메모 생성 API 
 export const createMemo = async (payload: MemoCreateRequest): Promise<number> => {
     const response = await fetchWithAuth("/api/memos", {
         method: "POST",
@@ -39,6 +41,7 @@ export const createMemo = async (payload: MemoCreateRequest): Promise<number> =>
     return resData.data.id;
 }
 
+// 메모 수정 API
 export const updateMemo = async (memoId: number, payload: MemoUpdateRequest): Promise<void> => {
     const response = await fetchWithAuth(`/api/memos/${memoId}`, {
         method: "PATCH",
@@ -55,6 +58,7 @@ export const updateMemo = async (memoId: number, payload: MemoUpdateRequest): Pr
     }
 }
 
+// 메모 색상 변경 API
 export const changeMemoColor = async (memoId: number, payload: MemoColorChangeRequest): Promise<void> => {
     const response = await fetchWithAuth(`/api/memos/${memoId}/color`, {
         method: "PATCH",
@@ -71,6 +75,7 @@ export const changeMemoColor = async (memoId: number, payload: MemoColorChangeRe
     }
 }
 
+// 메모 삭제 API
 export const deleteMemo = async (memoId: number): Promise<void> => {
     const response = await fetchWithAuth(`/api/memos/${memoId}`, {
         method: "DELETE",

@@ -1,7 +1,7 @@
 # Memo Domain — CONTEXT
 > 배치 경로: `src/feature/memo/CONTEXT.md`
 > 목적: 이 문서를 읽은 사람 또는 AI 에이전트가 메모 도메인이 **무엇을 하는 도메인이고, 어떤 기능이 있으며, 어떤 조각으로 이루어져 있는지** 파악할 수 있게 한다.
-> 구현 상태: **부분 구현**. 컨테이너 열림/닫힘·영속성(4.1), 정렬(4.3), 케밥 메뉴 열기/닫기와 수정 모드 진입(4.4)까지는 화면 동작으로 구현되어 있다. 다만 전부 `MemoContainer`의 `INITIAL_MEMOS` 더미 배열을 다룰 뿐이고, 새 메모 저장·수정 저장·색상 변경·삭제는 어떤 화면 흐름도 이 배열이나 실제 API에 반영하지 않는다(버튼/폼은 뜨지만 결과가 사라짐). 실제 메모 데이터 연동(API)은 아직 시작하지 않았다.
+> 구현 상태: **거의 구현 완료**. 컨테이너 열림/닫힘·영속성(4.1), 메모 CRUD(4.2), 정렬(4.3), 케밥 메뉴(4.4) 모두 실제 API(`.docs/api/memo/apiIntegration.md`, `src/feature/memo/type.ts`·`actions.ts`, `src/service/memo.service.ts`)에 연결되어 있다. 위치변경(자유배치)만 스코프에서 제외됐다.
 
 ---
 
@@ -111,39 +111,37 @@
 | 컨테이너 닫기 | Sidebar 메모 재클릭 (`toggleMemo`) | 컨테이너 숨김 |
 | 컨테이너 유지 | 페이지 이동 | `layout.tsx`에 상시 마운트되어 있어 리마운트되지 않고 그대로 유지 |
 
-### 4.2 메모 CRUD — 부분 구현 (화면 흐름은 있지만 저장이 없음)
+### 4.2 메모 CRUD — 구현 완료
 
 | 기능 | 트리거 | 동작 | 상태 |
 |---|---|---|---|
 | 새 메모 생성 폼 열기 | Header `새 메모` 클릭 | `MemoContainer`의 `isCreating` state가 `true`가 되어 카드 그리드 맨 앞에 `MemoCreateForm`(제목·내용 입력 + `MemoColorPicker`)이 나타남 | 구현 완료 |
-| 새 메모 저장 | `MemoCreateForm` 저장 버튼 (`react-hook-form` + `memoCreateSchema`(zod) 검증) | 폼이 닫히기만 함. 입력한 제목·내용·색상이 실제 메모 목록(`INITIAL_MEMOS`)에 추가되지 않음 | **미구현** (저장 로직 없음) |
+| 새 메모 저장 | `MemoCreateForm` 저장 버튼 (`react-hook-form` + `memoCreateSchema`(zod) 검증) | `MemoContainer`의 `handleCreate`가 `createMemoAction` 호출 → `POST /api/memos`. 성공 시 토스트 안내 + 폼 닫힘 + `fetchMemos()`로 목록 재조회, 실패 시 에러 토스트만 표시하고 폼 유지 | 구현 완료 |
 | 새 메모 생성 취소 | `MemoCreateForm` 취소 버튼 | 입력값 초기화 후 폼 닫힘 | 구현 완료 |
-| 메모 수정 모드 진입 | 케밥 메뉴 → `수정` | 메뉴가 닫히고 `MemoCard`의 `editedMemoId`가 해당 카드 id로 설정되어, 그 카드 자리가 `MemoEditForm`(제목·내용·색상 수정)으로 바뀜 | 구현 완료 |
-| 메모 수정 저장 | `MemoEditForm` 저장 버튼 (`react-hook-form` + `memoCreateSchema`(zod) 검증) | 편집 모드가 종료되고 표시 모드로 돌아가기만 함. 수정한 제목·내용·색상이 `INITIAL_MEMOS`에 반영되지 않음 | **미구현** (저장 로직 없음) |
+| 메모 수정 모드 진입 | 케밥 메뉴 → `수정` | 메뉴가 닫히고 `MemoCard`의 `editedMemoId`가 해당 카드 id로 설정되어, 그 카드 자리가 `MemoEditForm`(제목·내용·색상 수정, 기존 값으로 초기화)으로 바뀜 | 구현 완료 |
+| 메모 수정 저장 | `MemoEditForm` 저장 버튼 (`react-hook-form` + `memoCreateSchema`(zod) 검증) | `MemoCard`의 `handleEditSave`가 `updateMemoAction`(제목·내용) 호출 → `PATCH /api/memos/{id}`, 색상이 바뀌었으면 이어서 `changeMemoColorAction`도 호출. 성공 시 토스트 + 편집 모드 종료 + `onRefresh()` | 구현 완료 |
 | 메모 수정 취소 | `MemoEditForm` 취소 버튼 | 입력값 초기화 후 표시 모드로 복귀 | 구현 완료 |
 | 색상 변경 UI 열기 | 케밥 메뉴 → `색상 변경` | 케밥 메뉴 자리가 `MemoColorPicker`(인라인)로 바뀜 | 구현 완료 |
-| 색상 변경 적용 | `MemoColorPicker`에서 색상 클릭 | 팔레트 안에서 선택 표시(체크 아이콘)만 바뀜. 카드의 실제 배경/강조색이 바뀌지 않고, 창을 닫아도 반영되지 않음 | **미구현** |
+| 색상 변경 적용 | `MemoColorPicker`에서 색상 클릭 | `MemoCard`의 `handleColorChange`가 클릭 즉시 `changeMemoColorAction` 호출 → `PATCH /api/memos/{id}/color` (별도 확인 버튼 없음). 성공 시 토스트 + 메뉴 닫힘 + `onRefresh()` | 구현 완료 |
 | 삭제 확인 다이얼로그 열기 | 케밥 메뉴 → `삭제` | 카드 위에 "삭제할까요?" 확인 UI가 덮어씌워짐 | 구현 완료 |
-| 삭제 실행 | 확인 다이얼로그의 `삭제` 버튼 | 다이얼로그만 닫힘. 해당 메모가 목록에서 실제로 제거되지 않음 | **미구현** (삭제 로직 없음) |
+| 삭제 실행 | 확인 다이얼로그의 `삭제` 버튼 | `MemoCard`의 `handleDelete`가 `deleteMemoAction` 호출 → `DELETE /api/memos/{id}`. 성공 시 토스트 + 다이얼로그 닫힘 + `onRefresh()` | 구현 완료 |
 
-### 4.3 정렬 — 구현 완료 (더미 데이터 기준)
+### 4.3 정렬 — 구현 완료
 
 | 기능 | 트리거 | 동작 |
 |---|---|---|
-| 최신순 정렬 | Nav `최신순` 클릭 | `MemoContainer`의 `sortOrder` state가 `"latest"`가 되어, `time`(`MM.DD` 문자열을 숫자로 변환) 기준 내림차순으로 정렬된 `sortedMemos`를 `MemoCard`에 전달 |
-| 오래된순 정렬 | Nav `오래된순` 클릭 | `sortOrder`가 `"oldest"`가 되어 오름차순 정렬 |
+| 최신순 정렬 | Nav `최신순` 클릭 | `MemoContainer`의 `sortOrder` state가 `"latest"`가 되고, `SORT_ORDER_TO_API`로 `"NEWEST"`로 매핑되어 `getMemoListAction("NEWEST")` → `GET /api/memos?sort=NEWEST` 재조회. 정렬은 서버가 수행 |
+| 오래된순 정렬 | Nav `오래된순` 클릭 | `sortOrder`가 `"oldest"`가 되어 `"OLDEST"`로 매핑, `GET /api/memos?sort=OLDEST` 재조회 |
 
-> 실제 서버 데이터로 붙일 때는 `GET /api/memos?sort=NEWEST\|OLDEST` 쿼리로 서버가 정렬해서 내려주므로, 이 클라이언트 정렬 로직은 그때 API 재조회로 대체될 가능성이 높다.
+### 4.4 케밥 메뉴 — 구현 완료
 
-### 4.4 케밥 메뉴 — 부분 구현
-
-| 기능 | 트리거 | 동작 | 상태 |
-|---|---|---|---|
-| 메뉴 열기 | 카드 내 `⋮` 클릭 (`MemoCard`의 `openedMenuId` state) | 해당 카드에 `MemoCardMenu`(수정 / 색상 변경 / 삭제 항목) 표시. 이때 `menuMode`는 `"menu"`로 초기화됨 | 구현 완료 |
-| 메뉴 닫기 | 다른 카드의 `⋮` 재클릭, 메뉴 바깥 클릭 (`pointerdown` + `data-memo-menu`/`data-memo-menu-trigger`) | 메뉴 숨김, `menuMode`/`selectedColor` 초기화 | 구현 완료 |
-| `수정` 클릭 | `MemoCardMenu`의 `onEdit` | 메뉴가 닫히고 4.2의 "메모 수정 모드 진입"으로 이어짐 | 구현 완료 (저장은 4.2 참고 — 미구현) |
-| `색상 변경` 클릭 | `MemoCardMenu`의 `onChangeColor` | `menuMode`가 `"color"`가 되어 메뉴 자리에 `MemoColorPicker` 표시 | 구현 완료 (적용은 4.2 참고 — 미구현) |
-| `삭제` 클릭 | `MemoCardMenu`의 `onDelete` | `menuMode`가 `"delete"`가 되어 삭제 확인 UI 표시 | 구현 완료 (실행은 4.2 참고 — 미구현) |
+| 기능 | 트리거 | 동작 |
+|---|---|---|
+| 메뉴 열기 | 카드 내 `⋮` 클릭 (`MemoCard`의 `openedMenuId` state) | 해당 카드에 `MemoCardMenu`(수정 / 색상 변경 / 삭제 항목) 표시. 이때 `menuMode`는 `"menu"`로 초기화됨 |
+| 메뉴 닫기 | 다른 카드의 `⋮` 재클릭, 메뉴 바깥 클릭 (`pointerdown` + `data-memo-menu`/`data-memo-menu-trigger`) | 메뉴 숨김, `menuMode`/`selectedColor` 초기화 |
+| `수정` 클릭 | `MemoCardMenu`의 `onEdit` | 메뉴가 닫히고 4.2의 "메모 수정 모드 진입"으로 이어짐 |
+| `색상 변경` 클릭 | `MemoCardMenu`의 `onChangeColor` | `menuMode`가 `"color"`가 되어 메뉴 자리에 `MemoColorPicker` 표시, 클릭 시 4.2의 "색상 변경 적용"으로 이어짐 |
+| `삭제` 클릭 | `MemoCardMenu`의 `onDelete` | `menuMode`가 `"delete"`가 되어 삭제 확인 UI 표시, 확인 시 4.2의 "삭제 실행"으로 이어짐 |
 
 ---
 
@@ -166,13 +164,13 @@
 
 | 컴포넌트 | 책임 |
 |---|---|
-| **MemoContainer** | 메모 컨테이너 셸(구현 완료). `layout.tsx`에서 라우트와 무관하게 항상 마운트되며, `useMemoStore`의 `isOpen`을 구독해 열림·닫힘을 결정. Header / Nav / Main 배치, `isCreating` state로 생성 폼 표시 여부, `sortOrder` state로 정렬 기준을 담당. Header는 별도 컴포넌트로 분리하지 않고 이 안에 직접 작성 |
-| **MemoCreateForm** | 메모 작성 폼(화면 흐름 구현 완료, 저장 미구현). `react-hook-form` + `memoCreateSchema`(zod, `src/lib/memoCreateSchema.ts`)로 제목·내용 검증, `MemoColorPicker`로 색상 선택. 저장 시 상위(`MemoContainer`)로 값을 전달하지만 실제 메모 목록에 반영하는 로직은 아직 없음 |
-| **MemoEditForm** | 메모 수정 폼(화면 흐름 구현 완료, 저장 미구현). 기존 `memo`(title/content/accent/background)를 prop으로 받아 `MemoCreateForm`과 동일한 검증·색상 선택 UI로 수정. 저장 시 값을 상위로 전달하지만 반영 로직은 없음 |
-| **MemoFilter** | 정렬 필터 UI(구현 완료). `sortOrder`/`onChangeSortOrder` props를 받는 controlled 컴포넌트로, 클릭 시 실제로 `MemoContainer`의 정렬 기준을 바꿈 |
-| **MemoCard** | 메모 목록 그리드 렌더링(구현 완료). `openedMenuId`(열린 카드), `menuMode`(`"menu"`/`"color"`/`"delete"`), `editedMemoId`(편집 중인 카드) state로 카드별 UI 전환을 관리하고, `createForm` prop으로 받은 `MemoCreateForm`을 그리드 맨 앞에 함께 렌더링 |
-| **MemoCardMenu** | 케밥 메뉴 UI(구현 완료). `onEdit`/`onChangeColor`/`onDelete` props로 `MemoCard`의 모드 전환을 트리거함 (실제 저장/적용/삭제는 `MemoCard`에도 없음) |
-| **MemoColorPicker** | 색상 선택 UI(구현 완료). `selectedColor`/`onChange` props를 받는 controlled 컴포넌트로, `MemoCreateForm`/`MemoEditForm`뿐 아니라 `MemoCard`의 인라인 색상 변경 UI에서도 재사용됨. 팔레트 12색과 API `color` enum(`ROSE`/`MUSTARD`/`SAGE`/`BLUE`/`LAVENDER`/`PINK`/`SLATE`/`PEACH`/`TEAL`/`OLIVE`/`CLAY`/`INDIGO`, `.docs/api/memo/apiIntegration.md`)이 1:1로 확정됨. 다만 `MemoColor` 타입(`accent`/`background`)엔 아직 이 enum 값을 담는 필드가 없어서, 실제 API 연동 시 각 팔레트 항목에 색상 키를 추가해야 함 |
+| **MemoContainer** | 메모 컨테이너 셸(구현 완료). `layout.tsx`에서 라우트와 무관하게 항상 마운트되며, `useMemoStore`의 `isOpen`을 구독해 열림·닫힘을 결정. `memos`/`isLoading` state와 `fetchMemos`(`getMemoListAction` 호출)로 목록을 관리하며, 패널이 열릴 때·정렬이 바뀔 때마다 재조회함. `isCreating` state로 생성 폼 표시 여부를 담당하고, `handleCreate`가 `createMemoAction`을 호출 |
+| **MemoCreateForm** | 메모 작성 폼(구현 완료). `react-hook-form` + `memoCreateSchema`(zod, `src/lib/memoCreateSchema.ts`)로 제목·내용 검증, `MemoColorPicker`로 색상 선택. 저장 시 상위(`MemoContainer`의 `handleCreate`)로 `(title, content, color)`를 전달 |
+| **MemoEditForm** | 메모 수정 폼(구현 완료). `memo: MemoData`를 prop으로 받아 기존 값(제목·내용, `MEMO_COLORS`에서 `memo.color`로 찾은 색상)으로 초기화하고 `MemoCreateForm`과 동일한 검증·색상 선택 UI 제공. 저장 시 `MemoCard`의 `handleEditSave`로 값을 전달 |
+| **MemoFilter** | 정렬 필터 UI(구현 완료). `sortOrder`/`onChangeSortOrder` props를 받는 controlled 컴포넌트로, 클릭 시 실제로 `MemoContainer`의 정렬 기준을 바꿔 서버 재조회를 트리거함 |
+| **MemoCard** | 메모 목록 그리드 렌더링(구현 완료). `openedMenuId`(열린 카드), `menuMode`(`"menu"`/`"color"`/`"delete"`), `editedMemoId`(편집 중인 카드) state로 카드별 UI 전환을 관리. `handleColorChange`/`handleDelete`/`handleEditSave`가 각각 `changeMemoColorAction`/`deleteMemoAction`/`updateMemoAction`(+필요시 `changeMemoColorAction`)을 호출하고 성공 시 `onRefresh` prop(=`MemoContainer`의 `fetchMemos`)으로 목록을 갱신. `getPaletteColor`/`formatMemoDate` 헬퍼로 `MemoData.color`(enum)·`createdAt`(ISO)을 화면 표시용 색상·날짜로 변환하고, `createForm` prop으로 받은 `MemoCreateForm`을 그리드 맨 앞에 함께 렌더링. `isLoading`/목록 빈 상태 문구도 여기서 표시 |
+| **MemoCardMenu** | 케밥 메뉴 UI(구현 완료). `onEdit`/`onChangeColor`/`onDelete` props로 `MemoCard`의 모드 전환을 트리거함 |
+| **MemoColorPicker** | 색상 선택 UI(구현 완료). `selectedColor`/`onChange` props를 받는 controlled 컴포넌트로, `MemoCreateForm`/`MemoEditForm`뿐 아니라 `MemoCard`의 인라인 색상 변경 UI에서도 재사용됨. `MemoColor`에 `code: MemoColorCode` 필드가 있어 팔레트 12색과 API `color` enum(`ROSE`/`MUSTARD`/`SAGE`/`BLUE`/`LAVENDER`/`PINK`/`SLATE`/`PEACH`/`TEAL`/`OLIVE`/`CLAY`/`INDIGO`)이 1:1로 연결되어 있고, 이 `code` 값이 그대로 API 요청에 실림 |
 
 > `approval` 도메인이 생성/수정 모달을 분리(`CreateApprovalModal` / `UpdateApprovalModal`)해 쓰는 것과 동일하게, 메모도 작성 폼과 수정 폼을 분리하는 구조로 확정.
 
@@ -181,9 +179,9 @@
 ### 관계
 
 ```
-MemoContainer            (isCreating, sortOrder state)
+MemoContainer            (isCreating, sortOrder, memos, isLoading state)
 ├── MemoFilter            (sortOrder / onChangeSortOrder props)
-└── MemoCard              (memos = sortedMemos, createForm prop
+└── MemoCard              (memos, isLoading, createForm, onRefresh props
                             / openedMenuId, menuMode, editedMemoId state)
     ├── MemoCreateForm    (createForm prop으로 전달, isCreating일 때만)
     │   └── MemoColorPicker
@@ -202,8 +200,9 @@ MemoContainer            (isCreating, sortOrder state)
 | 조각 | 역할 | 상태 |
 |---|---|---|
 | 컨테이너 열림 상태 | `src/store/useMemoStore.ts` (Zustand). 페이지 단위가 아닌 전역 스토어로 관리해 라우트 이동과 무관하게 유지 | 구현 완료 |
-| 정렬 상태 | `MemoContainer`의 `sortOrder` state(`"latest"`/`"oldest"`). 더미 배열을 클라이언트에서 직접 정렬 | 구현 완료 (더미 데이터 기준) |
-| 메모 데이터 | 메모 목록 조회 및 CRUD | 미구현. `MemoContainer`의 `INITIAL_MEMOS` 더미 배열만 있고, 생성·수정·색상변경·삭제 어느 것도 이 배열에 반영되지 않음(진짜 상태 관리도 아직 없음) |
+| 정렬 상태 | `MemoContainer`의 `sortOrder` state(`"latest"`/`"oldest"`) → `SORT_ORDER_TO_API`로 `MemoSortOrder`(`"NEWEST"`/`"OLDEST"`)로 매핑해 서버에 위임 | 구현 완료 |
+| 메모 데이터 | 메모 목록 조회 및 CRUD | 구현 완료. `MemoContainer`의 `memos: MemoData[]` state가 `getMemoListAction`으로 채워지고, 생성·수정·색상변경·삭제 성공 시 `fetchMemos()` 재조회로 항상 서버 상태와 동기화됨(낙관적 업데이트 없음) |
+| 목록 로딩 상태 | `MemoContainer`의 `isLoading` state. `MemoCard`가 이 값으로 로딩/빈 상태 문구를 표시 | 구현 완료 |
 | 카드별 케밥 메뉴 상태 | `MemoCard`의 `openedMenuId`(열린 카드) + `menuMode`(`"menu"`/`"color"`/`"delete"`) state. 카드 1건만 열리도록 단일 id로 관리, 바깥 클릭 시 초기화 | 구현 완료 |
 | 편집 중인 카드 상태 | `MemoCard`의 `editedMemoId` state. 해당 id의 카드를 `MemoEditForm`으로 교체 렌더링 | 구현 완료 |
 | 생성 폼 표시 상태 | `MemoContainer`의 `isCreating` state | 구현 완료 |
