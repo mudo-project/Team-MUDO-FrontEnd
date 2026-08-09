@@ -1,7 +1,7 @@
 # Setting(설정) Domain — CONTEXT
 > 배치 경로: `src/feature/setting/CONTEXT.md`
 > 목적: 이 문서를 읽은 사람 또는 AI 에이전트가 설정 도메인이 **무엇을 하는 도메인이고, 어떤 기능이 있으며, 어떤 조각으로 이루어져 있는지** 파악할 수 있게 한다.
-> 구현 상태: 현재는 화면 레이아웃과 더미 데이터만 존재하는 정적 UI 단계다. 상태 관리·검증·API 연동은 모두 미구현이며, 아래 기능 목록의 "상태" 열로 항목별 구현 여부를 표시한다.
+> 구현 상태: 근무 시간(30분 단위 시각 선택, 요일별 예외)과 와이파이 IP 등록(내 IP 확인 → 등록 → 목록 표시)은 클라이언트 상태로 동작한다. 급여 지급일·알림 설정·구글 연동은 아직 화면 레이아웃과 더미 데이터만 존재하는 정적 UI 단계다. 실제 서버 API 연동(조회·저장)은 모든 기능에서 미구현이며, 아래 기능 목록의 "상태" 열로 항목별 구현 여부를 표시한다.
 
 ---
 
@@ -12,10 +12,10 @@
 ### 핵심 제약
 
 - 근무시간의 출근/퇴근 시각은 **30분 단위**로 선택한다.
-- 지각 유예는 **10분 단위**로 +/- 조정한다.
+- 지각 유예는 **10분 단위**로, **0분~60분** 범위에서 +/- 조정한다.
 - 요일별 예외를 켜면 하단에 요일 목록이 나타나고, 요일마다 on/off(휴무/근무)와 30분 단위 출근시간을 개별 설정할 수 있다.
-- 와이파이 IP는 여러 개 등록할 수 있으며, "내 IP 확인" → "이 IP로 등록" 순서로 입력창에 채워 넣는 흐름을 가진다.
-- 급여 지급일은 1일~31일 중 선택한다.
+- 와이파이 IP는 여러 개 등록할 수 있으며, "내 IP 확인" → "이 IP로 등록" 순서로 입력창에 채워 넣는 흐름을 가진다. "이 IP로 등록" 행은 "내 IP 확인" 버튼이 있는 컨테이너 안쪽에 나타난다.
+- 급여 지급일은 1일~30일 중 선택한다.
 - 구글 연동 상세조회는 설정 화면과 별도의 화면(계정 연동 컨테이너, 연동 안내 컨테이너로 구성)이며, 계정 교체는 동의 → 인증 → 완료 3단계 모달로 진행된다.
 
 ### 진입점
@@ -86,26 +86,30 @@ Sidebar의 설정 메뉴(`src/components/layout/Sidebar.tsx`, `href: "/setting"`
 
 | 기능 | 트리거 | 동작 | 상태 |
 |---|---|---|---|
-| 출근 시각 선택 | 출근 시각 select 클릭 | 30분 단위로 24시간 옵션 표시 | 미구현 — 현재 `09:00` 단일 옵션만 존재 |
-| 퇴근 시각 선택 | 퇴근 시각 select 클릭 | 30분 단위로 24시간 옵션 표시 | 미구현 — 현재 `18:00` 단일 옵션만 존재 |
-| 지각 유예 조정 | +/- 버튼 클릭 | 10분 단위로 값 증감 | 미구현 — 버튼은 있으나 클릭 핸들러 없음, 값은 `10` 고정 텍스트 |
-| 요일별 예외 토글 | 토글 스위치 클릭 | 하단에 요일 목록(요일별 on/off + 30분 단위 출근시간) 표시 | 미구현 — 체크박스만 존재, 목록 UI 없음 |
-| 근무시간 저장 | 카드 하단 `저장` 클릭 | 근무시간 설정 저장 | 미구현 — 버튼에 핸들러 없음 |
+| 출근 시각 선택 | 출근 시각 select 클릭 | 30분 단위로 24시간 옵션 표시 | 구현 완료 — `SettingTimeSelect`가 `generateHalfHourOptions()`(00:00~23:30, 48개)로 옵션을 만들어 렌더링 |
+| 퇴근 시각 선택 | 퇴근 시각 select 클릭 | 30분 단위로 24시간 옵션 표시 | 구현 완료 — 출근 시각과 동일한 `SettingTimeSelect` 사용 |
+| 지각 유예 조정 | +/- 버튼 클릭 | 10분 단위로 0~60분 범위에서 값 증감 | 구현 완료 — `lateGraceMinutes` state를 10 단위로 증감하며 0/60에서 해당 버튼이 비활성화됨 |
+| 요일별 예외 토글 | 토글 스위치 클릭 | 하단에 요일 목록(요일별 on/off + 30분 단위 출근시간) 표시 | 구현 완료 — `SettingToggle`로 `hasWeekdayException` state를 켜면 7일 목록이 나타남 |
+| 요일별 on/off | 요일 목록의 요일별 토글 클릭 | 해당 요일을 근무/휴무로 전환, 휴무면 시간 select 숨김 | 구현 완료 — `weekdayExceptions` state의 `enabled`를 요일 단위로 갱신 |
+| 요일별 시간 설정 | 근무로 켜진 요일의 시작/종료 select | 해당 요일만 30분 단위로 출근/퇴근 시각 개별 설정 | 구현 완료 — `weekdayExceptions` state의 `startTime`/`endTime`을 요일 단위로 갱신 |
+| 근무시간 저장 | 카드 하단 `저장` 클릭 | 근무시간 설정 저장 | 미구현 — 버튼에 핸들러 없음(API/service 없음) |
 
 ### 4.2 와이파이 IP 등록
 
 | 기능 | 트리거 | 동작 | 상태 |
 |---|---|---|---|
-| 내 IP 확인 | `내 IP 확인` 버튼 클릭 | 현재 IP를 조회해 표시하고 `이 IP로 등록` 버튼 노출 | 미구현 — 버튼만 존재, 클릭 동작 없음 |
-| IP 입력창에 채우기 | `이 IP로 등록` 클릭 | 확인된 IP를 입력창에 채움 | 미구현 |
-| 와이파이 IP 저장 | `저장` 클릭 | 입력한 IP를 등록 | 미구현 |
-| 등록된 IP 목록 표시 | IP 등록 후 | `내 IP 확인` 영역 아래에 등록된 IP를 목록으로 표시(복수 등록 가능) | 미구현 — 목록 UI 없음 |
+| 내 IP 확인 | `내 IP 확인` 버튼 클릭 | 현재 IP를 조회해 표시하고 `이 IP로 등록` 버튼 노출 | 구현 완료 — `checkedIp` state를 더미 IP(`DUMMY_CURRENT_IP`)로 설정. 실제 네트워크 조회 API는 없음 |
+| IP 입력창에 채우기 | `이 IP로 등록` 클릭 | 확인된 IP를 입력창에 채움 | 구현 완료 — `checkedIp`를 `ipInput` state에 반영 |
+| 와이파이 IP 저장 | `저장` 클릭 | 입력한 IP를 등록 | 구현 완료(클라이언트 상태) — `registeredIps` state에 추가. 이미 등록된 IP면 버튼이 "저장됨"으로 바뀌고 비활성화됨. 새로고침 시 유지되지 않음(서버 저장 없음) |
+| 등록된 IP 목록 표시 | IP 등록 후 | `내 IP 확인` 영역 아래에 등록된 IP를 목록으로 표시(복수 등록 가능) | 구현 완료 — `registeredIps` state를 목록으로 렌더링(디자인 시안 없이 자체 구성) |
+
+`이 IP로 등록` 행(`checkedIp` 배너)은 `내 IP 확인` 버튼이 속한 배경 컨테이너 **안쪽**에 중첩되어 렌더링된다(별도 컨테이너가 아님).
 
 ### 4.3 급여 지급일 설정
 
 | 기능 | 트리거 | 동작 | 상태 |
 |---|---|---|---|
-| 지급일 선택 | select 클릭 | 1일~31일 중 선택 | 미구현 — 현재 `1일` 단일 옵션만 존재 |
+| 지급일 선택 | select 클릭 | 1일~30일 중 선택 | 구현 완료 — `generatePaydayOptions()`로 1~30일 옵션을 생성. 선택값을 저장하는 핸들러는 없음(uncontrolled select) |
 
 ### 4.4 알림 설정
 
@@ -133,53 +137,67 @@ Sidebar의 설정 메뉴(`src/components/layout/Sidebar.tsx`, `href: "/setting"`
 
 ## 5. 데이터
 
-현재 `type.ts`가 없어 정의된 타입이 없다. `page.tsx`에 다음 더미 상수만 존재한다.
+현재 `type.ts`가 없어 서버 응답 기반 타입은 정의되어 있지 않다. `src/feature/setting/utils.ts`와 `page.tsx`에 다음이 존재한다.
 
 | 항목 | 설명 |
 |---|---|
-| `notificationItems` | 알림 설정 카드에 렌더링되는 알림 항목 이름 배열(문자열 4개) |
+| `generateHalfHourOptions()` | 00:00~23:30을 30분 간격으로 생성하는 함수(48개). `SettingTimeSelect`의 옵션으로 쓰임 |
+| `generatePaydayOptions()` | "1일"~"30일" 문자열 배열을 생성하는 함수(30개). `SettingPayday`의 select 옵션으로 쓰임 |
+| `Weekday` | `"일" \| "월" \| "화" \| "수" \| "목" \| "금" \| "토"` |
+| `WeekdayException` | 요일별 예외 1건의 타입 — `{ day: Weekday; enabled: boolean; startTime: string; endTime: string }` |
+| `DEFAULT_WEEKDAY_EXCEPTIONS` | 요일별 예외의 초기값(더미) — 월~금은 `enabled: true`(09:00~18:00), 토·일은 `enabled: false` |
+| `DUMMY_CURRENT_IP` | `SettingWifi`의 "내 IP 확인" 클릭 시 채워지는 더미 IP 값(`src/feature/setting/components/SettingWifi.tsx` 내부 상수). 실제 네트워크 조회로 교체 예정 |
+| `notificationItems` | 알림 설정 카드에 렌더링되는 알림 항목 이름 배열(문자열 4개, `SettingAlarm` 내부 상수) |
 
 ---
 
 ## 6. 컴포넌트 구성
 
-`src/feature/setting/components/`에 아래 컴포넌트 파일이 있다.
+`src/feature/setting/components/`에 아래 컴포넌트 파일이 있다. 각 카드는 자기 자신을 `SettingCard`로 감싸는 구조다(카드별 커스텀 스타일을 각 컴포넌트가 책임짐).
 
 | 컴포넌트 | 책임 |
 |---|---|
 | **SettingCard** | 설정 카드 공통 wrapper(구현 완료). `children`, `className`(선택)만 받는 상태 없는 프레젠테이셔널 컴포넌트로, 카드 테두리·배경·그림자 스타일만 담당 |
-
-`src/app/(user)/setting/page.tsx`에 아래 요소가 컴포넌트로 분리되지 않고 직접 작성되어 있다.
-
-| 요소 | 위치 | 비고 |
-|---|---|---|
-| **SectionHeading** | `page.tsx` 내부 로컬 함수 컴포넌트 | 카드 제목·설명을 표시. `title`, `description` props만 받음. 다른 파일에서 재사용되지 않음 |
-| 근무 시간 폼 | `page.tsx` 내부 | `<form>` 마크업 전체가 `SettingCard` children으로 직접 작성됨. state 없음 |
-| 와이파이 IP 등록 폼 | `page.tsx` 내부 | 입력창·버튼 마크업 직접 작성. state 없음 |
-| 급여 지급일 select | `page.tsx` 내부 | select 마크업 직접 작성 |
-| 알림 설정 체크박스 목록 | `page.tsx` 내부 | `notificationItems`를 map으로 렌더링 |
-| 구글 연동 카드 | `page.tsx` 내부 | 배지 + 관리 버튼 마크업 직접 작성 |
+| **SectionHeading** | 카드 제목·설명 표시(구현 완료). `title`, `description` props만 받는 상태 없는 컴포넌트. 5개 카드 컴포넌트가 모두 공유 |
+| **SettingToggle** | on/off 토글 스위치(구현 완료). `checked`, `onChange`, `ariaLabel` props를 받는 controlled 컴포넌트. 근무시간 카드의 "요일별 예외" 토글과 요일별 근무/휴무 토글에서 재사용 |
+| **SettingTimeSelect** | 30분 단위 시각 select(구현 완료). `generateHalfHourOptions()`로 옵션을 만들고 `value`/`onChange` props로 controlled 동작. 출근/퇴근 시각, 요일별 예외의 시작/종료 시각에서 재사용 |
+| **SettingWorkingHours** | 근무 시간 카드(client component). `startTime`/`endTime`(select 값), `lateGraceMinutes`(0~60, 10 단위), `hasWeekdayException`(토글), `weekdayExceptions`(`WeekdayException[]`, 요일별 근무여부·시간) state를 갖는다. `updateWeekdayException`으로 요일 단위 부분 갱신. 저장 버튼은 아직 핸들러 없음 |
+| **SettingWifi** | 와이파이 IP 등록 카드(client component). `ipInput`(입력값), `checkedIp`(내 IP 확인 결과), `registeredIps`(등록된 IP 목록) state를 가진다. `내 IP 확인` → `checkedIp`를 더미값(`DUMMY_CURRENT_IP`)으로 설정 → `이 IP로 등록`으로 `ipInput`에 반영 → `저장`으로 `registeredIps`에 추가하는 흐름. `이 IP로 등록` 배너는 `내 IP 확인` 버튼이 속한 배경 컨테이너 안에 중첩 렌더링된다. `checkedIp`/`registeredIps`가 비어 있으면 각각의 안내 영역·목록이 렌더링되지 않아 기본 화면은 입력창과 "내 IP 확인" 버튼줄만 보인다 |
+| **SettingPayday** | 급여 지급일 카드(구현 완료 — 정적). `generatePaydayOptions()`로 1~30일 select 옵션을 렌더링하지만 선택값을 저장하는 핸들러는 없음(uncontrolled) |
+| **SettingAlarm** | 알림 설정 카드(구현 완료 — 정적). `notificationItems` 더미 배열을 체크박스 목록으로 렌더링, 상호작용 없음 |
+| **SettingGoogle** | 구글 연동 카드(구현 완료 — 정적). "연결됨" 배지와 "관리" 버튼을 표시만 함(클릭 동작 없음) |
 
 구글 연동 상세조회 화면, 계정 교체 모달, 연동 해제 모달에 해당하는 파일은 아직 없다.
 
 ### 관계
 
 ```
-setting/page.tsx                   (설정 화면, /setting, 5개 카드를 2컬럼 그리드로 배치)
-├── SettingCard × 5                (근무시간 / 와이파이 / 급여 지급일 / 알림 / 구글 연동)
-└── SectionHeading                 (각 카드 상단 제목·설명, page.tsx 로컬 컴포넌트)
+setting/page.tsx                   (설정 화면, /setting, 5개 카드 컴포넌트를 2컬럼 그리드로 배치)
+├── SettingWorkingHours            (좌측 컬럼)
+│   ├── SectionHeading
+│   ├── SettingTimeSelect × 2      (출근/퇴근 시각)
+│   ├── SettingToggle              (요일별 예외 on/off)
+│   └── [요일별 예외 on 시] × 7     (SettingToggle + SettingTimeSelect × 2)
+├── SettingWifi                    (우측 컬럼)
+│   └── SectionHeading
+├── SettingPayday                  (우측 컬럼)
+│   └── SectionHeading
+├── SettingAlarm                   (우측 컬럼)
+│   └── SectionHeading
+└── SettingGoogle                  (우측 컬럼)
+    └── SectionHeading
 ```
 
 ### 컴포넌트 외 필요한 조각
 
 | 조각 | 역할 | 상태 |
 |---|---|---|
-| 근무시간 데이터 | 출근/퇴근 시각, 지각 유예, 요일별 예외 조회·저장 | 미구현 — API/service 없음 |
-| 와이파이 IP 데이터 | 등록된 IP 목록 조회·등록 | 미구현 — API/service 없음 |
+| 근무시간 데이터 | 출근/퇴근 시각, 지각 유예, 요일별 예외 조회·저장 | 부분 구현 — `SettingWorkingHours`의 client state로만 입력·수정 가능. 서버 조회·저장 API/service 없어 새로고침 시 초기값(`DEFAULT_WEEKDAY_EXCEPTIONS` 등)으로 되돌아감 |
+| 와이파이 IP 데이터 | 등록된 IP 목록 조회·등록 | 부분 구현 — `SettingWifi`의 client state(`registeredIps`)로만 관리. 서버 조회·저장 API/service 없어 새로고침 시 초기화됨 |
 | 급여 지급일 데이터 | 지급일 조회·저장 | 미구현 — API/service 없음 |
 | 알림 설정 데이터 | 알림 항목별 on/off 조회·저장 | 미구현 — API/service 없음, 항목 자체도 더미 |
 | 구글 연동 데이터 | 연동 상태, 계정 정보, 토큰 상태 조회 및 연결/교체/해제 | 미구현 — `.docs/api/google-account/apiIntegration.md`에 항목만 정의되고 계약은 비어 있음 |
-| 내 IP 조회 | 클라이언트 또는 서버에서 현재 접속 IP를 가져오는 절차 | 미구현 |
+| 내 IP 조회 | 클라이언트 또는 서버에서 현재 접속 IP를 가져오는 절차 | 미구현 — `SettingWifi`는 더미 값(`DUMMY_CURRENT_IP`)을 반환할 뿐 실제 네트워크 조회는 하지 않음 |
 
 ---
 
