@@ -281,7 +281,7 @@
 | **TaskDetailModal** | 업무지시 상세조회 모달. `taskId`로 `getTaskDetail`을 조회해 렌더링. `ReceivedTaskList`·`SentTaskList`·`TaskMessageCard`가 공유 |
 | **Avatar** | 아바타 이니셜 공용 컴포넌트 |
 
-> `TaskDetailModal`은 받은/전달 업무별로 분리하지 않는다. 동일한 업무지시 데이터를 `taskId`로 조회해 재사용하며, 역할별 분기(지시자/담당자 시점 차이)는 아직 반영하지 않았다(섹션 3 참고).
+> `TaskDetailModal`은 받은/전달 업무별로 분리하지 않는다. 동일한 업무지시 데이터를 `taskId`로 조회해 재사용하며, 역할별 분기(지시자/담당자 시점 차이)는 아직 없다(섹션 3 참고).
 
 ### 관계
 
