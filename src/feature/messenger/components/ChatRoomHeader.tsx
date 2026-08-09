@@ -1,20 +1,26 @@
 'use client'
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Search, Users, X } from "lucide-react";
 import ChatMemberList from "./ChatMemberList";
-import { Chat } from "../data";
+import { getChatRoomMembersAction } from "../actions";
 
 type ChatRoomHeaderProps = {
-    chat: Chat;
+    roomId: number;
+    roomName: string;
     isSearchOpen: boolean;
     searchQuery: string;
     onToggleSearch: () => void;
     onSearchQueryChange: (value: string) => void;
 };
 
-export default function ChatRoomHeader({ chat, isSearchOpen, searchQuery, onToggleSearch, onSearchQueryChange }: ChatRoomHeaderProps) {
+export default function ChatRoomHeader({ roomId, roomName, isSearchOpen, searchQuery, onToggleSearch, onSearchQueryChange }: ChatRoomHeaderProps) {
     const [isMemberListOpen, setIsMemberListOpen] = useState(false);
+    const [members, setMembers] = useState<MessengerRoomMemberData[]>([]);
+
+    useEffect(() => {
+        getChatRoomMembersAction(roomId).then(setMembers);
+    }, [roomId]);
 
     return (
         <header className="flex h-[51px] shrink-0 items-center border-b border-[#D7E8DB] bg-white px-6">
@@ -44,8 +50,8 @@ export default function ChatRoomHeader({ chat, isSearchOpen, searchQuery, onTogg
                 )
                 : (
                     <>
-                        <h1 className="text-[16px] font-bold tracking-[-0.02em]">{chat.name}</h1>
-                        <span className="ml-2 text-[10px] text-[#64748B]">참여자 {chat.participantsCount}명</span>
+                        <h1 className="text-[16px] font-bold tracking-[-0.02em]">{roomName}</h1>
+                        <span className="ml-2 text-[10px] text-[#64748B]">참여자 {members.length}명</span>
                         <div className="ml-auto flex items-center gap-3 text-[#64748B]">
                             <button
                                 aria-label="대화 검색"
@@ -67,7 +73,7 @@ export default function ChatRoomHeader({ chat, isSearchOpen, searchQuery, onTogg
             }
 
             {isMemberListOpen && (
-                <ChatMemberList onClose={() => setIsMemberListOpen(false)} />
+                <ChatMemberList members={members} onClose={() => setIsMemberListOpen(false)} />
             )}
         </header>
     );
