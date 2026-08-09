@@ -1,6 +1,11 @@
 import ApprovalItem from "./ApprovalItem";
+import { ApprovalListData } from "../type";
 
-export default function ApprovalList() {
+interface ApprovalListProps {
+    approvals: ApprovalListData[];
+}
+
+export default function ApprovalList({ approvals }: ApprovalListProps) {
     return (
         <section className="mt-3 w-full overflow-hidden border md:mt-4 rounded-[10px] border-[#D7E8DB] bg-white lg:mt-5">
             <div className="grid h-9 grid-cols-8 md:grid-cols-9 items-center border-b border-[#D7E8DB] px-1 text-[10px] font-medium leading-[16.5px] text-[#B0B8C1] sm:px-2 md:h-[37px] md:px-3 md:text-[11px] lg:grid-cols-11 lg:px-5">
@@ -11,7 +16,9 @@ export default function ApprovalList() {
                 <p className="col-span-1">상태</p>
             </div>
 
-            <ApprovalItem />
+            {approvals.map((approval) => (
+                <ApprovalItem approval={approval} key={approval.id} />
+            ))}
         </section>
     )
 }

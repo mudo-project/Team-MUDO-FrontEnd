@@ -50,7 +50,7 @@ export default function NavLink({ href, children, icon, count }: NavLinkProps) {
                 href={href}>
                 <SidebarIcon className="h-3.5 w-3.5" strokeWidth={1.7} />
                 <p className="ml-2 pt-[4px] text-[13px]">{children}</p>
-                {count && (
+                {(count ?? 0) !== 0 && (
                     <span className="ml-auto flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-white px-1 text-[8px] font-semibold text-[#2C8D50]">
                         {count}
                     </span>
