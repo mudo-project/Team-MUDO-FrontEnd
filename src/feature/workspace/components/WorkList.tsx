@@ -1,3 +1,4 @@
+import { Dispatch, SetStateAction } from "react";
 import { WorkspaceTaskData } from "../type";
 import WorkItem from "./WorkItem";
 
@@ -17,7 +18,7 @@ const workTag = {
 }
 
 
-export default function WorkList({ type, task }: { type: 'WAITING' | 'IN_PROGRESS' | 'COMPLETED', task: WorkspaceTaskData[] }) {
+export default function WorkList({ setSelectedTask, type, task }: { setSelectedTask: Dispatch<SetStateAction<number | undefined>>, type: 'WAITING' | 'IN_PROGRESS' | 'COMPLETED', task: WorkspaceTaskData[] }) {
     return (
         <section className="w-full" >
             <div className="mb-2 flex items-center gap-1 sm:gap-1.5 lg:mb-2.5 lg:gap-2">
@@ -30,7 +31,7 @@ export default function WorkList({ type, task }: { type: 'WAITING' | 'IN_PROGRES
 
             <div className="space-y-2">
                 {task.map((t) => (
-                    <WorkItem key={t.taskId} task={t} type={type} />
+                    <WorkItem key={t.taskId} setSelectedTask={setSelectedTask} task={t} type={type} />
                 ))}
 
                 <button className="flex h-8 w-full items-center rounded-[7px] border border-dashed border-[#E1E5EA] px-2 text-[10px] leading-[16px] text-[#C2C8D1] sm:text-[11px] md:px-3 lg:h-9 lg:rounded-[8px] lg:px-3.5 lg:text-[12px] lg:leading-[18px]">

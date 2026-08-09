@@ -4,9 +4,10 @@ import { useQuery } from "@tanstack/react-query";
 import WorkList from "./WorkList";
 import WorkspaceDailyHeader from "./WorkspaceDailyHeader";
 import { getWorkspaceDetailAction } from "../actions";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { WorkspaceTaskData, WorkspaceTaskStatus } from "../type";
 import WorkDelayItem from "./WorkDelayItem";
+import ViewTask from "./ViewTask";
 
 
 const columns = [
@@ -45,7 +46,7 @@ const columns = [
 
 export default function WorkspaceCt({ workspaceId, date }: { workspaceId: string, date: string }) {
 
-
+    const [selectedTask, setSelectedTask] = useState<number>();
     const {
         data: workspaceData,
         isPending: workspacePending,
@@ -88,9 +89,9 @@ export default function WorkspaceCt({ workspaceId, date }: { workspaceId: string
 
             <section className="px-2 py-4 sm:px-3 md:px-4 md:py-5 lg:px-6">
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-3 lg:gap-4">
-                    <WorkList type='WAITING' task={groupedTasksMemo['WAITING']} />
-                    <WorkList type='IN_PROGRESS' task={groupedTasksMemo['IN_PROGRESS']} />
-                    <WorkList type='COMPLETED' task={groupedTasksMemo['COMPLETED']} />
+                    <WorkList setSelectedTask={setSelectedTask} type='WAITING' task={groupedTasksMemo['WAITING']} />
+                    <WorkList setSelectedTask={setSelectedTask} type='IN_PROGRESS' task={groupedTasksMemo['IN_PROGRESS']} />
+                    <WorkList setSelectedTask={setSelectedTask} type='COMPLETED' task={groupedTasksMemo['COMPLETED']} />
                 </div>
 
                 <section className="mt-4 border-t border-dashed border-[#E5E8ED] pt-4 md:mt-5 md:pt-5">
@@ -107,6 +108,8 @@ export default function WorkspaceCt({ workspaceId, date }: { workspaceId: string
                     </div>
                 </section>
             </section>
+            {selectedTask &&
+                <ViewTask selectedTask={selectedTask} setSelectedTask={setSelectedTask} workspaceId={workspaceId} workspaceMembers={workspaceData.data?.members ?? []} />}
         </>
     )
 }

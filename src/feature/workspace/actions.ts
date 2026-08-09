@@ -2,29 +2,49 @@
 
 import {
     addWorkspaceMembers,
+    changeWorkspaceRecurringTemplate,
     changeWorkspaceName,
     changeWorkspaceTask,
+    changeWorkspaceTaskComment,
     createWorkspace,
+    createWorkspaceRecurringTemplate,
     createWorkspaceTask,
+    createWorkspaceTaskComment,
     deleteWorkspace,
+    deleteWorkspaceRecurringTemplate,
     deleteWorkspaceTask,
+    deleteWorkspaceTaskComment,
+    getWorkspaceRecurringTemplateList,
     getWorkspaceDetail,
     getWorkspaceList,
+    getWorkspaceTaskCommentList,
+    getWorkspaceTaskDetail,
     recordWorkspaceRecentAccess,
     recoverWorkspace,
     removeWorkspaceMember,
+    toggleWorkspaceTaskCommentComplete,
 } from "@/service/workspace.service";
 import {
     AddWorkspaceMembersData,
     ChangeWorkspaceNameData,
     ChangeWorkspaceTaskData,
     ChangeWorkspaceTaskRequest,
+    ChangeWorkspaceRecurringTemplateData,
+    ChangeWorkspaceRecurringTemplateRequest,
     CreateWorkspaceData,
+    CreateWorkspaceRecurringTemplateData,
+    CreateWorkspaceRecurringTemplateRequest,
     CreateWorkspaceTaskData,
     CreateWorkspaceTaskRequest,
     WorkspaceDetailData,
     WorkspaceListData,
     WorkspaceListScope,
+    WorkspaceRecurringTemplateListData,
+    WorkspaceTaskCommentData,
+    WorkspaceTaskCommentListData,
+    WorkspaceTaskCommentRequest,
+    WorkspaceTaskDetailData,
+    WorkspaceRecurrenceRule,
 } from "./type";
 
 export interface WorkspaceActionResult<T = undefined> {
@@ -374,6 +394,33 @@ export const createWorkspaceTaskAction = async (
     }
 };
 
+export const getWorkspaceTaskDetailAction = async (
+    workspaceId: number,
+    taskId: number,
+): Promise<WorkspaceActionResult<WorkspaceTaskDetailData>> => {
+    if (!isPositiveInteger(workspaceId) || !isPositiveInteger(taskId)) {
+        return {
+            success: false,
+            message: "워크스페이스 또는 업무 번호가 올바르지 않습니다.",
+        };
+    }
+
+    try {
+        const response = await getWorkspaceTaskDetail(workspaceId, taskId);
+
+        return {
+            success: true,
+            message: response.message,
+            data: response.data,
+        };
+    } catch (error) {
+        return {
+            success: false,
+            message: getActionErrorMessage(error, "업무 상세 조회에 실패했습니다."),
+        };
+    }
+};
+
 export const changeWorkspaceTaskAction = async (
     workspaceId: number,
     taskId: number,
@@ -439,6 +486,297 @@ export const deleteWorkspaceTaskAction = async (
         return {
             success: false,
             message: getActionErrorMessage(error, "업무 삭제에 실패했습니다."),
+        };
+    }
+};
+
+export const createWorkspaceTaskCommentAction = async (
+    workspaceId: number,
+    taskId: number,
+    formData: FormData,
+): Promise<WorkspaceActionResult<WorkspaceTaskCommentData>> => {
+    if (!isPositiveInteger(workspaceId) || !isPositiveInteger(taskId)) {
+        return { success: false, message: "워크스페이스 또는 업무 번호가 올바르지 않습니다." };
+    }
+
+    const content = String(formData.get("comment") ?? "").trim();
+    const mentionedUserIds = formData.getAll("mentionedUserIds").map(Number);
+
+    if (!content) {
+        return { success: false, message: "댓글 내용을 입력해주세요." };
+    }
+
+    if (mentionedUserIds.some((id) => !isPositiveInteger(id))) {
+        return { success: false, message: "멘션 대상 번호가 올바르지 않습니다." };
+    }
+
+    const payload: WorkspaceTaskCommentRequest = {
+        content,
+        mentionedUserIds,
+    };
+
+    try {
+        const response = await createWorkspaceTaskComment(workspaceId, taskId, payload);
+        return { success: true, message: response.message, data: response.data };
+    } catch (error) {
+        return {
+            success: false,
+            message: getActionErrorMessage(error, "업무 댓글 생성에 실패했습니다."),
+        };
+    }
+};
+
+export const getWorkspaceTaskCommentListAction = async (
+    workspaceId: number,
+    taskId: number,
+    page = 0,
+    size = 20,
+): Promise<WorkspaceActionResult<WorkspaceTaskCommentListData>> => {
+    if (!isPositiveInteger(workspaceId) || !isPositiveInteger(taskId)) {
+        return {
+            success: false,
+            message: "워크스페이스 또는 업무 번호가 올바르지 않습니다.",
+        };
+    }
+
+    if (!Number.isInteger(page) || page < 0 || !Number.isInteger(size) || size < 1 || size > 100) {
+        return {
+            success: false,
+            message: "댓글 목록 페이지 조건이 올바르지 않습니다.",
+        };
+    }
+
+    try {
+        const response = await getWorkspaceTaskCommentList(
+            workspaceId,
+            taskId,
+            page,
+            size,
+        );
+
+        return {
+            success: true,
+            message: response.message,
+            data: response.data,
+        };
+    } catch (error) {
+        return {
+            success: false,
+            message: getActionErrorMessage(
+                error,
+                "업무 댓글 목록 조회에 실패했습니다.",
+            ),
+        };
+    }
+};
+
+export const changeWorkspaceTaskCommentAction = async (
+    workspaceId: number,
+    taskId: number,
+    commentId: number,
+    payload: WorkspaceTaskCommentRequest,
+): Promise<WorkspaceActionResult<WorkspaceTaskCommentData>> => {
+    if (
+        !isPositiveInteger(workspaceId) ||
+        !isPositiveInteger(taskId) ||
+        !isPositiveInteger(commentId)
+    ) {
+        return { success: false, message: "워크스페이스, 업무 또는 댓글 번호가 올바르지 않습니다." };
+    }
+
+    if (!payload.content.trim()) {
+        return { success: false, message: "댓글 내용을 입력해주세요." };
+    }
+
+    if (payload.mentionedUserIds?.some((id) => !isPositiveInteger(id))) {
+        return { success: false, message: "멘션 대상 번호가 올바르지 않습니다." };
+    }
+
+    try {
+        const response = await changeWorkspaceTaskComment(
+            workspaceId,
+            taskId,
+            commentId,
+            payload,
+        );
+        return { success: true, message: response.message, data: response.data };
+    } catch (error) {
+        return {
+            success: false,
+            message: getActionErrorMessage(error, "업무 댓글 수정에 실패했습니다."),
+        };
+    }
+};
+
+export const toggleWorkspaceTaskCommentCompleteAction = async (
+    workspaceId: number,
+    taskId: number,
+    commentId: number,
+): Promise<WorkspaceActionResult<WorkspaceTaskCommentData>> => {
+    if (
+        !isPositiveInteger(workspaceId) ||
+        !isPositiveInteger(taskId) ||
+        !isPositiveInteger(commentId)
+    ) {
+        return { success: false, message: "워크스페이스, 업무 또는 댓글 번호가 올바르지 않습니다." };
+    }
+
+    try {
+        const response = await toggleWorkspaceTaskCommentComplete(
+            workspaceId,
+            taskId,
+            commentId,
+        );
+        return { success: true, message: response.message, data: response.data };
+    } catch (error) {
+        return {
+            success: false,
+            message: getActionErrorMessage(error, "업무 댓글 완료 상태 변경에 실패했습니다."),
+        };
+    }
+};
+
+export const deleteWorkspaceTaskCommentAction = async (
+    workspaceId: number,
+    taskId: number,
+    commentId: number,
+): Promise<WorkspaceActionResult> => {
+    if (
+        !isPositiveInteger(workspaceId) ||
+        !isPositiveInteger(taskId) ||
+        !isPositiveInteger(commentId)
+    ) {
+        return { success: false, message: "워크스페이스, 업무 또는 댓글 번호가 올바르지 않습니다." };
+    }
+
+    try {
+        await deleteWorkspaceTaskComment(workspaceId, taskId, commentId);
+        return { success: true, message: "업무 댓글을 삭제했습니다." };
+    } catch (error) {
+        return {
+            success: false,
+            message: getActionErrorMessage(error, "업무 댓글 삭제에 실패했습니다."),
+        };
+    }
+};
+
+export const getWorkspaceRecurringTemplateListAction = async (
+    workspaceId: number,
+    page = 0,
+): Promise<WorkspaceActionResult<WorkspaceRecurringTemplateListData>> => {
+    if (!isPositiveInteger(workspaceId) || !Number.isInteger(page) || page < 0) {
+        return { success: false, message: "워크스페이스 번호 또는 페이지 조건이 올바르지 않습니다." };
+    }
+
+    try {
+        const response = await getWorkspaceRecurringTemplateList(workspaceId, page);
+        return { success: true, message: response.message, data: response.data };
+    } catch (error) {
+        return {
+            success: false,
+            message: getActionErrorMessage(error, "반복 업무 템플릿 목록 조회에 실패했습니다."),
+        };
+    }
+};
+
+export const createWorkspaceRecurringTemplateAction = async (
+    workspaceId: number,
+    formData: FormData,
+): Promise<WorkspaceActionResult<CreateWorkspaceRecurringTemplateData>> => {
+    if (!isPositiveInteger(workspaceId)) {
+        return { success: false, message: "워크스페이스 번호가 올바르지 않습니다." };
+    }
+
+    const title = formData.get('title') as string;
+    const repeat = formData.get('repeat') as string;
+    if (!title.trim() || title.trim().length > 200) {
+        return { success: false, message: "템플릿 제목은 1자 이상 200자 이하로 입력해주세요." };
+    }
+
+    const recurrenceType = repeat === 'MONTHLY' ? 'MONTHLY' : 'WEEKLY';
+    const recurrenceRule = repeat === 'MONTHLY' ? { dayOfMonth: 1 as const } : { daysOfWeek: [Number(repeat.slice(-1))] } as WorkspaceRecurrenceRule
+
+    const payload: CreateWorkspaceRecurringTemplateRequest = {
+        title,
+        recurrenceType,
+        recurrenceRule
+    }
+
+    try {
+        const response = await createWorkspaceRecurringTemplate(workspaceId, payload);
+        return { success: true, message: response.message, data: response.data };
+    } catch (error) {
+        return {
+            success: false,
+            message: getActionErrorMessage(error, "반복 업무 템플릿 생성에 실패했습니다."),
+        };
+    }
+};
+
+export const changeWorkspaceRecurringTemplateAction = async (
+    workspaceId: number,
+    templateId: number,
+    formData: FormData,
+): Promise<WorkspaceActionResult<ChangeWorkspaceRecurringTemplateData>> => {
+    if (!isPositiveInteger(workspaceId) || !isPositiveInteger(templateId)) {
+        return { success: false, message: "워크스페이스 또는 템플릿 번호가 올바르지 않습니다." };
+    }
+
+    const title = String(formData.get("title") ?? "").trim();
+    const repeat = String(formData.get("repeat") ?? "");
+
+    if (!title || title.length > 200) {
+        return { success: false, message: "템플릿 제목은 1자 이상 200자 이하로 입력해주세요." };
+    }
+
+    const recurrenceType = repeat === "MONTHLY" ? "MONTHLY" : "WEEKLY";
+    const recurrenceRule: WorkspaceRecurrenceRule =
+        repeat === "MONTHLY"
+            ? { dayOfMonth: 1 }
+            : { daysOfWeek: [Number(repeat.slice(-1))] };
+    const payload: ChangeWorkspaceRecurringTemplateRequest = {
+        title,
+        recurrenceType,
+        recurrenceRule,
+    };
+
+    if (
+        "daysOfWeek" in recurrenceRule &&
+        recurrenceRule.daysOfWeek.some((day) => day < 1 || day > 7)
+    ) {
+        return { success: false, message: "반복 주기가 올바르지 않습니다." };
+    }
+
+    try {
+        const response = await changeWorkspaceRecurringTemplate(
+            workspaceId,
+            templateId,
+            payload,
+        );
+        return { success: true, message: response.message, data: response.data };
+    } catch (error) {
+        return {
+            success: false,
+            message: getActionErrorMessage(error, "반복 업무 템플릿 수정에 실패했습니다."),
+        };
+    }
+};
+
+export const deleteWorkspaceRecurringTemplateAction = async (
+    workspaceId: number,
+    templateId: number,
+): Promise<WorkspaceActionResult> => {
+    if (!isPositiveInteger(workspaceId) || !isPositiveInteger(templateId)) {
+        return { success: false, message: "워크스페이스 또는 템플릿 번호가 올바르지 않습니다." };
+    }
+
+    try {
+        const response = await deleteWorkspaceRecurringTemplate(workspaceId, templateId);
+        return { success: true, message: response.message };
+    } catch (error) {
+        return {
+            success: false,
+            message: getActionErrorMessage(error, "반복 업무 템플릿 삭제에 실패했습니다."),
         };
     }
 };
