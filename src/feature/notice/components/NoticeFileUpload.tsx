@@ -2,6 +2,7 @@
 
 import { Upload, X } from "lucide-react";
 import { ChangeEvent, useEffect, useRef, useState } from "react";
+import { formatFileSize, getFileExtension } from "@/lib/file";
 
 type AttachedFile = {
     file: File;
@@ -10,21 +11,8 @@ type AttachedFile = {
 
 export type ExistingFile = {
     name: string;
-    size: string;
+    size?: string;
 };
-
-// 업로드한 파일 크기 확인
-function formatFileSize(bytes: number) {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-// 파일명에서 확장자 추출
-function getFileExtension(fileName: string) {
-    const parts = fileName.split(".");
-    return parts.length > 1 ? parts[parts.length - 1].toUpperCase() : "FILE";
-}
 
 export default function NoticeFileUpload({ initialFiles }: { initialFiles?: ExistingFile[] }) {
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -105,9 +93,11 @@ export default function NoticeFileUpload({ initialFiles }: { initialFiles?: Exis
                                 <strong className="block truncate text-[13px] font-normal text-[#0F172A]">
                                     {file.name}
                                 </strong>
-                                <span className="block text-[11px] text-[#64748B]">
-                                    {file.size}
-                                </span>
+                                {file.size && (
+                                    <span className="block text-[11px] text-[#64748B]">
+                                        {file.size}
+                                    </span>
+                                )}
                             </span>
                             <button
                                 aria-label={`${file.name} 삭제`}

@@ -1,7 +1,7 @@
 # Memo Domain — CONTEXT
 > 배치 경로: `src/feature/memo/CONTEXT.md`
 > 목적: 이 문서를 읽은 사람 또는 AI 에이전트가 메모 도메인이 **무엇을 하는 도메인이고, 어떤 기능이 있으며, 어떤 조각으로 이루어져 있는지** 파악할 수 있게 한다.
-> 구현 상태: **거의 구현 완료**. 컨테이너 열림/닫힘·영속성(4.1), 메모 CRUD(4.2), 정렬(4.3), 케밥 메뉴(4.4) 모두 실제 API(`.docs/api/memo/apiIntegration.md`, `src/feature/memo/type.ts`·`actions.ts`, `src/service/memo.service.ts`)에 연결되어 있다. 위치변경(자유배치)만 스코프에서 제외됐다.
+> 구현 상태: 컨테이너 열림/닫힘·영속성(4.1), 메모 CRUD(4.2), 정렬(4.3), 케밥 메뉴(4.4) 모두 실제 API(`.docs/api/memo/apiIntegration.md`, `src/feature/memo/type.ts`·`actions.ts`, `src/service/memo.service.ts`)에 연결되어 있다. 위치변경(자유배치)은 이 도메인 스코프에 포함하지 않는다.
 
 ---
 
@@ -172,7 +172,7 @@
 | **MemoCardMenu** | 케밥 메뉴 UI(구현 완료). `onEdit`/`onChangeColor`/`onDelete` props로 `MemoCard`의 모드 전환을 트리거함 |
 | **MemoColorPicker** | 색상 선택 UI(구현 완료). `selectedColor`/`onChange` props를 받는 controlled 컴포넌트로, `MemoCreateForm`/`MemoEditForm`뿐 아니라 `MemoCard`의 인라인 색상 변경 UI에서도 재사용됨. `MemoColor`에 `code: MemoColorCode` 필드가 있어 팔레트 12색과 API `color` enum(`ROSE`/`MUSTARD`/`SAGE`/`BLUE`/`LAVENDER`/`PINK`/`SLATE`/`PEACH`/`TEAL`/`OLIVE`/`CLAY`/`INDIGO`)이 1:1로 연결되어 있고, 이 `code` 값이 그대로 API 요청에 실림 |
 
-> `approval` 도메인이 생성/수정 모달을 분리(`CreateApprovalModal` / `UpdateApprovalModal`)해 쓰는 것과 동일하게, 메모도 작성 폼과 수정 폼을 분리하는 구조로 확정.
+> `approval` 도메인이 생성/수정 모달을 분리(`CreateApprovalModal` / `UpdateApprovalModal`)해 쓰는 것과 동일하게, 메모도 작성 폼(`MemoCreateForm`)과 수정 폼(`MemoEditForm`)을 분리한 구조다.
 
 > 메모 도메인 밖의 `src/components/layout/OpenMemo.tsx`는 Sidebar의 메모 메뉴 트리거로, `MemoContainer`와는 `useMemoStore`로만 연결된다 (컴포넌트 트리상 부모-자식 관계 아님).
 
@@ -193,7 +193,7 @@ MemoContainer            (isCreating, sortOrder, memos, isLoading state)
         └── menuMode === "delete"     → 삭제 확인 UI (카드 위에 오버레이)
 ```
 
-> 원래 구상은 `MemoCreateForm`/`MemoEditForm`이 `MemoContainer` 아래 `MemoCard`와 형제로 붙는 구조였지만, 실제 구현은 `MemoContainer`가 `isCreating`을 들고 있다가 `MemoCreateForm` 엘리먼트를 만들어 `MemoCard`의 `createForm` prop으로 내려주는 방식이다. `MemoEditForm`도 형제가 아니라, `MemoCard`가 `editedMemoId`로 해당 카드 자체를 `<article>`에서 `<MemoEditForm>`으로 바꿔 끼우는 방식으로 구현되어 있다. 케밥 메뉴/색상변경/삭제확인도 별도 컴포넌트 트리가 아니라 `menuMode` 하나로 같은 위치에 오버레이만 바꿔 끼우는 구조다.
+> `MemoCreateForm`/`MemoEditForm`은 `MemoContainer`/`MemoCard`와 형제로 별도 마운트되는 컴포넌트가 아니다. `MemoContainer`가 `isCreating`을 들고 있다가 `MemoCreateForm` 엘리먼트를 만들어 `MemoCard`의 `createForm` prop으로 내려주고, `MemoEditForm`은 `MemoCard`가 `editedMemoId`로 해당 카드 자체를 `<article>`에서 `<MemoEditForm>`으로 바꿔 끼우는 방식이다. 케밥 메뉴/색상변경/삭제확인도 별도 컴포넌트 트리가 아니라 `menuMode` 하나로 같은 위치에 오버레이만 바꿔 끼우는 구조다.
 
 ### 컴포넌트 외 필요한 조각
 

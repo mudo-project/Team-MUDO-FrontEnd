@@ -1,13 +1,17 @@
+import { format } from "date-fns";
 import { ArrowLeft, ChevronDown, ChevronUp, Download } from "lucide-react";
 import Link from "next/link";
-import { dummyNotices } from "@/feature/notice/dummyNotices";
+import { getFileExtension } from "@/lib/file";
+import { getNoticeDetailAction, getNoticeListAction } from "../actions";
 import NoticeDetailToolbar from "./NoticeDetailToolbar";
 
-export default function NoticeDetail({ id }: { id: string }) {
-    const index = dummyNotices.findIndex((notice) => notice.id === Number(id));
-    const notice = dummyNotices[index];
+export default async function NoticeDetail({ id }: { id: string }) {
+    const noticeId = Number(id);
 
-    if (!notice) {
+    let notice: NoticeDetailData;
+    try {
+        notice = await getNoticeDetailAction(noticeId);
+    } catch {
         return (
             <div className="rounded-xl border border-[#DCE9DF] bg-white p-6 text-center text-[13px] text-[#64748B]">
                 공지를 찾을 수 없습니다.
@@ -15,8 +19,10 @@ export default function NoticeDetail({ id }: { id: string }) {
         );
     }
 
-    const prevNotice = index > 0 ? dummyNotices[index - 1] : undefined;
-    const nextNotice = index < dummyNotices.length - 1 ? dummyNotices[index + 1] : undefined;
+    const noticeList = await getNoticeListAction({ size: 100 });
+    const index = noticeList.content.findIndex((item) => item.id === noticeId);
+    const prevNotice = index > 0 ? noticeList.content[index - 1] : undefined;
+    const nextNotice = index !== -1 && index < noticeList.content.length - 1 ? noticeList.content[index + 1] : undefined;
 
     return (
         <div>
@@ -32,15 +38,15 @@ export default function NoticeDetail({ id }: { id: string }) {
 
                 <div className="mt-2 flex items-center gap-2 text-[12px] text-[#64748B]">
                     <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#0F172A] text-[11px] font-semibold text-white">
-                        {notice.author.slice(0, 1)}
+                        {notice.authorName.slice(0, 1)}
                     </span>
-                    <span>{notice.authorRole} {notice.author}</span>
+                    <span>{notice.authorRole} {notice.authorName}</span>
                     <span>·</span>
-                    <span>{notice.datetime}</span>
+                    <span>{format(new Date(notice.createdAt), "yyyy.MM.dd HH:mm")}</span>
                     <span>·</span>
                     <span>조회 {notice.viewCount}</span>
                     <span>·</span>
-                    <span>읽음 {notice.readCount}/{notice.totalMemberCount}</span>
+                    <span>읽음 {notice.readerCount}/{notice.totalRecipientCount}</span>
                 </div>
 
                 <hr className="mt-4 border-[#E5EEE7]" />
@@ -49,28 +55,36 @@ export default function NoticeDetail({ id }: { id: string }) {
                     {notice.content}
                 </div>
 
-                {notice.file && (
+                {notice.attachments.length > 0 && (
                     <>
                         <hr className="mt-4 border-[#E5EEE7]" />
                         <div className="mt-4">
-                            <p className="text-[12px] font-medium text-[#64748B]">파일 1</p>
-                            <div className="mt-2 flex h-[58px] w-full items-center gap-2.5 rounded-[8px] border border-[#D7E8DB] bg-[#FCFCFC] px-3">
-                                <span className="flex size-7 shrink-0 items-center justify-center rounded-[6px] bg-[#EEF2FF] text-[9px] font-bold text-[#3B4A66]">
-                                    {notice.file.extension}
-                                </span>
-                                <span className="w-full min-w-0">
-                                    <strong className="block truncate text-[13px] font-normal text-[#0F172A]">
-                                        {notice.file.name}
-                                    </strong>
-                                    <span className="block text-[11px] text-[#64748B]">{notice.file.size}</span>
-                                </span>
-                                <button
-                                    aria-label={`${notice.file.name} 다운로드`}
-                                    className="shrink-0 text-[#64748B] hover:cursor-pointer"
-                                    type="button"
-                                >
-                                    <Download className="size-4" strokeWidth={1.6} />
-                                </button>
+                            <p className="text-[12px] font-medium text-[#64748B]">파일 {notice.attachments.length}</p>
+                            <div className="mt-2 flex flex-col gap-2">
+                                {notice.attachments.map((attachment) => (
+                                    <div
+                                        className="flex h-[58px] w-full items-center gap-2.5 rounded-[8px] border border-[#D7E8DB] bg-[#FCFCFC] px-3"
+                                        key={attachment.id}
+                                    >
+                                        <span className="flex size-7 shrink-0 items-center justify-center rounded-[6px] bg-[#EEF2FF] text-[9px] font-bold text-[#3B4A66]">
+                                            {getFileExtension(attachment.fileName)}
+                                        </span>
+                                        <span className="w-full min-w-0">
+                                            <strong className="block truncate text-[13px] font-normal text-[#0F172A]">
+                                                {attachment.fileName}
+                                            </strong>
+                                        </span>
+                                        <a
+                                            aria-label={`${attachment.fileName} 다운로드`}
+                                            className="shrink-0 text-[#64748B] hover:cursor-pointer"
+                                            href={attachment.fileUrl}
+                                            rel="noreferrer"
+                                            target="_blank"
+                                        >
+                                            <Download className="size-4" strokeWidth={1.6} />
+                                        </a>
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     </>
