@@ -7,6 +7,7 @@ import WorkspaceEditButton from "./WorkspaceEditButton";
 import { useQuery } from "@tanstack/react-query";
 import { getWorkspaceDetailAction } from "../actions";
 import TaskCreateButton from "./TaskCreateButton";
+import TaskTemplateCreateButton from "./TaskTemplateCreateButton";
 
 export default function WorkspaceHeader({ workspaceId }: { workspaceId: string }) {
     const {
@@ -49,6 +50,7 @@ export default function WorkspaceHeader({ workspaceId }: { workspaceId: string }
                     <WorkspaceAttendAddButton workspaceId={workspaceId} />
                     <WorkspaceDeleteButton workspaceId={workspaceId} />
                     <TaskCreateButton workspaceId={workspaceId} />
+                    <TaskTemplateCreateButton workspaceId={workspaceId} />
                 </div>
             </div>
 

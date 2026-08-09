@@ -93,6 +93,19 @@ export interface CreateWorkspaceTaskData {
 export type CreateWorkspaceTaskResponse =
     WorkspaceApiResponse<CreateWorkspaceTaskData>;
 
+export interface WorkspaceTaskDetailData {
+    taskId: number;
+    title: string;
+    creator: WorkspaceMemberData;
+    createdAt: string;
+    status: WorkspaceTaskStatus;
+    dueAt: string | null;
+    lastStatusChangedAt?: string;
+}
+
+export type WorkspaceTaskDetailResponse =
+    WorkspaceApiResponse<WorkspaceTaskDetailData>;
+
 export interface ChangeWorkspaceTaskRequest {
     status?: WorkspaceTaskStatus;
     dueAt?: string;
@@ -106,3 +119,98 @@ export interface ChangeWorkspaceTaskData {
 
 export type ChangeWorkspaceTaskResponse =
     WorkspaceApiResponse<ChangeWorkspaceTaskData>;
+
+export interface WorkspaceTaskCommentRequest {
+    content: string;
+    mentionedUserIds?: number[];
+}
+
+export interface WorkspaceTaskCommentData {
+    commentId: number;
+    taskId: number;
+    authorId: number;
+    content: string;
+    completed: boolean;
+    completedBy: number | null;
+    completedAt: string | null;
+    mentionedUserIds: number[];
+    createdAt: string;
+    updatedAt: string;
+}
+
+export type WorkspaceTaskCommentResponse =
+    WorkspaceApiResponse<WorkspaceTaskCommentData>;
+
+export interface WorkspaceTaskCommentListItemData {
+    commentId: number;
+    content: string;
+    author: WorkspaceMemberData;
+    completed: boolean;
+    createdAt: string;
+}
+
+export interface WorkspaceTaskCommentListData {
+    content: WorkspaceTaskCommentListItemData[];
+    page: number;
+    size: number;
+    hasNext: boolean;
+}
+
+export type WorkspaceTaskCommentListResponse =
+    WorkspaceApiResponse<WorkspaceTaskCommentListData>;
+
+export type WorkspaceRecurrenceType = "WEEKLY" | "MONTHLY";
+
+export type WorkspaceRecurrenceRule =
+    | { daysOfWeek: number[] }
+    | { dayOfMonth: 1 };
+
+export interface CreateWorkspaceRecurringTemplateRequest {
+    title: string;
+    recurrenceType: WorkspaceRecurrenceType;
+    recurrenceRule: WorkspaceRecurrenceRule;
+}
+
+export interface CreateWorkspaceRecurringTemplateData {
+    templateId: number;
+}
+
+export type CreateWorkspaceRecurringTemplateResponse =
+    WorkspaceApiResponse<CreateWorkspaceRecurringTemplateData>;
+
+export interface WorkspaceRecurringTemplateData {
+    templateId: number;
+    title: string;
+    recurrenceType: WorkspaceRecurrenceType;
+    recurrenceRule: WorkspaceRecurrenceRule;
+    createdBy: number;
+}
+
+export interface WorkspaceRecurringTemplateListData {
+    content: WorkspaceRecurringTemplateData[];
+    page: number;
+    size: number;
+    hasNext: boolean;
+}
+
+export type WorkspaceRecurringTemplateListResponse =
+    WorkspaceApiResponse<WorkspaceRecurringTemplateListData>;
+
+export interface ChangeWorkspaceRecurringTemplateRequest {
+    title?: string;
+    recurrenceType?: WorkspaceRecurrenceType;
+    recurrenceRule?: WorkspaceRecurrenceRule;
+}
+
+export interface ChangeWorkspaceRecurringTemplateData {
+    templateId: number;
+    title: string;
+    recurrenceType: WorkspaceRecurrenceType;
+    recurrenceRule: WorkspaceRecurrenceRule;
+}
+
+export type ChangeWorkspaceRecurringTemplateResponse =
+    WorkspaceApiResponse<ChangeWorkspaceRecurringTemplateData>;
+
+export type DeleteWorkspaceRecurringTemplateResponse =
+    WorkspaceApiResponse<null>;
