@@ -6,10 +6,13 @@ import { useEffect, useState } from "react";
 import { getWorkspaceListAction, WorkspaceActionResult } from "../actions";
 import { WorkspaceListData } from "../type";
 import WorkspaceNavLink from "./WorkspaceNavLink";
+import useModal from "@/components/hooks/useModal";
+import CreateWorkspaceModal from "./modals/CreateWorkspaceModal";
 
 
 export default function WorkspaceSidebar() {
     const [open, setOpen] = useState<boolean>(true);
+    const modal = useModal();
     const [workspaceList, setWorkspaceList] = useState<{
         loading: boolean;
         error: string;
@@ -45,6 +48,7 @@ export default function WorkspaceSidebar() {
             <div className={`${!open && 'hidden'} flex h-[60px] items-center border-b border-[#EEF0F3] px-4 pt-3.5 pb-[11px]`}>
                 <h1 className="text-[12px] leading-[18px] font-semibold tracking-[-0.02em]">워크스페이스</h1>
                 <button
+                    onClick={modal.openModal}
                     className="ml-auto flex h-6 w-6 items-center justify-center rounded-[6px] border border-[#DDE2E8] text-[14px] font-light text-[#A6AFBD]"
                     aria-label="워크스페이스 추가"
                 >
@@ -70,7 +74,7 @@ export default function WorkspaceSidebar() {
                 <div className="h-[calc(100dvh-170px)] scrollbar-hide overflow-auto pt-2">
                     {workspaceList.data.map((workspace) => {
                         return (
-                            <WorkspaceNavLink workspace={workspace} />
+                            <WorkspaceNavLink key={workspace.workspaceId} workspace={workspace} />
                         )
                     })}
                     {workspaceList.data.length === 0 && (
@@ -78,6 +82,12 @@ export default function WorkspaceSidebar() {
                     )}
                 </div>
             </nav>
+            {modal.isModal &&
+                <CreateWorkspaceModal
+                    closeModal={modal.closeModal}
+                />
+            }
+
         </aside>
     )
 }
