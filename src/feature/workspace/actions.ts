@@ -16,13 +16,10 @@ import {
 } from "@/service/workspace.service";
 import {
     AddWorkspaceMembersData,
-    AddWorkspaceMembersRequest,
     ChangeWorkspaceNameData,
-    ChangeWorkspaceNameRequest,
     ChangeWorkspaceTaskData,
     ChangeWorkspaceTaskRequest,
     CreateWorkspaceData,
-    CreateWorkspaceRequest,
     CreateWorkspaceTaskData,
     CreateWorkspaceTaskRequest,
     WorkspaceDetailData,
@@ -102,8 +99,8 @@ export const getWorkspaceDetailAction = async (
 };
 
 export const createWorkspaceAction = async (prevState: WorkspaceActionResult<CreateWorkspaceData>, formData: FormData): Promise<WorkspaceActionResult<CreateWorkspaceData>> => {
-    const name = formData.get('name') as string;
-    const memberIds = formData.getAll('memberIds') as [];
+    const name = String(formData.get('name') ?? '').trim();
+    const memberIds = formData.getAll('memberIds').map(Number);
 
     if (!name || name.length > 100) {
         return {
@@ -143,7 +140,8 @@ export const createWorkspaceAction = async (prevState: WorkspaceActionResult<Cre
 
 export const changeWorkspaceNameAction = async (
     workspaceId: number,
-    payload: ChangeWorkspaceNameRequest,
+    prevState: WorkspaceActionResult<ChangeWorkspaceNameData>,
+    formData: FormData,
 ): Promise<WorkspaceActionResult<ChangeWorkspaceNameData>> => {
     if (!isPositiveInteger(workspaceId)) {
         return {
@@ -152,7 +150,7 @@ export const changeWorkspaceNameAction = async (
         };
     }
 
-    const name = payload.name.trim();
+    const name = String(formData.get("name") ?? "").trim();
 
     if (!name || name.length > 100) {
         return {
@@ -232,7 +230,8 @@ export const recoverWorkspaceAction = async (
 
 export const addWorkspaceMembersAction = async (
     workspaceId: number,
-    payload: AddWorkspaceMembersRequest,
+    prevState: WorkspaceActionResult<AddWorkspaceMembersData>,
+    formData: FormData,
 ): Promise<WorkspaceActionResult<AddWorkspaceMembersData>> => {
     if (!isPositiveInteger(workspaceId)) {
         return {
@@ -241,10 +240,9 @@ export const addWorkspaceMembersAction = async (
         };
     }
 
-    if (
-        payload.memberIds.length === 0 ||
-        payload.memberIds.some((id) => !isPositiveInteger(id))
-    ) {
+    const memberIds = formData.getAll("memberIds").map(Number);
+
+    if (memberIds.length === 0 || memberIds.some((id) => !isPositiveInteger(id))) {
         return {
             success: false,
             message: "추가할 참여자를 선택해주세요.",
@@ -252,7 +250,7 @@ export const addWorkspaceMembersAction = async (
     }
 
     try {
-        const response = await addWorkspaceMembers(workspaceId, payload);
+        const response = await addWorkspaceMembers(workspaceId, { memberIds });
 
         return {
             success: true,
