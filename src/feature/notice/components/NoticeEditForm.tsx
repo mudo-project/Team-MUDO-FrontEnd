@@ -2,25 +2,28 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Pencil, X } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import useModal from "@/components/hooks/useModal";
 import { NoticeCreateFormValues, noticeCreateSchema } from "@/lib/noticeCreateSchema";
-import { DummyNotice } from "@/feature/notice/dummyNotices";
+import { pinNoticeAction, unpinNoticeAction, updateNoticeAction } from "../actions";
 import NoticeFileUpload from "./NoticeFileUpload";
 
-export default function NoticeEditForm({ notice }: { notice: DummyNotice }) {
+export default function NoticeEditForm({ notice }: { notice: NoticeDetailData }) {
     const modal = useModal();
+    const router = useRouter();
     const {
         register,
         handleSubmit,
         reset,
-        formState: { errors },
+        formState: { errors, isSubmitting },
     } = useForm<NoticeCreateFormValues>({
         resolver: zodResolver(noticeCreateSchema),
         defaultValues: {
             title: notice.title,
             content: notice.content,
-            pinned: !!notice.important,
+            pinned: notice.pinned,
         },
     });
 
@@ -29,8 +32,28 @@ export default function NoticeEditForm({ notice }: { notice: DummyNotice }) {
         modal.closeModal();
     };
 
-    const onSubmit = () => {
+    const onSubmit = async (values: NoticeCreateFormValues) => {
+        const result = await updateNoticeAction(notice.id, values.title, values.content);
+
+        if (!result.success) {
+            toast.error(result.message);
+            return;
+        }
+
+        if (values.pinned !== notice.pinned) {
+            const pinResult = values.pinned
+                ? await pinNoticeAction(notice.id)
+                : await unpinNoticeAction(notice.id);
+
+            if (!pinResult.success) {
+                toast.error(pinResult.message);
+                return;
+            }
+        }
+
+        toast.success(result.message);
         closeAndReset();
+        router.refresh();
     };
 
     return (
@@ -98,7 +121,9 @@ export default function NoticeEditForm({ notice }: { notice: DummyNotice }) {
                             )}
                         </div>
 
-                        <NoticeFileUpload initialFiles={notice.file ? [{ name: notice.file.name, size: notice.file.size }] : []} />
+                        <NoticeFileUpload
+                            initialFiles={notice.attachments.map((attachment) => ({ name: attachment.fileName }))}
+                        />
 
                         <div className="mt-4 flex items-start gap-2 hover:cursor-pointer">
                             <input className="mt-0.5 size-4 hover:cursor-pointer" id="notice-edit-pinned" type="checkbox" {...register("pinned")} />
@@ -123,10 +148,11 @@ export default function NoticeEditForm({ notice }: { notice: DummyNotice }) {
                                 취소
                             </button>
                             <button
-                                className="h-full flex-1 rounded-[8px] bg-[#0F172A] text-[13px] font-semibold text-white hover:cursor-pointer"
+                                className="h-full flex-1 rounded-[8px] bg-[#0F172A] text-[13px] font-semibold text-white hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
+                                disabled={isSubmitting}
                                 type="submit"
                             >
-                                수정
+                                {isSubmitting ? "수정 중..." : "수정"}
                             </button>
                         </div>
                     </form>
