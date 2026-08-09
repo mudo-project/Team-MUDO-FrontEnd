@@ -2,18 +2,22 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, X } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import useModal from "@/components/hooks/useModal";
 import { NoticeCreateFormValues, noticeCreateSchema } from "@/lib/noticeCreateSchema";
+import { createNoticeAction } from "../actions";
 import NoticeFileUpload from "./NoticeFileUpload";
 
 export default function NoticeCreateForm() {
     const modal = useModal();
+    const router = useRouter();
     const {
         register,
         handleSubmit,
         reset,
-        formState: { errors },
+        formState: { errors, isSubmitting },
     } = useForm<NoticeCreateFormValues>({
         resolver: zodResolver(noticeCreateSchema),
         defaultValues: { title: "", content: "", pinned: false },
@@ -24,8 +28,16 @@ export default function NoticeCreateForm() {
         modal.closeModal();
     };
 
-    const onSubmit = () => {
-        closeAndReset();
+    const onSubmit = async (values: NoticeCreateFormValues) => {
+        const result = await createNoticeAction(values.title, values.content, values.pinned);
+
+        if (result.success) {
+            toast.success(result.message);
+            closeAndReset();
+            router.refresh();
+        } else {
+            toast.error(result.message);
+        }
     };
 
     return (
@@ -118,10 +130,11 @@ export default function NoticeCreateForm() {
                                 취소
                             </button>
                             <button
-                                className="h-full flex-1 rounded-[8px] bg-[#0F172A] text-[13px] font-semibold text-white hover:cursor-pointer"
+                                className="h-full flex-1 rounded-[8px] bg-[#0F172A] text-[13px] font-semibold text-white hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
+                                disabled={isSubmitting}
                                 type="submit"
                             >
-                                등록
+                                {isSubmitting ? "등록 중..." : "등록"}
                             </button>
                         </div>
                     </form>
