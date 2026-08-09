@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Avatar from "./Avatar";
-import { Chat, DEFAULT_CHAT_ID } from "../data";
+import { formatChatTime, getInitials } from "../utils";
 
-export default function ChatListItem({ chat }: { chat: Chat }) {
+export default function ChatListItem({ room }: { room: MessengerRoomListItemData }) {
     const pathname = usePathname();
-    const isActive = pathname === `/messenger/${chat.id}` || (pathname === "/messenger" && chat.id === DEFAULT_CHAT_ID);
+    const isActive = pathname === `/messenger/${room.id}`;
 
     return (
         <Link
@@ -19,20 +19,20 @@ export default function ChatListItem({ chat }: { chat: Chat }) {
                 }
                 `
             }
-            href={`/messenger/${chat.id}`}
+            href={`/messenger/${room.id}`}
         >
-            <Avatar initials={chat.initials} />
+            <Avatar initials={getInitials(room.name)} />
             <span className="min-w-0 flex-1">
                 <span className="flex items-center justify-between gap-2">
-                    <strong className="truncate text-[12px] font-semibold text-[#0F172A]">{chat.name}</strong>
-                    <span className="shrink-0 text-[9px] text-[#64748B]">{chat.time}</span>
+                    <strong className="truncate text-[12px] font-semibold text-[#0F172A]">{room.name}</strong>
+                    <span className="shrink-0 text-[9px] text-[#64748B]">{formatChatTime(room.lastMessageAt)}</span>
                 </span>
                 <span className="mt-1 flex items-center gap-2">
-                    <span className="truncate text-[10px] text-[#64748B]">{chat.preview}</span>
-                    {chat.unread
+                    <span className="truncate text-[10px] text-[#64748B]">{room.lastMessagePreview}</span>
+                    {room.unreadCount > 0
                         ?
                         <span className="ml-auto flex size-4 shrink-0 items-center justify-center rounded-full bg-[#2C8D50] text-[8px] font-semibold text-white">
-                            {chat.unread}
+                            {room.unreadCount}
                         </span>
                         :
                         null
