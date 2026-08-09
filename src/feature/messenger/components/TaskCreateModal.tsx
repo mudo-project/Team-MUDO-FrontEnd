@@ -1,40 +1,61 @@
 'use client'
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Plus, Search, X } from "lucide-react";
+import { toast } from "sonner";
+import { getChatRoomMembersAction, createTaskCardAction, updateTaskCardAction } from "../actions";
+import { getInitials } from "../utils";
 
-// 임시로 사용할 더미데이터 입니다. 추후 API 연동을 진행하면서 삭제할 예정입니다.
-const chatParticipants = [
-    { name: "이민준", role: "강사", initials: "이민" },
-    { name: "박서연", role: "강사", initials: "박서" },
-    { name: "최현우", role: "강사", initials: "최현" },
-    { name: "정다은", role: "행정", initials: "정다" },
-    { name: "강도현", role: "행정", initials: "강도" },
-];
+type TaskCreateModalProps = {
+    roomId: number;
+    onClose: () => void;
+    onCreated: () => void;
+    editingCard?: MessengerTaskCardItemData;
+};
 
-export default function TaskCreateModal({ onClose }: { onClose: () => void }) {
-    const [content, setContent] = useState("");
-    const [dueDate, setDueDate] = useState("");
-    const [assignees, setAssignees] = useState<string[]>([]);
+export default function TaskCreateModal({ roomId, onClose, onCreated, editingCard }: TaskCreateModalProps) {
+    const [members, setMembers] = useState<MessengerRoomMemberData[]>([]);
+    const [content, setContent] = useState(editingCard?.content ?? "");
+    const [dueDate, setDueDate] = useState(editingCard?.dueDate ?? "");
+    const [assigneeIds, setAssigneeIds] = useState<number[]>(editingCard?.assignees.map((assignee) => assignee.userId) ?? []);
     const [assigneeQuery, setAssigneeQuery] = useState("");
     const [isAssigneeMenuOpen, setIsAssigneeMenuOpen] = useState(false);
 
-    const filteredParticipants = useMemo(
-        () => chatParticipants.filter((participant) => participant.name.includes(assigneeQuery.trim())),
-        [assigneeQuery]
+    useEffect(() => {
+        getChatRoomMembersAction(roomId).then(setMembers);
+    }, [roomId]);
+
+    const filteredMembers = useMemo(
+        () => members.filter((member) => member.name.includes(assigneeQuery.trim())),
+        [members, assigneeQuery]
     );
 
-    const toggleAssignee = (name: string) => {
-        setAssignees((prev) =>
-            prev.includes(name) ? prev.filter((assignee) => assignee !== name) : [...prev, name]
+    const toggleAssignee = (userId: number) => {
+        setAssigneeIds((prev) =>
+            prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]
         );
+    };
+
+    const handleSubmit = async (event: React.FormEvent) => {
+        event.preventDefault();
+        const result = editingCard
+            ? await updateTaskCardAction(roomId, editingCard.id, content, assigneeIds, dueDate || undefined)
+            : await createTaskCardAction(roomId, content, assigneeIds, dueDate || undefined);
+
+        if (result.success) {
+            toast.success(result.message);
+            onCreated();
+            onClose();
+        } else {
+            toast.error(result.message);
+        }
     };
 
     return (
         <div className="fixed top-0 left-0 z-999 h-screen w-screen bg-[#162236]/45">
-            <form className="fixed top-1/2 left-1/2 z-1000 w-[480px] -translate-x-1/2 -translate-y-1/2 rounded-[12px] bg-white p-6 shadow-[0_8px_12px_rgba(22,34,54,0.12)]">
+            <form className="fixed top-1/2 left-1/2 z-1000 w-[480px] -translate-x-1/2 -translate-y-1/2 rounded-[12px] bg-white p-6 shadow-[0_8px_12px_rgba(22,34,54,0.12)]" onSubmit={handleSubmit}>
                 <div className="flex h-[27px] w-full items-center">
-                    <h2 className="text-[18px] font-bold leading-[27px] text-[#0F172A]">업무지시 작성</h2>
+                    <h2 className="text-[18px] font-bold leading-[27px] text-[#0F172A]">{editingCard ? "업무지시 수정" : "업무지시 작성"}</h2>
                     <button
                         aria-label="업무지시 작성 모달 닫기"
                         className="ml-auto flex size-[18px] items-center justify-center text-[#64748B]"
@@ -64,22 +85,26 @@ export default function TaskCreateModal({ onClose }: { onClose: () => void }) {
                 <div className="mt-5 w-full">
                     <p className="pb-1.5 text-[13px] font-medium leading-[19.5px] text-[#0F172A]">담당자</p>
                     <div className="flex flex-wrap items-center gap-2">
-                        {assignees.map((name) => (
-                            <span
-                                className="inline-flex items-center gap-1.5 rounded-full bg-[#F1F3F5] py-1.5 pr-2 pl-3 text-[12px] font-medium text-[#0F172A]"
-                                key={name}
-                            >
-                                {name}
-                                <button
-                                    aria-label={`${name} 담당자 제거`}
-                                    className="flex size-4 items-center justify-center text-[#94A3B8]"
-                                    onClick={() => toggleAssignee(name)}
-                                    type="button"
+                        {assigneeIds.map((userId) => {
+                            const member = members.find((item) => item.userId === userId);
+                            if (!member) return null;
+                            return (
+                                <span
+                                    className="inline-flex items-center gap-1.5 rounded-full bg-[#F1F3F5] py-1.5 pr-2 pl-3 text-[12px] font-medium text-[#0F172A]"
+                                    key={userId}
                                 >
-                                    <X className="size-3" strokeWidth={2} />
-                                </button>
-                            </span>
-                        ))}
+                                    {member.name}
+                                    <button
+                                        aria-label={`${member.name} 담당자 제거`}
+                                        className="flex size-4 items-center justify-center text-[#94A3B8]"
+                                        onClick={() => toggleAssignee(userId)}
+                                        type="button"
+                                    >
+                                        <X className="size-3" strokeWidth={2} />
+                                    </button>
+                                </span>
+                            );
+                        })}
 
                         <div className="relative">
                             <button
@@ -105,23 +130,22 @@ export default function TaskCreateModal({ onClose }: { onClose: () => void }) {
                                     </label>
                                     <p className="px-3 pt-2 pb-1 text-[10px] text-[#94A3B8]">이 채팅방 참여자만 지정할 수 있습니다</p>
                                     <div className="max-h-52 overflow-y-auto pb-1">
-                                        {filteredParticipants.length === 0
+                                        {filteredMembers.length === 0
                                             ? <p className="px-3 py-4 text-center text-[11px] text-[#94A3B8]">일치하는 인원이 없습니다</p>
-                                            : filteredParticipants.map((participant) => {
-                                                const isSelected = assignees.includes(participant.name);
+                                            : filteredMembers.map((member) => {
+                                                const isSelected = assigneeIds.includes(member.userId);
                                                 return (
                                                     <button
                                                         className={`flex w-full items-center gap-2.5 px-3 py-2 text-left ${isSelected ? "bg-[#EEF3F0]" : "hover:bg-[#F7F9F7]"}`}
-                                                        key={participant.name}
-                                                        onClick={() => toggleAssignee(participant.name)}
+                                                        key={member.userId}
+                                                        onClick={() => toggleAssignee(member.userId)}
                                                         type="button"
                                                     >
                                                         <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#E2ECE4] text-[9px] font-semibold text-[#285D3B]">
-                                                            {participant.initials}
+                                                            {getInitials(member.name)}
                                                         </span>
                                                         <span className="min-w-0 flex-1">
-                                                            <strong className="block truncate text-[12px] font-semibold text-[#0F172A]">{participant.name}</strong>
-                                                            <span className="block truncate text-[10px] text-[#94A3B8]">{participant.role}</span>
+                                                            <strong className="block truncate text-[12px] font-semibold text-[#0F172A]">{member.name}</strong>
                                                         </span>
                                                     </button>
                                                 );
@@ -162,7 +186,7 @@ export default function TaskCreateModal({ onClose }: { onClose: () => void }) {
                         className="h-11 rounded-[8px] bg-[#172033] px-5 text-[14px] font-semibold leading-[21px] text-white"
                         type="submit"
                     >
-                        등록
+                        {editingCard ? "수정 완료" : "등록"}
                     </button>
                 </div>
             </form>
