@@ -3,8 +3,15 @@
 import { useRef, useState } from "react";
 import { CheckSquare, FileText, Image as ImageIcon, Plus, Send } from "lucide-react";
 import TaskCreateModal from "./TaskCreateModal";
+import { sendMessageAction } from "../actions";
 
-export default function MessageInput() {
+type MessageInputProps = {
+    roomId: number;
+    onMessageSent: () => void;
+    onTaskCreated: () => void;
+};
+
+export default function MessageInput({ roomId, onMessageSent, onTaskCreated }: MessageInputProps) {
     const [value, setValue] = useState("");
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isTaskCreateOpen, setIsTaskCreateOpen] = useState(false);
@@ -28,9 +35,18 @@ export default function MessageInput() {
         fileInputRef.current?.click();
     };
 
+    const handleSubmit = async (event: React.FormEvent) => {
+        event.preventDefault();
+        if (!value.trim()) return;
+
+        setValue("");
+        await sendMessageAction(roomId, value);
+        onMessageSent();
+    };
+
     return (
         <>
-            <form className="flex h-[70px] shrink-0 items-center gap-3 border-t border-[#D7E8DB] bg-white px-6">
+            <form className="flex h-[70px] shrink-0 items-center gap-3 border-t border-[#D7E8DB] bg-white px-6" onSubmit={handleSubmit}>
                 <button
                     type="button"
                     className="text-[#64748B]"
@@ -114,7 +130,11 @@ export default function MessageInput() {
             </form>
 
             {isTaskCreateOpen && (
-                <TaskCreateModal onClose={() => setIsTaskCreateOpen(false)} />
+                <TaskCreateModal
+                    roomId={roomId}
+                    onClose={() => setIsTaskCreateOpen(false)}
+                    onCreated={onTaskCreated}
+                />
             )}
         </>
     );
