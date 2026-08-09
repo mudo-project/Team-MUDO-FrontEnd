@@ -5,9 +5,6 @@ export interface ApprovalApiResponse<T> {
     data: T;
 }
 
-export interface ApprovalPageRequest {
-    page?: number;
-}
 
 export interface ApprovalPageData<T> {
     content: T[];

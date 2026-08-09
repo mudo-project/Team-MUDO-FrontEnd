@@ -3,9 +3,10 @@
 import { Plus, X } from "lucide-react";
 import { useActionState, useEffect, useState } from "react";
 import ApprovalLineItem from "../ApprovalLineItem";
-import { createApprovalTemplateAction } from "../../actions";
+import { ApprovalActionResult, changeApprovalTemplateAction, createApprovalTemplateAction, getApprovalTemplateDetailAction } from "../../actions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { ApprovalTemplateDetailData } from "../../type";
 
 interface ApprovalLine {
     stepOrder: number;
@@ -13,22 +14,53 @@ interface ApprovalLine {
 }
 
 
-interface CreateApprovalTemplateModalProps {
+interface EditApprovalTemplateModalProps {
+    id: number;
     closeModal: () => void;
 }
 
-export default function CreateApprovalTemplateModal({
+export default function EditApprovalTemplateModal({
+    id,
     closeModal,
-}: CreateApprovalTemplateModalProps) {
+}: EditApprovalTemplateModalProps) {
     const [approvalLines, setApprovalLines] = useState<ApprovalLine[]>([
         { stepOrder: 1, approverId: "" },
     ]);
-    const [state, createTemplateFormAction, ispending] = useActionState(createApprovalTemplateAction, {
+    const changeApprovalTemplateWithId = changeApprovalTemplateAction.bind(null, id);
+
+    const [state, changeTemplateFormAction, ispending] = useActionState(changeApprovalTemplateWithId, {
         success: false,
         message: '',
-        data: undefined
     })
     const route = useRouter();
+
+    const [templateDetail, setTemplateDetail] = useState<{
+        loading: boolean;
+        error: string;
+        data: ApprovalTemplateDetailData | undefined
+    }>({
+        loading: false,
+        error: '',
+        data: undefined
+    })
+
+    useEffect(() => {
+        setTemplateDetail({ ...templateDetail, loading: true })
+        const fetchTemplateDetail = async () => {
+            const response: ApprovalActionResult<ApprovalTemplateDetailData> = await getApprovalTemplateDetailAction(id);
+            setTemplateDetail({
+                loading: false,
+                error: response.success ? '' : response.message,
+                data: response.data
+            })
+            if (response.data?.lines) {
+                setApprovalLines(response.data.lines.map((line) => ({ stepOrder: line.stepOrder, approverId: line.approverId })))
+            }
+        }
+
+        fetchTemplateDetail();
+    }, [])
+
 
     useEffect(() => {
         if (state.success) {
@@ -73,16 +105,16 @@ export default function CreateApprovalTemplateModal({
             onClick={closeModal}
         >
             <form
-                action={createTemplateFormAction}
+                action={changeTemplateFormAction}
                 className="fixed top-1/2 left-1/2 z-1000 max-h-[85vh] w-[560px] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-[14px] bg-white p-7 shadow-[0_8px_40px_rgba(22,34,54,0.18)] scrollbar-hide"
                 onClick={(e) => e.stopPropagation()}
             >
                 <div className="flex h-[27px] w-full items-center">
                     <h2 className="text-[18px] font-bold leading-[27px] text-[#0F172A]">
-                        결재 템플릿 생성
+                        결재 템플릿 수정
                     </h2>
                     <button
-                        aria-label="결재 템플릿 생성 모달 닫기"
+                        aria-label="결재 템플릿 수정 모달 닫기"
                         className="ml-auto flex size-[22px] items-center justify-center text-[#C0C8D0]"
                         onClick={closeModal}
                         type="button"
@@ -103,6 +135,7 @@ export default function CreateApprovalTemplateModal({
                         id="approval-template-name"
                         name="name"
                         placeholder="예: 휴가 신청서"
+                        defaultValue={templateDetail.data?.name}
                     />
                 </div>
 
@@ -131,7 +164,7 @@ export default function CreateApprovalTemplateModal({
                     type="submit"
                     disabled={ispending}
                 >
-                    템플릿 저장
+                    템플릿 수정
                 </button>
             </form>
         </div>
