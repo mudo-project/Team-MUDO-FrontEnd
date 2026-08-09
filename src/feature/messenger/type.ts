@@ -186,3 +186,18 @@ interface MessengerTaskCardListResponse {
     message: string;
     data: MessengerTaskCardListData;
 }
+
+// 사용자 검색 응답 항목
+interface MessengerUserSearchItemData {
+    userId: number;
+    name: string;
+    username: string;
+}
+
+// 사용자 검색 응답값
+interface MessengerUserSearchResponse {
+    status: number;
+    code: string;
+    message: string;
+    data: MessengerUserSearchItemData[];
+}

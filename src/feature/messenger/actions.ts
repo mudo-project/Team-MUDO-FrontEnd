@@ -10,14 +10,42 @@ import {
     getChatRooms,
     getMessages,
     getTaskCards,
+    searchUsers,
     sendMessage,
     updateMessage,
     updateTaskCard,
 } from "@/service/messenger.service";
+import { cookies } from "next/headers";
+import { jwtDecode } from "jwt-decode";
 
 interface MessengerActionState {
     success: boolean;
     message: string;
+}
+
+// 사용자 검색 액션
+export const searchUsersAction = async (keyword?: string): Promise<MessengerUserSearchItemData[]> => {
+    return searchUsers(keyword);
+}
+
+// 현재 로그인한 사용자 id 조회 액션
+// accessToken의 JWT payload에서 사용자 id를 추출한다.
+// TODO: 실제 payload의 사용자 id claim명(userId/sub/id)을 백엔드와 확인 후 정리 필요.
+export const getCurrentUserIdAction = async (): Promise<number | null> => {
+    const cookieStore = await cookies();
+    const accessToken = cookieStore.get("accessToken")?.value;
+
+    if (!accessToken) return null;
+
+    try {
+        const payload = jwtDecode<Record<string, unknown>>(accessToken);
+        const candidate = payload.userId ?? payload.sub ?? payload.id;
+        const userId = Number(candidate);
+
+        return Number.isNaN(userId) ? null : userId;
+    } catch {
+        return null;
+    }
 }
 
 // 채팅방 목록조회 액션
