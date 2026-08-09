@@ -4,24 +4,18 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { memoCreateSchema, type MemoCreateFormValues } from "@/lib/memoCreateSchema";
-import MemoColorPicker, { type MemoColor } from "./MemoColorPicker";
+import MemoColorPicker, { MEMO_COLORS, type MemoColor } from "./MemoColorPicker";
 
 type MemoEditFormProps = {
-  memo: {
-    title: string;
-    content: string[];
-    accent: string;
-    background: string;
-  };
+  memo: MemoData;
   onCancel: () => void;
   onSave: (title: string, content: string, color: MemoColor) => void;
 };
 
 export default function MemoEditForm({ memo, onCancel, onSave }: MemoEditFormProps) {
-  const [selectedColor, setSelectedColor] = useState<MemoColor>({
-    accent: memo.accent,
-    background: memo.background,
-  });
+  const [selectedColor, setSelectedColor] = useState<MemoColor>(
+    () => MEMO_COLORS.find((color) => color.code === memo.color) ?? MEMO_COLORS[0],
+  );
   const {
     register,
     handleSubmit,
@@ -31,7 +25,7 @@ export default function MemoEditForm({ memo, onCancel, onSave }: MemoEditFormPro
     resolver: zodResolver(memoCreateSchema),
     defaultValues: {
       title: memo.title,
-      content: memo.content.join("\n"),
+      content: memo.content ?? "",
     },
   });
 
@@ -50,18 +44,18 @@ export default function MemoEditForm({ memo, onCancel, onSave }: MemoEditFormPro
       style={{ backgroundColor: selectedColor.background, borderTopColor: selectedColor.accent }}
       onSubmit={handleSubmit(onSubmit)}
     >
-      <label className="sr-only" htmlFor={`memo-edit-title-${memo.title}`}>메모 제목</label>
+      <label className="sr-only" htmlFor={`memo-edit-title-${memo.id}`}>메모 제목</label>
       <input
         className="h-8 w-full rounded-md border border-[#D6DEDA] bg-white/80 px-2 text-[12px] font-semibold outline-none placeholder:text-[#94A3B8] focus:border-[#718096]"
-        id={`memo-edit-title-${memo.title}`}
+        id={`memo-edit-title-${memo.id}`}
         placeholder="제목을 입력하세요"
         {...register("title")}
       />
       {errors.title && <p className="mt-1 text-[10px] text-[#C65A50]">{errors.title.message}</p>}
-      <label className="sr-only" htmlFor={`memo-edit-content-${memo.title}`}>메모 내용</label>
+      <label className="sr-only" htmlFor={`memo-edit-content-${memo.id}`}>메모 내용</label>
       <textarea
         className="mt-2 min-h-20 w-full flex-1 resize-none rounded-md border border-[#D6DEDA] bg-white/80 p-2 text-[11px] leading-4 outline-none placeholder:text-[#94A3B8] focus:border-[#718096]"
-        id={`memo-edit-content-${memo.title}`}
+        id={`memo-edit-content-${memo.id}`}
         placeholder="내용을 입력하세요"
         {...register("content")}
       />
