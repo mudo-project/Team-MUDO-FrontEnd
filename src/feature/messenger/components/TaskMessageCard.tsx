@@ -4,14 +4,22 @@ import { useState } from "react";
 import { CheckSquare } from "lucide-react";
 import Avatar from "./Avatar";
 import TaskDetailModal from "./TaskDetailModal";
-import { TaskInstructionMessage } from "../data";
+import { formatChatTime, getInitials } from "../utils";
 
-export default function TaskMessageCard({ message }: { message: TaskInstructionMessage }) {
+type TaskMessageCardProps = {
+    card: MessengerTaskCardItemData;
+    own: boolean;
+    currentUserId: number | null;
+    roomId: number;
+    onTaskCardsChange: () => void;
+};
+
+export default function TaskMessageCard({ card, own, currentUserId, roomId, onTaskCardsChange }: TaskMessageCardProps) {
     const [isDetailOpen, setIsDetailOpen] = useState(false);
 
-    const card = (
+    const button = (
         <button
-            className={`block w-full max-w-[320px] rounded-[10px] border border-[#2C8D50] bg-white p-3 text-left ${message.own ? "ml-auto" : ""}`}
+            className={`block w-full max-w-[320px] rounded-[10px] border border-[#2C8D50] bg-white p-3 text-left ${own ? "ml-auto" : ""}`}
             onClick={() => setIsDetailOpen(true)}
             type="button"
         >
@@ -20,37 +28,43 @@ export default function TaskMessageCard({ message }: { message: TaskInstructionM
                     <CheckSquare className="size-3" />
                     업무지시
                 </span>
-                <span>{message.instructor} · {message.time}</span>
+                <span>{card.assignerName} · {formatChatTime(card.createdAt)}</span>
             </div>
-            <p className="mt-2 text-[11px] leading-5">{message.content}</p>
+            <p className="mt-2 text-[11px] leading-5">{card.content}</p>
             <div className="mt-2 flex justify-between text-[9px] text-[#64748B]">
-                <span>확인 {message.confirmed}/{message.assigneeCount}</span>
-                <span>담당자 {message.assigneeCount}명 ›</span>
+                <span>확인 {card.completedCount}/{card.assigneeCount}</span>
+                <span>담당자 {card.assigneeCount}명 ›</span>
             </div>
         </button>
     );
 
     return (
         <>
-            {message.own
+            {own
                 ? (
-                    <article className="mt-3 flex max-w-[620px] flex-col items-end">
-                        {card}
+                    <article className="mt-3 ml-auto flex max-w-[620px] flex-col items-end">
+                        {button}
                     </article>
                 )
                 : (
                     <article className="flex max-w-[620px] items-end gap-2">
-                        <Avatar initials={message.instructorInitials} />
+                        <Avatar initials={getInitials(card.assignerName)} />
                         <div className="w-full">
-                            <p className="mb-1 text-[9px] text-[#64748B]">{message.instructor}</p>
-                            {card}
+                            <p className="mb-1 text-[9px] text-[#64748B]">{card.assignerName}</p>
+                            {button}
                         </div>
                     </article>
                 )
             }
 
             {isDetailOpen && (
-                <TaskDetailModal onClose={() => setIsDetailOpen(false)} taskId={message.taskId} />
+                <TaskDetailModal
+                    card={card}
+                    currentUserId={currentUserId}
+                    roomId={roomId}
+                    onClose={() => setIsDetailOpen(false)}
+                    onTaskCardsChange={onTaskCardsChange}
+                />
             )}
         </>
     );

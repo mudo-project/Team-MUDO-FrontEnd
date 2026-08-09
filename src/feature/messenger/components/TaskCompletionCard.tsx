@@ -1,5 +1,5 @@
 import { CheckCircle2 } from "lucide-react";
-import { TaskCompletionMessage } from "../data";
+import { TaskCompletionMessage } from "../utils";
 
 export default function TaskCompletionCard({ message }: { message: TaskCompletionMessage }) {
     const percent = Math.round((message.completed / message.total) * 100);
