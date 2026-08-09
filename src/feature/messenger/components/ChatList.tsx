@@ -1,11 +1,10 @@
 import ChatListItem from "./ChatListItem";
-import { chats } from "../data";
 
-export default function ChatList() {
+export default function ChatList({ rooms }: { rooms: MessengerRoomListItemData[] }) {
     return (
         <div className="min-h-0 flex-1 overflow-y-auto" aria-label="채팅방">
-            {chats.map((chat) => (
-                <ChatListItem chat={chat} key={chat.id} />
+            {rooms.map((room) => (
+                <ChatListItem room={room} key={room.id} />
             ))}
         </div>
     );

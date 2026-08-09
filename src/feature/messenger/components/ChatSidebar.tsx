@@ -1,7 +1,38 @@
+'use client'
+
+import { useCallback, useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { Search } from "lucide-react";
 import ChatList from "./ChatList";
+import { getChatRoomsAction } from "../actions";
+import { useMessengerRealtime, useMessengerRealtimeRoomList } from "./MessengerRealtimeProvider";
 
 export default function ChatSidebar() {
+    const [rooms, setRooms] = useState<MessengerRoomListItemData[]>([]);
+    const [query, setQuery] = useState("");
+    const pathname = usePathname();
+
+    const loadRooms = useCallback(async () => {
+        const data = await getChatRoomsAction();
+        setRooms(data);
+    }, []);
+
+    useEffect(() => {
+        loadRooms();
+    }, [loadRooms, pathname]);
+
+    useMessengerRealtime((event) => {
+        if (event.eventType === "MESSAGE_READ") return;
+        loadRooms();
+    });
+
+    useMessengerRealtimeRoomList(rooms.map((room) => room.id));
+
+    const trimmedQuery = query.trim();
+    const filteredRooms = trimmedQuery
+        ? rooms.filter((room) => room.name.includes(trimmedQuery))
+        : rooms;
+
     return (
         <div className="flex min-h-0 flex-1 flex-col">
             <div className="shrink-0 border-b border-[#E7EFE9] p-3">
@@ -11,12 +42,14 @@ export default function ChatSidebar() {
                         id="chat-search"
                         aria-label="채팅방 검색"
                         className="min-w-0 flex-1 border-0 bg-transparent pl-2 text-[11px] outline-none placeholder:text-[#94A3B8]"
+                        onChange={(event) => setQuery(event.target.value)}
                         placeholder="채팅방 검색"
+                        value={query}
                     />
                 </label>
             </div>
 
-            <ChatList />
+            <ChatList rooms={filteredRooms} />
         </div>
     );
 }
