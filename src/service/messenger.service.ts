@@ -238,6 +238,28 @@ export const deleteTaskCard = async (roomId: number, cardId: number): Promise<vo
     }
 }
 
+// 사용자 검색 API
+export const searchUsers = async (keyword?: string): Promise<MessengerUserSearchItemData[]> => {
+    const query = new URLSearchParams();
+    if (keyword) query.set("keyword", keyword);
+    const queryString = query.toString();
+
+    const response = await fetchWithAuth(`/api/users${queryString ? `?${queryString}` : ""}`);
+
+    if (!response.ok) {
+        const message = await getErrorMessage(
+            response,
+            "사용자 검색에 실패하였습니다."
+        );
+
+        throw new Error(message);
+    }
+
+    const resData = (await response.json()) as MessengerUserSearchResponse;
+
+    return resData.data;
+}
+
 // 업무지시 완료 처리 API
 export const completeTaskCard = async (roomId: number, cardId: number): Promise<void> => {
     const response = await fetchWithAuth(`/api/messenger/rooms/${roomId}/task-cards/${cardId}/complete`, {
