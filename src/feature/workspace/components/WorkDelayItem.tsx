@@ -14,8 +14,10 @@ export default function WorkDelayItem({ task }: { task: WorkspaceTaskData }) {
                 <span className="flex h-[18px] w-[18px] items-center justify-center rounded-full bg-[#EEF1F4] text-[7px] font-semibold text-[#515B6C]">
                     {task.creator.name}
                 </span>
-                <span className="ml-2">~{task.dueAt}</span>
-                <span className="ml-auto">◌ {task.completedCommentCount}/{task.commentCount}</span>
+                {task.dueAt &&
+                    <span className="ml-2">~{task.dueAt}</span>
+                }
+                <span className="ml-auto">◌ {task.completedCommentCount ?? 0}/{task.commentCount ?? 0}</span>
             </div>
         </article>
     )

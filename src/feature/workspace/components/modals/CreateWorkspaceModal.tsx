@@ -25,9 +25,14 @@ export default function CreateWorkspaceModal({ closeModal }: { closeModal: () =>
 
     const isFirstRender = useRef(true);
     useEffect(() => {
+        let cancelled = false;
+
         const fetchUser = async () => {
             setSearchError("");
             const response = await getUserListAction(searchInput.trim());
+            if (cancelled) return;
+
+
             setMembers(response.data ?? [])
             setSearchError(response.success ? "" : response.message);
         }
@@ -35,14 +40,19 @@ export default function CreateWorkspaceModal({ closeModal }: { closeModal: () =>
         if (isFirstRender.current) {
             fetchUser();
             isFirstRender.current = false;
-            return;
+            return () => {
+                cancelled = true;
+            };
         }
 
         const debounceTimer = setTimeout(() => {
             fetchUser();
         }, 500);
 
-        return () => clearTimeout(debounceTimer);
+        return () => {
+            cancelled = true;
+            clearTimeout(debounceTimer);
+        }
     }, [searchInput]);
 
     useEffect(() => {
@@ -153,7 +163,7 @@ export default function CreateWorkspaceModal({ closeModal }: { closeModal: () =>
                     </div>
                 </div>
 
-                {!state.success && (
+                {!state.success && state.message && (
                     <p
                         className={`mt-3 text-[12px] text-red-500`}
                     >

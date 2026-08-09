@@ -10,12 +10,16 @@ import { getWorkspaceDetailAction } from "../actions";
 export default function WorkspaceHeader({ workspaceId }: { workspaceId: string }) {
     const {
         data: workspaceData,
-        isLoading: workspaceLoading,
+        isPending: workspacePending,
         isError: workspaceError
     } = useQuery({
         queryKey: ['workspace-date', workspaceId],
         queryFn: () => getWorkspaceDetailAction(Number(workspaceId))
     })
+
+    if (workspacePending) {
+        return <p>워크스페이스를 불러오는 중입니다.</p>
+    }
 
     if (!workspaceData?.success || workspaceError) {
         return (
@@ -52,13 +56,13 @@ export default function WorkspaceHeader({ workspaceId }: { workspaceId: string }
 
             <nav className="mt-2 flex h-8 items-end gap-2 sm:gap-3 md:mt-3 md:h-[34px] md:gap-5 lg:mt-4 lg:h-[36px] lg:gap-7">
                 <Link
-                    href="/workspace/1/daily"
+                    href={`/workspace/${workspaceId}/daily`}
                     className="h-full border-b border-[#596273] px-2 text-[10px] font-semibold leading-[35px] md:px-3 md:text-[12px] lg:px-4 lg:text-[13px]"
                 >
                     일별
                 </Link>
                 <Link
-                    href="/workspace/1/repeat"
+                    href={`/workspace/${workspaceId}/repeat`}
                     className="h-full px-1 text-[10px] leading-[35px] text-[#A9B0BC] md:text-[12px] lg:text-[13px]"
                 >
                     반복 템플릿

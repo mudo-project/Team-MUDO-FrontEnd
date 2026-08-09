@@ -36,9 +36,13 @@ export default function AddWorkspaceAttendModal({
 
     const isFirstRender = useRef(true);
     useEffect(() => {
+        let cancelled = false;
+
         const fetchUser = async () => {
             setSearchError("");
             const response = await getUserListAction(searchInput.trim());
+            if (cancelled) return;
+
             setMembers(response.data ?? [])
             setSearchError(response.success ? "" : response.message);
         }
@@ -46,14 +50,19 @@ export default function AddWorkspaceAttendModal({
         if (isFirstRender.current) {
             fetchUser();
             isFirstRender.current = false;
-            return;
+            return () => {
+                cancelled = true;
+            };
         }
 
         const debounceTimer = setTimeout(() => {
             fetchUser();
         }, 500);
 
-        return () => clearTimeout(debounceTimer);
+        return () => {
+            cancelled = true;
+            clearTimeout(debounceTimer);
+        }
     }, [searchInput]);
 
     useEffect(() => {

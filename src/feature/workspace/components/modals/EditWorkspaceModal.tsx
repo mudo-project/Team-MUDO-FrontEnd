@@ -118,7 +118,8 @@ export default function EditWorkspaceModal({
                     className="mt-3.5 h-10 w-full rounded-[8px] bg-[#0F172A] text-[13px] leading-[19.5px] font-medium text-white disabled:bg-[#0F172A]/40"
                     disabled={
                         isPending ||
-                        Boolean(workspaceDetail.error)
+                        Boolean(workspaceDetail.error) ||
+                        workspaceDetail.loading
                     }
                     type="submit"
                 >

@@ -12,10 +12,12 @@ export default function WorkspaceEditButton({ workspaceId }: { workspaceId: stri
                 className="px-2 "
                 onClick={modal.openModal}
                 type="button"
+                aria-label="워크스페이스 이름 수정"
             >
                 <Pencil className="text-[#64748B] h-3 w-3 mr-1" />
-            </button>
-            {modal.isModal &&
+            </button >
+            {
+                modal.isModal &&
                 <EditWorkspaceModal
                     closeModal={modal.closeModal}
                     workspaceId={workspaceId} />

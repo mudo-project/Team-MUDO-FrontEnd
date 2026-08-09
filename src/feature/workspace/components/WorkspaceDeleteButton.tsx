@@ -17,7 +17,7 @@ export default function WorkspaceDeleteButton({ workspaceId }: { workspaceId: st
         if (response.success) {
             deleteModal.closeModal();
             toast.success(response.message);
-            router.refresh();
+            router.replace("/workspace");
         } else {
             toast.error(response.message);
         }
@@ -29,6 +29,7 @@ export default function WorkspaceDeleteButton({ workspaceId }: { workspaceId: st
                 className=" flex h-7 items-center rounded-[7px] border-1 border-[#D8E5DF] px-2 text-[10px] font-semibold text-[#64748B]  md:h-8  md:text-[12px] lg:h-9  lg:text-[13px]"
                 onClick={deleteModal.openModal}
                 type="button"
+                aria-label="워크스페이스 삭제"
             >
                 <Trash2 className="text-[#64748B] h-4 w-4" />
             </button>

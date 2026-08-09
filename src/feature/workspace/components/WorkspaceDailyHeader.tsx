@@ -36,7 +36,7 @@ export default function WorkspaceDailyHeader({ workspaceId, taskCount }: { works
             const query = new URLSearchParams({ date: String(format(calendarDate, 'yyyy-MM-dd')) }).toString()
             route.replace(`/workspace/${workspaceId}/daily${query ? `?${query}` : ''}`)
         }
-    }, [calendarDate])
+    }, [calendarDate, route, workspaceId])
 
     return (
         <header className="border-b border-[#E9ECF1] px-2 pt-3 pb-3 sm:px-3 md:px-4 lg:px-6 lg:pt-3.5 lg:pb-[15px]">

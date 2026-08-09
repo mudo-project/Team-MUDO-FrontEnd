@@ -48,6 +48,7 @@ export default function WorkspaceCt({ workspaceId, date }: { workspaceId: string
 
     const {
         data: workspaceData,
+        isPending: workspacePending,
         isError: workspaceError
     } = useQuery({
         queryKey: ['workspace-date', workspaceId, date],
@@ -68,6 +69,10 @@ export default function WorkspaceCt({ workspaceId, date }: { workspaceId: string
             } as Record<WorkspaceTaskStatus, WorkspaceTaskData[]>,
         )
     }, [workspaceData])
+
+    if (workspacePending) {
+        return <p>워크스페이스를 불러오는 중입니다.</p>
+    }
 
     if (!workspaceData?.success || workspaceError) {
         return (
@@ -92,7 +97,7 @@ export default function WorkspaceCt({ workspaceId, date }: { workspaceId: string
                     <div className="flex items-center gap-1 text-[10px] leading-[16px] sm:gap-1.5 sm:text-[11px] lg:gap-2 lg:text-[12px] lg:leading-[18px]">
                         <span className={`h-2 w-2 rounded-full bg-[#DF6C82]`} />
                         <h2 className="text-[10px] leading-[16px] font-semibold sm:text-[11px] lg:text-[12px] lg:leading-[18px]">지연</h2>
-                        <span className="rounded-full bg-[#F0F2F5] px-[7px] py-px text-[10px] leading-[15px] text-[#A5ADBA]">1</span>
+                        <span className="rounded-full bg-[#F0F2F5] px-[7px] py-px text-[10px] leading-[15px] text-[#A5ADBA]">{groupedTasksMemo['DELAYED'].length}</span>
                     </div>
                     <p className="w-full pl-0.5 text-[10px] leading-[15px] text-[#C1C7D0] md:pl-1 lg:text-[11px] lg:leading-[16.5px]">기한이 지난 업무입니다. 상태를 업데이트하거나 완료 처리해주세요.</p>
                     {groupedTasksMemo['DELAYED'].map((task) => {
