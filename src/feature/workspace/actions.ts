@@ -327,7 +327,7 @@ export const recordWorkspaceRecentAccessAction = async (
 
 export const createWorkspaceTaskAction = async (
     workspaceId: number,
-    payload: CreateWorkspaceTaskRequest,
+    formData: FormData,
 ): Promise<WorkspaceActionResult<CreateWorkspaceTaskData>> => {
     if (!isPositiveInteger(workspaceId)) {
         return {
@@ -336,27 +336,30 @@ export const createWorkspaceTaskAction = async (
         };
     }
 
-    const title = payload.title.trim();
+    const title = formData.get('title') as string;
 
-    if (!title || title.length > 200) {
+    if (!title.trim() || title.length > 200) {
         return {
             success: false,
             message: "업무 제목은 1자 이상 200자 이하로 입력해주세요.",
         };
     }
 
-    if (!isValidDate(payload.dueAt)) {
+    const dueAt = formData.get('dueDate') as string;
+
+    if (!isValidDate(dueAt)) {
         return {
             success: false,
             message: "마감일 형식이 올바르지 않습니다.",
         };
     }
 
+    const payload: CreateWorkspaceTaskRequest = {
+        title, dueAt
+    }
+
     try {
-        const response = await createWorkspaceTask(workspaceId, {
-            ...payload,
-            title,
-        });
+        const response = await createWorkspaceTask(workspaceId, payload);
 
         return {
             success: true,

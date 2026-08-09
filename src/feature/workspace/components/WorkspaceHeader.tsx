@@ -6,6 +6,7 @@ import WorkspaceDeleteButton from "./WorkspaceDeleteButton";
 import WorkspaceEditButton from "./WorkspaceEditButton";
 import { useQuery } from "@tanstack/react-query";
 import { getWorkspaceDetailAction } from "../actions";
+import TaskCreateButton from "./TaskCreateButton";
 
 export default function WorkspaceHeader({ workspaceId }: { workspaceId: string }) {
     const {
@@ -13,7 +14,7 @@ export default function WorkspaceHeader({ workspaceId }: { workspaceId: string }
         isPending: workspacePending,
         isError: workspaceError
     } = useQuery({
-        queryKey: ['workspace-date', workspaceId],
+        queryKey: ['workspace', workspaceId],
         queryFn: () => getWorkspaceDetailAction(Number(workspaceId))
     })
 
@@ -47,10 +48,7 @@ export default function WorkspaceHeader({ workspaceId }: { workspaceId: string }
                 <div className="ml-auto flex items-center gap-1 ">
                     <WorkspaceAttendAddButton workspaceId={workspaceId} />
                     <WorkspaceDeleteButton workspaceId={workspaceId} />
-                    <button className=" flex h-7 items-center rounded-[7px] bg-[#1D2639] px-2 text-[10px] font-semibold text-white  md:h-8 md:px-3 md:text-[12px] lg:h-9 lg:px-4 lg:text-[13px]">
-                        <span className="mr-1 text-[14px] font-light md:mr-1.5 md:text-base lg:mr-2 lg:text-lg">＋</span>
-                        업무 등록
-                    </button>
+                    <TaskCreateButton workspaceId={workspaceId} />
                 </div>
             </div>
 

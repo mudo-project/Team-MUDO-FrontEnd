@@ -28,7 +28,7 @@ export default function WorkItem({ task, type }: { task: WorkspaceTaskData, type
             <h3 className="mt-1.5 text-[10px] leading-[15px] font-medium wrap-break-word md:mt-2 md:text-[12px] md:leading-[17px] lg:text-[13px] lg:leading-[18px]">{task.title}</h3>
             <div className="mt-2 flex items-center text-[10px] leading-[15px] text-[#AEB6C3] lg:mt-2.5 lg:text-[11px] lg:leading-[16.5px]">
                 <span className="flex h-[18px] w-[18px] items-center justify-center rounded-full bg-[#EEF1F4] text-[7px] font-semibold text-[#515B6C]">
-                    {task.creator.name}
+                    {task.creator.name.slice(0, 2)}
                 </span>
                 {task.dueAt &&
                     <span className="ml-2">{task.dueAt}</span>
