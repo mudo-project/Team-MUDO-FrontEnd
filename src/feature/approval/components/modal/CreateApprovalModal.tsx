@@ -5,7 +5,7 @@ const approvers = [
     { step: "2차", name: "김지수 (원장)" },
 ];
 
-export default function CreateApprovalModal() {
+export default function CreateApprovalModal({ closeModal, activeModal }: { closeModal: () => void, activeModal: () => void }) {
     return (
         <div className="fixed top-0 left-0 z-999 h-screen w-screen bg-[#162236]/30">
             <form className="fixed top-1/2 left-1/2 z-1000 h-[638px] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-[12px] bg-white p-6 shadow-[0_8px_16px_rgba(22,34,54,0.16)]">

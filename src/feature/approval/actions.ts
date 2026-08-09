@@ -85,7 +85,11 @@ export const getApprovalTemplateDetailAction = async (
 
     try {
         const response = await getApprovalTemplateDetail(templateId);
-        return { success: true, message: response.message, data: response.data };
+        return {
+            success: true,
+            message: response.message,
+            data: response.data
+        };
     } catch (error) {
         return {
             success: false,
@@ -94,22 +98,25 @@ export const getApprovalTemplateDetailAction = async (
     }
 };
 
-export const createApprovalTemplateAction = async (
-    payload: ApprovalTemplateRequest,
-): Promise<ApprovalActionResult<CreateApprovalTemplateData>> => {
-    const name = payload.name.trim();
-    if (!name) {
+export const createApprovalTemplateAction = async (prevState: ApprovalActionResult<CreateApprovalTemplateData>, formData: FormData): Promise<ApprovalActionResult<CreateApprovalTemplateData>> => {
+    const name = formData.get('name') as string;
+    const approverIds = formData.getAll('approverIds') as [];
+    if (!name.trim()) {
         return { success: false, message: "템플릿 이름을 입력해 주세요." };
     }
     if (
-        payload.approverIds.length === 0 ||
-        payload.approverIds.some((id) => !isPositiveInteger(id))
+        approverIds.length === 0 ||
+        approverIds.some((id) => !isPositiveInteger(Number(id)))
     ) {
         return { success: false, message: "결재자를 한 명 이상 선택해 주세요." };
     }
 
+    const payload = {
+        name,
+        approverIds
+    }
     try {
-        const response = await createApprovalTemplate({ ...payload, name });
+        const response = await createApprovalTemplate(payload);
         return { success: true, message: response.message, data: response.data };
     } catch (error) {
         return {
@@ -119,29 +126,32 @@ export const createApprovalTemplateAction = async (
     }
 };
 
-export const changeApprovalTemplateAction = async (
-    templateId: number,
-    payload: ApprovalTemplateRequest,
-): Promise<ApprovalActionResult> => {
+export const changeApprovalTemplateAction = async (templateId: number, prevState: ApprovalActionResult, formData: FormData): Promise<ApprovalActionResult> => {
     if (!isPositiveInteger(templateId)) {
         return {
             success: false,
             message: "ID가 올바르지 않습니다.",
         }
     }
-    const name = payload.name.trim();
+
+    const name = formData.get('name') as string;
+    const approverIds = formData.getAll('approverIds') as [];
     if (!name) {
         return { success: false, message: "템플릿 이름을 입력해 주세요." };
     }
     if (
-        payload.approverIds.length === 0 ||
-        payload.approverIds.some((id) => !isPositiveInteger(id))
+        approverIds.length === 0 ||
+        approverIds.some((id) => !isPositiveInteger(Number(id)))
     ) {
         return { success: false, message: "결재자를 한 명 이상 선택해 주세요." };
     }
 
+    const payload = {
+        name, approverIds
+    }
+
     try {
-        await changeApprovalTemplate(templateId, { ...payload, name });
+        await changeApprovalTemplate(templateId, payload);
         return { success: true, message: "결재 템플릿을 수정했습니다." };
     } catch (error) {
         return {

@@ -1,12 +1,19 @@
 'use server'
 
-import { login } from "@/service/auth.service"
+import { getUserList, login } from "@/service/auth.service"
 import { cookies } from "next/headers";
 
 interface ActionState {
     success: boolean;
     message: string;
 }
+
+export interface UserActionResult<T = undefined> {
+    success: boolean;
+    message: string;
+    data?: T;
+}
+
 
 
 export const loginAction = async (prevState: ActionState, formData: FormData): Promise<ActionState> => {
@@ -69,4 +76,20 @@ export const loginAction = async (prevState: ActionState, formData: FormData): P
         message: '로그인 성공'
     }
 
+}
+
+export const getUserListAction = async (keyword?: string): Promise<UserActionResult<UserListResponse[]>> => {
+    try {
+        const response: UserListApiResponse<UserListResponse[]> = await getUserList(keyword);
+        return {
+            success: true,
+            message: response.message,
+            data: response.data
+        };
+    } catch (error) {
+        return {
+            success: false,
+            message: error instanceof Error ? error.message : "결재 템플릿 목록 조회에 실패했습니다."
+        };
+    }
 }
