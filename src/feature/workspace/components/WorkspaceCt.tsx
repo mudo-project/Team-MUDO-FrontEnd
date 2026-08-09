@@ -51,7 +51,7 @@ export default function WorkspaceCt({ workspaceId, date }: { workspaceId: string
         isPending: workspacePending,
         isError: workspaceError
     } = useQuery({
-        queryKey: ['workspace-date', workspaceId, date],
+        queryKey: ['workspace', workspaceId, date],
         queryFn: () => getWorkspaceDetailAction(Number(workspaceId), date)
     })
 
@@ -100,10 +100,11 @@ export default function WorkspaceCt({ workspaceId, date }: { workspaceId: string
                         <span className="rounded-full bg-[#F0F2F5] px-[7px] py-px text-[10px] leading-[15px] text-[#A5ADBA]">{groupedTasksMemo['DELAYED'].length}</span>
                     </div>
                     <p className="w-full pl-0.5 text-[10px] leading-[15px] text-[#C1C7D0] md:pl-1 lg:text-[11px] lg:leading-[16.5px]">기한이 지난 업무입니다. 상태를 업데이트하거나 완료 처리해주세요.</p>
-                    {groupedTasksMemo['DELAYED'].map((task) => {
-                        return <WorkDelayItem key={task.taskId} task={task} />
-                    })}
-
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-3 lg:gap-4 mt-3">
+                        {groupedTasksMemo['DELAYED'].map((task) => {
+                            return <WorkDelayItem key={task.taskId} task={task} />
+                        })}
+                    </div>
                 </section>
             </section>
         </>
