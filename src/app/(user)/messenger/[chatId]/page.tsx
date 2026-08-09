@@ -9,5 +9,5 @@ interface paramsProps {
 export default async function MessengerChatPage({ params }: paramsProps) {
     const { chatId } = await params;
 
-    return <ChatRoom chatId={chatId} />;
+    return <ChatRoom roomId={Number(chatId)} />;
 }
