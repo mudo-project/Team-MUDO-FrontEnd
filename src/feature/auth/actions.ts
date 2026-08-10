@@ -1,6 +1,6 @@
 'use server'
 
-import { getUserList, login } from "@/service/auth.service";
+import { getUserList, login, logout } from "@/service/auth.service";
 import { cookies } from "next/headers";
 
 export interface AuthActionResult<T = undefined> {
@@ -78,6 +78,26 @@ export const getUserListAction = async (
         return {
             success: false,
             message: error instanceof Error ? error.message : "구성원 조회에 실패했습니다.",
+        };
+    }
+};
+
+export const logoutAction = async (): Promise<AuthActionResult> => {
+    try {
+        const response = await logout();
+        const cookieStore = await cookies();
+
+        cookieStore.delete("accessToken");
+        cookieStore.delete("refreshToken");
+
+        return {
+            success: true,
+            message: response.message,
+        };
+    } catch (error) {
+        return {
+            success: false,
+            message: error instanceof Error ? error.message : "로그아웃에 실패했습니다.",
         };
     }
 };
