@@ -1,9 +1,13 @@
 'use server'
 
 import {
+    checkGoogleConnection,
     createWifiIp,
     deleteWifiIp,
+    disconnectGoogle,
     getCurrentIp,
+    getGoogleAuthorizationUrl,
+    getGoogleConnection,
     getWifiIpList,
     saveWorkingHours,
 } from "@/service/setting.service";
@@ -67,6 +71,80 @@ export const deleteWifiIpAction = async (wifiIpId: number): Promise<SettingActio
         };
     } catch (error) {
         let errorMessage = "와이파이 IP 삭제에 실패하였습니다.";
+        if (error instanceof Error) {
+            errorMessage = error.message;
+        }
+
+        return {
+            success: false,
+            message: errorMessage
+        };
+    }
+}
+
+// 구글 연동 상태 조회 액션
+export const getGoogleConnectionAction = async (): Promise<GoogleConnectionData | null> => {
+    return getGoogleConnection();
+}
+
+// 구글 계정 연동 시작(인가 URL 발급) 액션
+export const getGoogleAuthorizationUrlAction = async (
+    switchAccount: boolean
+): Promise<SettingActionState & { authorizationUrl?: string }> => {
+    try {
+        const authorizationUrl = await getGoogleAuthorizationUrl(switchAccount);
+
+        return {
+            success: true,
+            message: "구글 인증 URL이 발급되었습니다.",
+            authorizationUrl,
+        };
+    } catch (error) {
+        let errorMessage = "구글 인증 URL 발급에 실패하였습니다.";
+        if (error instanceof Error) {
+            errorMessage = error.message;
+        }
+
+        return {
+            success: false,
+            message: errorMessage
+        };
+    }
+}
+
+// 구글 연동 상태 확인 액션
+export const checkGoogleConnectionAction = async (): Promise<SettingActionState> => {
+    try {
+        await checkGoogleConnection();
+
+        return {
+            success: true,
+            message: "구글 연동 상태를 확인했습니다."
+        };
+    } catch (error) {
+        let errorMessage = "구글 연동 상태 확인에 실패하였습니다.";
+        if (error instanceof Error) {
+            errorMessage = error.message;
+        }
+
+        return {
+            success: false,
+            message: errorMessage
+        };
+    }
+}
+
+// 구글 연동 해제 액션
+export const disconnectGoogleAction = async (): Promise<SettingActionState> => {
+    try {
+        await disconnectGoogle();
+
+        return {
+            success: true,
+            message: "구글 연동이 해제되었습니다."
+        };
+    } catch (error) {
+        let errorMessage = "구글 연동 해제에 실패하였습니다.";
         if (error instanceof Error) {
             errorMessage = error.message;
         }

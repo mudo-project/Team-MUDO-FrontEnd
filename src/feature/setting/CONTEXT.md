@@ -25,11 +25,12 @@ Sidebar의 설정 메뉴(`src/components/layout/Sidebar.tsx`, `href: "/setting"`
 ### 데이터 연동 계층
 
 - `src/feature/setting/type.ts` — 요청/응답 인터페이스. `export` 없이 선언되어 프로젝트 전역에서 import 없이 바로 참조된다(다른 도메인 `type.ts`와 동일한 스타일).
-- `src/service/setting.service.ts` — `fetchWithAuth`/`fetchWithoutAuth` 기반 API 호출(`getCurrentIp`, `createWifiIp`, `getWifiIpList`, `deleteWifiIp`, `saveWorkingHoursPolicy`). 근태(attendance) API 문서(`.docs/api/attendance-management/apiIntegration.md`)에 정의된 와이파이 IP·근무시간 정책 엔드포인트를 그대로 사용한다(엔드포인트 자체는 `/api/attendance/...`이며 `setting` 전용 엔드포인트가 아니다).
-- `src/feature/setting/actions.ts` — 위 service를 감싼 Server Action(`getCurrentIpAction`, `getWifiIpListAction`, `createWifiIpAction`, `deleteWifiIpAction`, `saveWorkingHoursPolicyAction`). `SettingWifi`, `SettingWorkingHours`가 이 액션들을 직접 호출한다.
+- `src/service/setting.service.ts` — `fetchWithAuth`/`fetchWithoutAuth` 기반 API 호출(`getCurrentIp`, `createWifiIp`, `getWifiIpList`, `deleteWifiIp`, `saveWorkingHoursPolicy`, `getGoogleConnection`, `getGoogleAuthorizationUrl`, `checkGoogleConnection`, `disconnectGoogle`). 와이파이 IP·근무시간 정책은 근태(attendance) API 문서(`.docs/api/attendance-management/apiIntegration.md`), 구글 연동은 `.docs/api/google-account/apiIntegration.md`에 정의된 엔드포인트를 그대로 사용한다(엔드포인트는 각각 `/api/attendance/...`, `/api/google/connections...`이며 `setting` 전용 엔드포인트가 아니다).
+- `src/feature/setting/actions.ts` — 위 service를 감싼 Server Action(`getCurrentIpAction`, `getWifiIpListAction`, `createWifiIpAction`, `deleteWifiIpAction`, `saveWorkingHoursPolicyAction`, `getGoogleConnectionAction`, `getGoogleAuthorizationUrlAction`, `checkGoogleConnectionAction`, `disconnectGoogleAction`). `SettingWifi`, `SettingWorkingHours`가 앞의 액션들을 직접 호출한다. 구글 연동 액션들은 아직 어떤 컴포넌트도 호출하지 않는다(`SettingGoogleConnection`은 여전히 `DUMMY_CONNECTION` 더미 데이터로 동작) — type/service/action 계층만 먼저 준비한 단계다.
 - 인증되지 않은 브라우저 세션에서 실제 백엔드(로컬 `localhost:8081`)로 확인한 결과, 명세상 인증이 필요 없다고 되어 있는 `getCurrentIpAction`(`GET /wifi-ips/current`)도 현재 서버 구현은 인증을 요구한다(`인증이 필요합니다.` 오류). 이는 백엔드 쪽 구현이 명세와 다른 것으로 보이며, 프론트 코드는 명세(`Authorization: false`) 그대로 `fetchWithoutAuth`를 사용한다.
+- 구글 OAuth 콜백(`GET /api/google/connections/callback`)은 프론트가 직접 호출하는 API가 아니라, 구글이 사용자를 리다이렉트시키는 백엔드 전용 경로다. 성공/실패 시 백엔드가 `{GOOGLE_OAUTH_FRONTEND_REDIRECT_URI}?googleConnection=success|failed`로 브라우저를 되돌려보내는데, 이 리다이렉트 URI가 실제로 어느 프론트 경로를 가리키는지(예: `/setting/google`) 확인되지 않아 이번 변경에는 그 값을 읽어 성공/실패를 표시하는 처리를 포함하지 않았다.
 - `notificationItems`(알림 항목 4종)는 여전히 `SettingAlarm.tsx` 안에 하드코딩된 더미 배열로 존재한다.
-- 설정 도메인 전용 API 문서(`.docs/api/setting/`)는 없다 — 와이파이·근무시간 API는 근태 도메인 문서에 있다.
+- 설정 도메인 전용 API 문서(`.docs/api/setting/`)는 없다 — 와이파이·근무시간 API는 근태 도메인 문서에, 구글 연동 API는 `.docs/api/google-account/`에 있다.
 
 ---
 
@@ -158,8 +159,11 @@ Sidebar의 설정 메뉴(`src/components/layout/Sidebar.tsx`, `href: "/setting"`
 | `WifiIpListItemData` / `WifiIpListResponse` | 와이파이 IP 목록조회(`GET /api/attendance/wifi-ips`) 응답 항목 — `wifiIpId`, `ipAddress`, `note`, `createdAt`. 페이지네이션 없이 배열 그대로 내려옴 |
 | `WorkingHoursWeekday` | 근무시간 정책의 요일별 설정 — `dayOfWeek`(1~7, `java.time.DayOfWeek` 기준 월요일 1~일요일 7), `isWorkday`, `startTime`, `endTime`(휴무면 `null`) |
 | `WorkingHoursPolicySaveRequest` / `WorkingHoursSaveData` / `WorkingHoursSaveResponse` | 근무시간 정책 저장(`PUT /api/attendance/policies`) 요청/응답 — `defaultStartTime`, `defaultEndTime`, `lateGraceMinutes`, `weekdayExceptionEnabled`, `weekdays` |
+| `GoogleConnectionStatus` | `"CONNECTED" \| "EXPIRING" \| "EXPIRED" \| "FAILED"` — 서버가 내려주는 구글 연동 상태값(대문자). `EXPIRING`은 만료 3일 전부터, `FAILED`는 `/check` 실패뿐 아니라 현재 요구 scope를 다 포함하지 못하는 경우에도 내려온다 |
+| `GoogleConnectionData` / `GoogleConnectionResponse` | 구글 연동 상태 조회(`GET /api/google/connections`) 응답 — `googleEmail`, `connectedByUserId`(이름이 아닌 유저 ID), `scope`, `connectedAt`, `tokenExpiresAt`, `lastCheckedAt`, `status`. 연동된 계정이 없으면 `data`가 `null`(404가 아님) |
+| `GoogleAuthorizationUrlData` / `GoogleAuthorizationUrlResponse` | 구글 계정 연동 시작(`POST /api/google/connections/authorize-url?switchAccount={bool}`) 응답 — `data.authorizationUrl`을 팝업/새 창으로 열어 구글 동의 화면을 진행시켜야 한다. "재연결"과 "계정 교체" 모두 이 엔드포인트 하나를 쓰고 `switchAccount`로만 구분한다 |
 
-와이파이 IP 삭제(`DELETE /api/attendance/wifi-ips/{wifiIpId}`)는 응답 `data`가 항상 `null`이라 별도 타입 없이 `Promise<void>`로 처리한다.
+와이파이 IP 삭제(`DELETE /api/attendance/wifi-ips/{wifiIpId}`), 구글 연동 상태 확인(`POST /api/google/connections/check`), 구글 연동 해제(`DELETE /api/google/connections`)는 응답 본문이 없거나(`204 No Content`) `data`가 항상 `null`이라 별도 타입 없이 `Promise<void>`로 처리한다.
 
 ### 클라이언트 전용 값 (`src/feature/setting/utils.ts`, `page.tsx`)
 
@@ -229,7 +233,7 @@ setting/google/page.tsx            (구글 연동 상세조회 화면, /setting/
 | 와이파이 IP 데이터 | 등록된 IP 목록 조회·등록·삭제 | 구현 완료 — `SettingWifi`가 `getWifiIpListAction`/`createWifiIpAction`/`deleteWifiIpAction`을 실제로 호출하고 목록을 서버 상태와 동기화한다 |
 | 급여 지급일 데이터 | 지급일 조회·저장 | 미구현 — API/service 없음 |
 | 알림 설정 데이터 | 알림 항목별 on/off 조회·저장 | 미구현 — API/service 없음, 항목 자체도 더미 |
-| 구글 연동 데이터 | 연동 상태, 계정 정보, 토큰 상태 조회 및 연결/교체/해제 | 미구현 — `.docs/api/google-account/apiIntegration.md`에 항목만 정의되고 계약은 비어 있음 |
+| 구글 연동 데이터 | 연동 상태, 계정 정보, 토큰 상태 조회 및 연결/교체/해제 | service/action 계층만 구현 완료 — `getGoogleConnectionAction`(`GET /connections`), `getGoogleAuthorizationUrlAction`(`POST /connections/authorize-url`, 연결·재연결·계정교체 공용), `checkGoogleConnectionAction`(`POST /connections/check`), `disconnectGoogleAction`(`DELETE /connections`)이 정의되어 있다. `SettingGoogleConnection`/`SettingGoogleReplaceModal`/`SettingGoogleDisconnectModal`은 아직 이 액션들을 호출하지 않고 `DUMMY_CONNECTION` 더미 데이터와 클라이언트 state로만 동작한다 |
 | 내 IP 조회 | 클라이언트 또는 서버에서 현재 접속 IP를 가져오는 절차 | 구현 완료 — `SettingWifi`가 `getCurrentIpAction`(`GET /api/attendance/wifi-ips/current`)을 호출한다. 명세는 인증 불필요라고 되어 있으나 실제 로컬 백엔드는 인증을 요구했다(백엔드 쪽 확인 필요) |
 
 ---
