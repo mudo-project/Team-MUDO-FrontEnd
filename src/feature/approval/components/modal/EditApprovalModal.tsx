@@ -16,7 +16,7 @@ import {
     useState,
 } from "react";
 import { toast } from "sonner";
-import { getUserListAction } from "@/feature/auth/actoins";
+import { getUserListAction } from "@/feature/auth/actions";
 
 interface EditApprovalModalProps {
     closeModal: () => void;

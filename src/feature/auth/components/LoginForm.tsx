@@ -2,7 +2,7 @@
 
 import { Eye, EyeClosed } from "lucide-react";
 import { useActionState, useEffect, useState } from "react";
-import { loginAction } from "../actoins";
+import { loginAction } from "../actions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
