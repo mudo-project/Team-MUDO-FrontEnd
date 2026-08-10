@@ -6,7 +6,7 @@ import { ko } from "date-fns/locale";
 import { DayPicker, type DayButtonProps } from "react-day-picker";
 import ScheduleDatePicker from "./ScheduleDatePicker";
 import ScheduleDayCell from "./ScheduleDayCell";
-import type { ScheduleEvent } from "../dummySchedules";
+import type { ScheduleEvent } from "../scheduleTypes";
 
 type ScheduleCalendarProps = {
   month: Date;

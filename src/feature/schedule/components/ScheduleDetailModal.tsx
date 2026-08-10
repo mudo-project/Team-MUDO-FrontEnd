@@ -2,7 +2,7 @@
 
 import { Calendar, Clock, X } from "lucide-react";
 import { formatEventDateFull, formatEventTimeRange } from "../scheduleFormat";
-import type { ScheduleEvent } from "../dummySchedules";
+import type { ScheduleEvent } from "../scheduleTypes";
 
 type ScheduleDetailModalProps = {
   event: ScheduleEvent;
