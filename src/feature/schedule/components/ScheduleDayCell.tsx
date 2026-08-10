@@ -1,9 +1,13 @@
 import type { DayButtonProps } from "react-day-picker";
 import { isSameDay } from "date-fns";
-import { scheduleEvents } from "../dummySchedules";
+import type { ScheduleEvent } from "../dummySchedules";
 
-export default function ScheduleDayCell({ day, modifiers, ...props }: DayButtonProps) {
-  const dayEvents = scheduleEvents.filter((event) => isSameDay(event.date, day.date));
+type ScheduleDayCellProps = DayButtonProps & {
+  events: ScheduleEvent[];
+};
+
+export default function ScheduleDayCell({ day, modifiers, events, ...props }: ScheduleDayCellProps) {
+  const dayEvents = events.filter((event) => isSameDay(event.date, day.date));
   const visibleEvents = dayEvents.slice(0, 3);
   const weekday = day.date.getDay();
 
@@ -24,23 +28,16 @@ export default function ScheduleDayCell({ day, modifiers, ...props }: DayButtonP
         {day.date.getDate()}
       </span>
       <div className="flex min-w-0 flex-col gap-1">
-        {visibleEvents.map((event) =>
-          event.emphasis ? (
-            <p
-              className="truncate rounded px-1.5 py-1 text-[11px] font-semibold"
-              key={event.id}
-              style={{ backgroundColor: event.background, color: event.color, borderLeft: `3px solid ${event.color}` }}
-            >
-              {event.title}
-            </p>
-          ) : (
-            <p className="flex min-w-0 items-center gap-1.5 text-[11px] font-medium text-[#344054]" key={event.id}>
-              <span className="size-1.5 shrink-0 rounded-full" style={{ backgroundColor: event.color }} />
-              <span className="truncate">{event.title}</span>
-            </p>
-          )
-        )}
-        {dayEvents.length > 3 && <span className="pl-3 text-[10px] text-[#718096]">+{dayEvents.length - 3}개</span>}
+        {visibleEvents.map((event) => (
+          <p
+            className="truncate rounded px-1.5 py-1 text-[11px] font-semibold"
+            key={event.id}
+            style={{ backgroundColor: event.color.background, color: event.color.accent, borderLeft: `3px solid ${event.color.accent}` }}
+          >
+            {event.title}
+          </p>
+        ))}
+        {dayEvents.length > 3 && <span className="pl-1.5 text-[10px] text-[#718096]">+{dayEvents.length - 3}개</span>}
       </div>
     </button>
   );
