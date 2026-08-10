@@ -13,7 +13,7 @@ export default async function Page() {
 
 
             {!response.success && <p className="mt-5 text-[12px] text-red-500">{response.message}</p>}
-            {response.success && approvals.length > 0 && <ApprovalList approvals={approvals} />}
+            {response.success && approvals.length > 0 && <ApprovalList approvals={approvals} type='my' />}
             {response.success && approvals.length === 0 && <NoneApproval />}
         </main>
     );

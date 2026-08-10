@@ -2,6 +2,7 @@ import {
     ApprovalDetailResponse,
     ApprovalListResponse,
     ApprovalPendingCountResponse,
+    ApprovalAttachmentDownloadUrlResponse,
     ApprovalTemplateDetailResponse,
     ApprovalTemplateListResponse,
     ApprovalTemplateRequest,
@@ -238,6 +239,24 @@ export const summarizeApprovalAttachment = async (
     );
     if (!response.ok) {
         const message = await getErrorMessage(response, "첨부파일 요약 생성에 실패했습니다.");
+        throw new Error(message);
+    }
+
+    return response.json();
+};
+
+export const getApprovalAttachmentDownloadUrl = async (
+    documentId: number,
+    fileId: number,
+): Promise<ApprovalAttachmentDownloadUrlResponse> => {
+    const response = await fetchWithAuth(
+        `/api/approvals/${documentId}/files/${fileId}/download-url`,
+    );
+    if (!response.ok) {
+        const message = await getErrorMessage(
+            response,
+            "결재 첨부파일 다운로드 URL 조회에 실패했습니다.",
+        );
         throw new Error(message);
     }
 

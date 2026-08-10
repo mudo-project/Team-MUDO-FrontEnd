@@ -150,3 +150,10 @@ export interface ApprovalPendingCountData {
 export type ApprovalPendingCountResponse = ApprovalApiResponse<ApprovalPendingCountData>;
 
 export type SummarizeApprovalAttachmentResponse = ApprovalApiResponse<ApprovalAttachmentData>;
+
+export interface ApprovalAttachmentDownloadUrlData {
+    downloadUrl: string;
+}
+
+export type ApprovalAttachmentDownloadUrlResponse =
+    ApprovalApiResponse<ApprovalAttachmentDownloadUrlData>;

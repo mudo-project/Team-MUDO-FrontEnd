@@ -11,6 +11,7 @@ import {
     getAllApprovalList,
     getApprovalDetail,
     getApprovalHistory,
+    getApprovalAttachmentDownloadUrl,
     getApprovalPendingCount,
     getApprovalTemplateDetail,
     getApprovalTemplateList,
@@ -35,6 +36,7 @@ import {
     DecideApprovalRequest,
     ReceivedApprovalListData,
     ApprovalAttachmentData,
+    ApprovalAttachmentDownloadUrlData,
 } from "./type";
 
 export interface ApprovalActionResult<T = undefined> {
@@ -485,6 +487,38 @@ export const summarizeApprovalAttachmentAction = async (
         return {
             success: false,
             message: getActionErrorMessage(error, "첨부파일 요약 생성에 실패했습니다."),
+        };
+    }
+};
+
+export const getApprovalAttachmentDownloadUrlAction = async (
+    documentId: number,
+    fileId: number,
+): Promise<ApprovalActionResult<ApprovalAttachmentDownloadUrlData>> => {
+    if (!isPositiveInteger(documentId) || !isPositiveInteger(fileId)) {
+        return {
+            success: false,
+            message: "결재 문서 또는 첨부파일 ID가 올바르지 않습니다.",
+        };
+    }
+
+    try {
+        const response = await getApprovalAttachmentDownloadUrl(
+            documentId,
+            fileId,
+        );
+        return {
+            success: true,
+            message: response.message,
+            data: response.data,
+        };
+    } catch (error) {
+        return {
+            success: false,
+            message: getActionErrorMessage(
+                error,
+                "결재 첨부파일 다운로드 URL 조회에 실패했습니다.",
+            ),
         };
     }
 };
