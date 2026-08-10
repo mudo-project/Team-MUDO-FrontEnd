@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import { Minus, Plus } from "lucide-react";
+import { toast } from "sonner";
 import SettingCard from "@/feature/setting/components/SettingCard";
 import SectionHeading from "@/feature/setting/components/SectionHeading";
 import SettingToggle from "@/feature/setting/components/SettingToggle";
 import SettingTimeSelect from "@/feature/setting/components/SettingTimeSelect";
-import { DEFAULT_WEEKDAY_EXCEPTIONS, type WeekdayException } from "@/feature/setting/utils";
+import { DEFAULT_WEEKDAY_EXCEPTIONS, toWorkingHoursPolicyWeekdays, type WeekdayException } from "@/feature/setting/utils";
+import { saveWorkingHoursPolicyAction } from "@/feature/setting/actions";
 
 export default function SettingWorkingHours() {
   const [startTime, setStartTime] = useState("09:00");
@@ -14,11 +16,32 @@ export default function SettingWorkingHours() {
   const [hasWeekdayException, setHasWeekdayException] = useState(false);
   const [weekdayExceptions, setWeekdayExceptions] = useState<WeekdayException[]>(DEFAULT_WEEKDAY_EXCEPTIONS);
   const [lateGraceMinutes, setLateGraceMinutes] = useState(10);
+  const [isSaving, setIsSaving] = useState(false);
 
   function updateWeekdayException(day: WeekdayException["day"], patch: Partial<WeekdayException>) {
     setWeekdayExceptions((prev) =>
       prev.map((exception) => (exception.day === day ? { ...exception, ...patch } : exception))
     );
+  }
+
+  async function handleSave() {
+    setIsSaving(true);
+
+    const result = await saveWorkingHoursPolicyAction({
+      defaultStartTime: startTime,
+      defaultEndTime: endTime,
+      lateGraceMinutes,
+      weekdayExceptionEnabled: hasWeekdayException,
+      weekdays: toWorkingHoursPolicyWeekdays(weekdayExceptions),
+    });
+
+    setIsSaving(false);
+
+    if (result.success) {
+      toast.success(result.message);
+    } else {
+      toast.error(result.message);
+    }
   }
 
   return (
@@ -124,10 +147,12 @@ export default function SettingWorkingHours() {
 
         <div className="flex justify-end pt-3">
           <button
-            className="h-11 rounded-lg bg-[#0F172A] px-6 text-[13px] font-semibold text-white"
+            className="h-11 rounded-lg bg-[#0F172A] px-6 text-[13px] font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={isSaving}
+            onClick={handleSave}
             type="button"
           >
-            저장
+            {isSaving ? "저장 중..." : "저장"}
           </button>
         </div>
       </form>
