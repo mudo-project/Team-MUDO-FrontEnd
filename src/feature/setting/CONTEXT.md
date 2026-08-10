@@ -72,13 +72,18 @@ Sidebar의 설정 메뉴(`src/components/layout/Sidebar.tsx`, `href: "/setting"`
 ┌─ 구글 연동 상세조회 화면 ─────────────────────────────┐
 │ [구글 계정 연동 컨테이너]                              │
 │  (미연동) [구글 계정 연결]                             │
-│  (연동됨) 이메일 / 연결됨·갱신 필요 / 연결 일시 / 연결한 관리자 │
-│           / 권한 범위 / 토큰 확인                      │
+│  (경고 배너, expiring/expired/failed일 때만) ⚠ 안내문구 [바로가기 →] │
+│  (연동됨) 이메일 / 연결됨·갱신 필요·연결 만료·연결 실패 │
+│           (failed면 [재연결] 버튼 추가)                │
+│           / 연결 일시 / 연결한 관리자 / 권한 범위 / 토큰 확인 │
 │           [연결 상태 확인] [계정 교체] [연동 해제]      │
 ├─────────────────────────────────────────────────────────┤
 │ [연동 안내 컨테이너]                                    │
 │  안내 문구                                              │
 └─────────────────────────────────────────────────────────┘
+
+[계정 교체 클릭] → 동의/인증/완료 3단계 모달(SettingGoogleReplaceModal)
+[연동 해제 클릭] → 해제 확인 모달(SettingGoogleDisconnectModal, "해제" 입력 시 버튼 활성화)
 ```
 
 ---
@@ -126,16 +131,18 @@ Sidebar의 설정 메뉴(`src/components/layout/Sidebar.tsx`, `href: "/setting"`
 | 기능 | 트리거 | 동작 | 상태 |
 |---|---|---|---|
 | 연동 상태 표시 | 설정 화면 진입 | 관리 버튼 좌측에 "연결됨"/"연결되지 않음" 문구 표시 | 미구현 — "연결됨" 배지가 고정 표시됨(실제 연동 상태 반영 안 됨) |
-| 상세조회 이동 | `관리` 버튼 클릭 | 구글 연동 상세조회 화면(`/setting/google`)으로 이동 | 구현 완료 — `SettingGoogle`의 `관리`가 `next/link`의 `Link href="/setting/google"`. `src/app/(user)/setting/google/page.tsx`가 정적으로 존재(연동 안 된 상태의 화면만 그려져 있음) |
-| 구글 계정 연결 | 상세조회의 `구글 계정 연결` 클릭 | 구글 계정 연동 진행 | 미구현 — 버튼은 있으나 클릭 핸들러 없음 |
-| 연동 상세 정보 표시 | 연동 성공 시 | 이메일, 연결됨 여부, 연결 일시, 연결한 관리자, 권한 범위, 토큰 확인 표시 | 미구현 |
-| 연결 상태 확인 | `연결 상태 확인` 클릭 | "연결됨" 자리에 스피너 + "확인중, 잠시 기다려주세요..." 표시 | 미구현 |
-| 계정 교체 | `계정 교체` 클릭 | 동의 → 인증 → 완료 3단계 모달 진행 | 미구현 |
-| 계정 교체 - 동의 | 모달 1단계 | 기존 계정 정보 폐기, 권한 요청 안내 표시, `동의하고 계속하기` 클릭 시 인증 단계로 이동 | 미구현 |
-| 계정 교체 - 인증 | 모달 2단계 | 스피너, "구글 로그인 창에서 계속 진행해주세요" 안내, "창이 열리지 않았나요? 다시 열기" 버튼 표시. 다시 열기 클릭 시 구글 로그인 창 재오픈 | 미구현 |
-| 계정 교체 - 완료 | 인증 완료 시 | "{이메일} 계정이 연결되었습니다" 표시, `확인` 클릭 시 모달 종료 | 미구현 |
-| 토큰 만료 임박 안내 | 토큰 만료 기한이 다가옴 | "연결됨" 자리가 "갱신 필요"로 바뀌고 "n일 뒤 토큰이 만료됩니다. 계정 재연결을 진행해주세요" 문구 + 계정 교체 버튼 표시 | 미구현 |
-| 연동 해제 | `연동 해제` 클릭 | "연동을 해제할까요?" 확인 모달 표시(이메일 + 안내 문구, 입력창에 "해제" 입력 시 해제 버튼 활성화) | 미구현 |
+| 상세조회 이동 | `관리` 버튼 클릭 | 구글 연동 상세조회 화면(`/setting/google`)으로 이동 | 구현 완료 — `SettingGoogle`의 `관리`가 `next/link`의 `Link href="/setting/google"`. `src/app/(user)/setting/google/page.tsx`는 페이지 헤더만 갖는 서버 컴포넌트 셸이고, 본문은 `SettingGoogleConnection`(client component)이 담당한다 |
+| 구글 계정 연결 | 상세조회의 `구글 계정 연결` 클릭 | 구글 계정 연동 진행 | 구현 완료(데모) — 클릭 시 `SettingGoogleConnection`의 `status` state가 `"connected"`로 바뀌며 아래 연동 상세 정보 뷰로 전환된다. 실제 OAuth 연동은 없고 더미 데이터(`DUMMY_CONNECTION`)를 보여줄 뿐이다 |
+| 연동 상세 정보 표시 | 연동 성공 시 | 이메일, 연결됨 여부, 연결 일시, 연결한 관리자, 권한 범위, 토큰 확인 표시 | 구현 완료(데모) — 더미 값만 표시, 서버 조회 없음 |
+| 연결 상태 확인 | `연결 상태 확인` 클릭 | "연결됨" 자리에 스피너 + "확인중, 잠시 기다려주세요..." 표시 | 구현 완료(데모) — `isCheckingConnection` state를 켜서 배지 자리를 스피너(`Loader2` + `animate-spin`) + "확인 중" + "잠시 기다려주세요..."로 교체하고, `연결 상태 확인`/`연동 해제` 버튼을 비활성화한다. 1.5초 후 `setTimeout`으로 자동 종료(실제 서버 확인 없음) |
+| 계정 교체 | `계정 교체` 클릭 | 동의 → 인증 → 완료 3단계 모달 진행 | 구현 완료(데모) — `SettingGoogleReplaceModal`이 열리고 내부 `step`(1~3) state로 단계를 관리한다 |
+| 계정 교체 - 동의 | 모달 1단계 | 기존 계정 정보 폐기, 권한 요청 안내 표시, `동의하고 계속하기` 클릭 시 인증 단계로 이동 | 구현 완료(데모) — 경고 배너(기존 계정 이메일 포함)와 권한 3종(드라이브·문서·스프레드시트) 목록을 보여주고, `동의하고 계속하기` 클릭 시 즉시 2단계로 전환(실제 동의 처리 없음) |
+| 계정 교체 - 인증 | 모달 2단계 | 스피너, "구글 로그인 창에서 계속 진행해주세요" 안내, "창이 열리지 않았나요? 다시 열기" 버튼 표시. 다시 열기 클릭 시 구글 로그인 창 재오픈 | 구현 완료(데모) — 스피너와 안내 문구를 표시하며, 실제 팝업이 없어 "다시 열기" 클릭이 곧바로 3단계(완료)로 전환하는 것으로 대체함 |
+| 계정 교체 - 완료 | 인증 완료 시 | "{이메일} 계정이 연결되었습니다" 표시, `확인` 클릭 시 모달 종료 | 구현 완료(데모) — 완료 아이콘과 문구를 표시하고 `확인` 클릭 시 모달을 닫는다. 실제로 계정이 바뀌지는 않고 기존 더미 이메일을 그대로 보여줄 뿐이다 |
+| 토큰 만료 임박 안내 | 토큰 만료 기한이 다가옴 | 상세정보 박스 위에 경고 배너 표시("n일 뒤 토큰이 만료됩니다" / "계정 재연결을 진행해주세요" + 우측 `계정 교체 →` 바로가기), 박스 안 배지는 "갱신 필요"(주황)로 표시 | 화면은 구현 완료 — `status`가 `"expiring"`일 때 렌더링. 다만 `status`를 `"expiring"`으로 만드는 실제 트리거(토큰 만료 감지)나 UI가 없어 현재는 코드로만 존재하고 화면에서 직접 재현할 방법이 없다 |
+| 토큰 만료 안내 | 토큰이 이미 만료됨 | 경고 배너("토큰이 만료되었습니다" / "계정을 다시 연결해주세요" + `계정 교체 →`), 배지는 "연결 만료"(빨강) | 화면은 구현 완료 — `status`가 `"expired"`일 때 렌더링. 명세에 없던 상태를 미리 만들어 둔 것이라 이를 트리거하는 UI/API는 아직 없다 |
+| 연결 실패 안내 | 구글 계정 연동/재인증이 실패함 | 경고 배너(빨강, "연결에 실패했습니다" / "권한이 취소되었습니다" + `재연결 →`), 이메일 앞 아이콘이 금지 아이콘으로 바뀌고 배지는 "연결 실패"(빨강), 이메일 아래 `재연결` 버튼 추가 표시 | 화면은 구현 완료 — `status`가 `"failed"`일 때 렌더링, 배너의 `재연결 →`와 박스 안 `재연결` 버튼 모두 `handleRetryConnect`로 `status`를 `"connected"`로 되돌린다. 다만 `status`를 `"failed"`로 만드는 실제 트리거(연동 실패 감지)가 없어 현재는 코드로만 존재한다 |
+| 연동 해제 | `연동 해제` 클릭 | "연동을 해제할까요?" 확인 모달 표시(이메일 + 안내 문구, 입력창에 "해제" 입력 시 해제 버튼 활성화) | 구현 완료(데모) — `SettingGoogleDisconnectModal`이 열리고, 입력값이 정확히 "해제"일 때만 `연동 해제` 버튼이 활성화된다. 클릭 시 `status`를 `"not-connected"`로 되돌려 미연동 화면으로 복귀(실제 연동 해제 API 없음) |
 
 ---
 
@@ -184,8 +191,11 @@ Sidebar의 설정 메뉴(`src/components/layout/Sidebar.tsx`, `href: "/setting"`
 | **SettingPayday** | 급여 지급일 카드(구현 완료 — 정적). `generatePaydayOptions()`로 1~30일 select 옵션을 렌더링하지만 선택값을 저장하는 핸들러는 없음(uncontrolled) |
 | **SettingAlarm** | 알림 설정 카드(구현 완료 — 정적). `notificationItems` 더미 배열을 체크박스 목록으로 렌더링, 상호작용 없음 |
 | **SettingGoogle** | 구글 연동 카드(구현 완료 — 정적 + 이동만 연결). "연결됨" 배지는 고정 표시(정적)이고, "관리"는 `next/link`로 `/setting/google`로 이동한다 |
+| **SettingGoogleConnection** | 구글 연동 상세조회 화면 본문(client component). `src/app/(user)/setting/google/page.tsx`에서 렌더링. `status`(`"not-connected" \| "connected" \| "expiring" \| "expired" \| "failed"`), `isCheckingConnection`(boolean), `isReplaceModalOpen`(boolean), `isDisconnectModalOpen`(boolean) state를 갖는다. `구글 계정 연결` 클릭 시 `status`를 `"connected"`로 바꾸고, 더미 데이터(`DUMMY_CONNECTION`)로 이메일·연결 일시·연결한 관리자·권한 범위·토큰 확인을 표시한다. `status`가 `expiring`/`expired`/`failed`면 상세정보 박스 위에 `STATUS_BANNER`에 정의된 경고 배너(제목·설명·바로가기 버튼)를 추가로 보여준다 — `expiring`/`expired`의 바로가기는 계정 교체 모달을 열고, `failed`의 바로가기(및 박스 안의 별도 `재연결` 버튼)는 `handleRetryConnect`로 즉시 `status`를 `"connected"`로 되돌린다. `연결 상태 확인` 클릭 시 `isCheckingConnection`을 1.5초간 켜서 배지 자리에 스피너를 보여주고 `연결 상태 확인`/`연동 해제` 버튼을 비활성화한다(`setTimeout`으로 자동 종료). `계정 교체`/`연동 해제` 클릭은 각각 `SettingGoogleReplaceModal`/`SettingGoogleDisconnectModal`을 띄운다. `연동 안내` 섹션도 이 컴포넌트 안에 함께 있다. `status`를 직접 전환해 각 화면을 미리 보던 "상태 미리보기 (데모)" 컨트롤은 제거되어, 현재 UI에서 실제로 도달 가능한 `status`는 `"not-connected"`/`"connected"`뿐이다(`"expiring"`/`"expired"`/`"failed"` 렌더링은 코드로는 남아 있지만 트리거할 UI가 없음) |
+| **SettingGoogleReplaceModal** | 계정 교체 모달(client component). `email`(현재 연결된 이메일), `onClose` props를 받고, 내부 `step`(1~3) state로 동의/인증/완료 단계를 관리한다. 모달이 열릴 때마다(조건부 렌더링으로 매번 새로 마운트) `step`이 1로 초기화된다. 1단계 `동의하고 계속하기` → 2단계, 2단계 `창이 열리지 않았나요? 다시 열기`(실제 팝업 재오픈 없이 바로) → 3단계, 3단계 `확인` → `onClose` 호출. 오버레이 클릭 또는 X 버튼도 `onClose`를 호출해 즉시 닫힌다(단계 진행 확인 없음). 각 단계 전환은 실제 OAuth 통신 없이 클릭만으로 즉시 넘어가는 데모 동작이다 |
+| **SettingGoogleDisconnectModal** | 연동 해제 확인 모달(client component). `email`, `onClose`, `onConfirm` props를 받고 내부 `confirmInput`(string) state를 갖는다. 입력값이 정확히 `"해제"`와 일치할 때만 `연동 해제` 버튼이 활성화되며, 클릭 시 `onConfirm`(부모의 `handleDisconnect`, `status`를 `"not-connected"`로 되돌림)을 호출한다. 오버레이 클릭/X 버튼은 `onClose`로 그냥 닫는다 |
 
-구글 연동 상세조회 화면은 `src/app/(user)/setting/google/page.tsx`로 존재하지만, 미연동 상태의 정적 화면(연동 안내 컨테이너 포함)만 그려져 있고 상호작용(구글 계정 연결, 연동 후 상세 정보, 연결 상태 확인, 계정 교체 모달, 연동 해제 모달)은 아직 없다.
+구글 연동 상세조회 화면(`/setting/google`)은 `SettingGoogleConnection`(+ `계정 교체` 클릭 시 `SettingGoogleReplaceModal`, `연동 해제` 클릭 시 `SettingGoogleDisconnectModal`)으로 구성된다.
 
 ### 관계
 
@@ -204,6 +214,11 @@ setting/page.tsx                   (설정 화면, /setting, 5개 카드 컴포�
 │   └── SectionHeading
 └── SettingGoogle                  (우측 컬럼)
     └── SectionHeading
+
+setting/google/page.tsx            (구글 연동 상세조회 화면, /setting/google, 헤더만 그리는 서버 컴포넌트 셸)
+└── SettingGoogleConnection        (본문 전체, client component)
+    ├── SettingGoogleReplaceModal  (계정 교체 클릭 시)
+    └── SettingGoogleDisconnectModal (연동 해제 클릭 시)
 ```
 
 ### 컴포넌트 외 필요한 조각
@@ -224,7 +239,8 @@ setting/page.tsx                   (설정 화면, /setting, 5개 카드 컴포�
 | 상태 | 값 |
 |---|---|
 | 요일별 예외 | 켜짐 / 꺼짐 |
-| 구글 연동 | 연결되지 않음 / 연결됨 / 갱신 필요 / 확인중 |
+| 구글 연동(`SettingGoogleConnection`의 `status`) | not-connected / connected / expiring / expired / failed — 화면 렌더링은 5개 모두 구현되어 있지만, 현재 UI에서 실제로 전환 가능한 값은 not-connected/connected뿐이다(나머지 3개는 트리거할 UI/API가 없어 코드상으로만 존재) |
+| 연결 상태 확인(`isCheckingConnection`) | 확인 전(배지 표시) / 확인 중(스피너 표시, 1.5초 후 자동 복귀) |
 | 계정 교체 모달 | 닫힘 / 동의 / 인증 / 완료 |
 | 연동 해제 모달 | 닫힘 / 열림(해제 입력 전) / 열림(해제 버튼 활성화) |
 
