@@ -1,5 +1,5 @@
 import { formatEventDate, formatEventTimeRange } from "../scheduleFormat";
-import type { ScheduleEvent } from "../dummySchedules";
+import type { ScheduleEvent } from "../scheduleTypes";
 
 type ScheduleListItemProps = {
   event: ScheduleEvent;

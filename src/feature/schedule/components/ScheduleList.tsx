@@ -4,7 +4,7 @@ import { X } from "lucide-react";
 import { isSameDay, isSameMonth } from "date-fns";
 import ScheduleListItem from "./ScheduleListItem";
 import { formatEventDate } from "../scheduleFormat";
-import type { ScheduleEvent } from "../dummySchedules";
+import type { ScheduleEvent } from "../scheduleTypes";
 
 type ScheduleListProps = {
   month: Date;
