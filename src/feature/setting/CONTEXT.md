@@ -24,9 +24,11 @@ Sidebar의 설정 메뉴(`src/components/layout/Sidebar.tsx`, `href: "/setting"`
 
 ### 데이터 연동 계층
 
-- 현재 `type.ts`, `actions.ts`, `service` 파일이 모두 없다. `notificationItems`(알림 항목 4종)가 `page.tsx` 안에 하드코딩된 더미 배열로 존재한다.
-- 구글 연동 관련 API는 `.docs/api/google-account/apiIntegration.md`에 항목만 정의되어 있고 엔드포인트·요청/응답 계약은 비어 있다.
-- 설정 도메인 전용 API 문서(`.docs/api/setting/`)는 없다.
+- `src/feature/setting/type.ts` — 요청/응답 인터페이스. `export` 없이 선언되어 프로젝트 전역에서 import 없이 바로 참조된다(다른 도메인 `type.ts`와 동일한 스타일).
+- `src/service/setting.service.ts` — `fetchWithAuth`/`fetchWithoutAuth` 기반 API 호출(`getCurrentIp`, `createWifiIp`, `getWifiIpList`, `deleteWifiIp`, `saveWorkingHoursPolicy`). 근태(attendance) API 문서(`.docs/api/attendance-management/apiIntegration.md`)에 정의된 와이파이 IP·근무시간 정책 엔드포인트를 그대로 사용한다(엔드포인트 자체는 `/api/attendance/...`이며 `setting` 전용 엔드포인트가 아니다).
+- `src/feature/setting/actions.ts` — 위 service를 감싼 Server Action(`getCurrentIpAction`, `getWifiIpListAction`, `createWifiIpAction`, `deleteWifiIpAction`, `saveWorkingHoursPolicyAction`). 아직 UI 컴포넌트(`SettingWifi`, `SettingWorkingHours`)는 이 액션을 호출하지 않고 client state로만 동작한다.
+- `notificationItems`(알림 항목 4종)는 여전히 `SettingAlarm.tsx` 안에 하드코딩된 더미 배열로 존재한다.
+- 설정 도메인 전용 API 문서(`.docs/api/setting/`)는 없다 — 와이파이·근무시간 API는 근태 도메인 문서에 있다.
 
 ---
 
@@ -137,7 +139,20 @@ Sidebar의 설정 메뉴(`src/components/layout/Sidebar.tsx`, `href: "/setting"`
 
 ## 5. 데이터
 
-현재 `type.ts`가 없어 서버 응답 기반 타입은 정의되어 있지 않다. `src/feature/setting/utils.ts`와 `page.tsx`에 다음이 존재한다.
+### 서버 응답 타입 (`src/feature/setting/type.ts`)
+
+| 타입 | 설명 |
+|---|---|
+| `CurrentIpData` / `CurrentIpResponse` | 현재 접속 IP 조회(`GET /api/attendance/wifi-ips/current`) 응답. `data.ipAddress` |
+| `WifiIpCreateRequest` | 와이파이 IP 등록(`POST /api/attendance/wifi-ips`) 요청 — `confirmedIpAddress`, `note` |
+| `WifiIpCreateData` / `WifiIpCreateResponse` | 와이파이 IP 등록 응답 — `wifiIpId`, `ipAddress`, `note` |
+| `WifiIpListItemData` / `WifiIpListResponse` | 와이파이 IP 목록조회(`GET /api/attendance/wifi-ips`) 응답 항목 — `wifiIpId`, `ipAddress`, `note`, `createdAt`. 페이지네이션 없이 배열 그대로 내려옴 |
+| `WorkingHoursPolicyWeekday` | 근무시간 정책의 요일별 설정 — `dayOfWeek`(1~7), `isWorkday`, `startTime`, `endTime`(휴무면 `null`) |
+| `WorkingHoursPolicySaveRequest` / `WorkingHoursPolicySaveData` / `WorkingHoursPolicySaveResponse` | 근무시간 정책 저장(`PUT /api/attendance/policies`) 요청/응답 — `defaultStartTime`, `defaultEndTime`, `lateGraceMinutes`, `weekdayExceptionEnabled`, `weekdays` |
+
+와이파이 IP 삭제(`DELETE /api/attendance/wifi-ips/{wifiIpId}`)는 응답 `data`가 항상 `null`이라 별도 타입 없이 `Promise<void>`로 처리한다.
+
+### 클라이언트 전용 값 (`src/feature/setting/utils.ts`, `page.tsx`)
 
 | 항목 | 설명 |
 |---|---|
@@ -192,12 +207,12 @@ setting/page.tsx                   (설정 화면, /setting, 5개 카드 컴포�
 
 | 조각 | 역할 | 상태 |
 |---|---|---|
-| 근무시간 데이터 | 출근/퇴근 시각, 지각 유예, 요일별 예외 조회·저장 | 부분 구현 — `SettingWorkingHours`의 client state로만 입력·수정 가능. 서버 조회·저장 API/service 없어 새로고침 시 초기값(`DEFAULT_WEEKDAY_EXCEPTIONS` 등)으로 되돌아감 |
-| 와이파이 IP 데이터 | 등록된 IP 목록 조회·등록 | 부분 구현 — `SettingWifi`의 client state(`registeredIps`)로만 관리. 서버 조회·저장 API/service 없어 새로고침 시 초기화됨 |
+| 근무시간 데이터 | 출근/퇴근 시각, 지각 유예, 요일별 예외 조회·저장 | 부분 구현 — `saveWorkingHoursPolicyAction`(`PUT /api/attendance/policies`)이 정의되어 있지만 `SettingWorkingHours`는 아직 이를 호출하지 않고 client state로만 입력·수정한다. 새로고침 시 초기값(`DEFAULT_WEEKDAY_EXCEPTIONS` 등)으로 되돌아감. 정책 **조회** API는 명세 자체가 없다 |
+| 와이파이 IP 데이터 | 등록된 IP 목록 조회·등록·삭제 | 부분 구현 — `getWifiIpListAction`/`createWifiIpAction`/`deleteWifiIpAction`이 정의되어 있지만 `SettingWifi`는 아직 이를 호출하지 않고 client state(`registeredIps`)로만 관리. 새로고침 시 초기화됨 |
 | 급여 지급일 데이터 | 지급일 조회·저장 | 미구현 — API/service 없음 |
 | 알림 설정 데이터 | 알림 항목별 on/off 조회·저장 | 미구현 — API/service 없음, 항목 자체도 더미 |
 | 구글 연동 데이터 | 연동 상태, 계정 정보, 토큰 상태 조회 및 연결/교체/해제 | 미구현 — `.docs/api/google-account/apiIntegration.md`에 항목만 정의되고 계약은 비어 있음 |
-| 내 IP 조회 | 클라이언트 또는 서버에서 현재 접속 IP를 가져오는 절차 | 미구현 — `SettingWifi`는 더미 값(`DUMMY_CURRENT_IP`)을 반환할 뿐 실제 네트워크 조회는 하지 않음 |
+| 내 IP 조회 | 클라이언트 또는 서버에서 현재 접속 IP를 가져오는 절차 | 부분 구현 — `getCurrentIpAction`(`GET /api/attendance/wifi-ips/current`, 인증 불필요)이 정의되어 있지만 `SettingWifi`는 아직 이를 호출하지 않고 더미 값(`DUMMY_CURRENT_IP`)을 반환한다 |
 
 ---
 
