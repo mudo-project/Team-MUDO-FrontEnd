@@ -1,47 +1,103 @@
 "use client";
 
 import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { format } from "date-fns";
 import ScheduleCalendar from "./ScheduleCalendar";
 import ScheduleList from "./ScheduleList";
 import ScheduleCreateForm, { type ScheduleFormSubmitValues } from "./ScheduleCreateForm";
 import ScheduleDetailModal from "./ScheduleDetailModal";
 import ScheduleDeleteConfirmModal from "./ScheduleDeleteConfirmModal";
-import { scheduleEvents as initialScheduleEvents, type ScheduleEvent } from "../dummySchedules";
+import { createScheduleAction, deleteScheduleAction, getScheduleListAction, updateScheduleAction } from "../actions";
+import { toScheduleEvent, toScheduleRequestPayload } from "../scheduleFormat";
+import type { ScheduleEvent } from "../scheduleTypes";
 
 type FormState = { mode: "create" } | { mode: "edit"; event: ScheduleEvent } | null;
-
-function formatToday(): string {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, "0");
-  const day = String(today.getDate()).padStart(2, "0");
-  return `${year}.${month}.${day}`;
-}
 
 export default function ScheduleBoard() {
   const [month, setMonth] = useState(new Date(2026, 7, 1));
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
-  const [events, setEvents] = useState<ScheduleEvent[]>(initialScheduleEvents);
   const [formState, setFormState] = useState<FormState>(null);
   const [detailEvent, setDetailEvent] = useState<ScheduleEvent | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ScheduleEvent | null>(null);
 
-  const handleFormSubmit = (values: ScheduleFormSubmitValues) => {
-    if (formState?.mode === "edit") {
-      const editingEvent = formState.event;
-      setEvents((prev) => prev.map((event) => (event.id === editingEvent.id ? { ...event, ...values } : event)));
-    } else {
-      const newEvent: ScheduleEvent = { ...values, id: Date.now(), createdAt: formatToday() };
-      setEvents((prev) => [...prev, newEvent]);
-    }
-    setFormState(null);
+  const queryClient = useQueryClient();
+  const yearMonth = format(month, "yyyy-MM");
+  const queryKey = ["schedule", yearMonth];
+
+  const {
+    data: events = [],
+    isPending,
+    isError,
+  } = useQuery({
+    queryKey,
+    queryFn: async () => {
+      const list = await getScheduleListAction({ yearMonth });
+      return list.map(toScheduleEvent);
+    },
+    retry: false,
+  });
+
+  const invalidateSchedule = () => {
+    void queryClient.invalidateQueries({ queryKey });
   };
 
-  const handleDeleteConfirm = () => {
-    if (!deleteTarget) return;
-    setEvents((prev) => prev.filter((event) => event.id !== deleteTarget.id));
-    setDeleteTarget(null);
+  const createMutation = useMutation({
+    mutationFn: (values: ScheduleFormSubmitValues) => createScheduleAction(toScheduleRequestPayload(values)),
+    onSuccess: (result) => {
+      if (!result.success) {
+        toast.error(result.message);
+        return;
+      }
+
+      invalidateSchedule();
+      setFormState(null);
+      toast.success(result.message);
+    },
+    onError: () => toast.error("일정 등록에 실패하였습니다."),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ eventId, values }: { eventId: number; values: ScheduleFormSubmitValues }) =>
+      updateScheduleAction(eventId, toScheduleRequestPayload(values)),
+    onSuccess: (result) => {
+      if (!result.success) {
+        toast.error(result.message);
+        return;
+      }
+
+      invalidateSchedule();
+      setFormState(null);
+      toast.success(result.message);
+    },
+    onError: () => toast.error("일정 수정에 실패하였습니다."),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (eventId: number) => deleteScheduleAction(eventId),
+    onSuccess: (result) => {
+      if (!result.success) {
+        toast.error(result.message);
+        return;
+      }
+
+      invalidateSchedule();
+      setDeleteTarget(null);
+      toast.success(result.message);
+    },
+    onError: () => toast.error("일정 삭제에 실패하였습니다."),
+  });
+
+  const handleFormSubmit = (values: ScheduleFormSubmitValues) => {
+    if (formState?.mode === "edit") {
+      updateMutation.mutate({ eventId: formState.event.id, values });
+    } else {
+      createMutation.mutate(values);
+    }
   };
+
+  const isSubmitting = createMutation.isPending || updateMutation.isPending;
 
   return (
     <>
@@ -56,19 +112,30 @@ export default function ScheduleBoard() {
             onSelectDate={setSelectedDate}
           />
 
-          <ScheduleList
-            events={events}
-            month={month}
-            selectedDate={selectedDate}
-            onClearSelectedDate={() => setSelectedDate(undefined)}
-            onSelectEvent={setDetailEvent}
-          />
+          {isPending ? (
+            <section className="flex min-w-0 items-center justify-center rounded-xl border border-[#DCE9DF] bg-white p-5 text-[13px] text-[#718096]">
+              일정을 불러오는 중입니다.
+            </section>
+          ) : isError ? (
+            <section className="flex min-w-0 items-center justify-center rounded-xl border border-[#DCE9DF] bg-white p-5 text-[13px] text-[#C65A50]">
+              일정을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.
+            </section>
+          ) : (
+            <ScheduleList
+              events={events}
+              month={month}
+              selectedDate={selectedDate}
+              onClearSelectedDate={() => setSelectedDate(undefined)}
+              onSelectEvent={setDetailEvent}
+            />
+          )}
         </div>
       </div>
 
       {formState && (
         <ScheduleCreateForm
           initialDate={selectedDate ?? month}
+          isSubmitting={isSubmitting}
           mode={formState.mode}
           schedule={formState.mode === "edit" ? formState.event : undefined}
           onCancel={() => setFormState(null)}
@@ -93,9 +160,10 @@ export default function ScheduleBoard() {
 
       {deleteTarget && (
         <ScheduleDeleteConfirmModal
+          isDeleting={deleteMutation.isPending}
           title={deleteTarget.title}
           onCancel={() => setDeleteTarget(null)}
-          onConfirm={handleDeleteConfirm}
+          onConfirm={() => deleteMutation.mutate(deleteTarget.id)}
         />
       )}
     </>

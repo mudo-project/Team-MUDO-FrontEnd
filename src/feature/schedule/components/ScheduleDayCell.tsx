@@ -1,6 +1,6 @@
 import type { DayButtonProps } from "react-day-picker";
 import { isSameDay } from "date-fns";
-import type { ScheduleEvent } from "../dummySchedules";
+import type { ScheduleEvent } from "../scheduleTypes";
 
 type ScheduleDayCellProps = DayButtonProps & {
   events: ScheduleEvent[];

@@ -8,7 +8,7 @@ import { X } from "lucide-react";
 import { scheduleCreateSchema, type ScheduleCreateFormValues } from "@/lib/scheduleCreateSchema";
 import MemoColorPicker, { MEMO_COLORS, type MemoColor } from "@/feature/memo/components/MemoColorPicker";
 import { TIME_OPTIONS } from "../scheduleFormat";
-import type { ScheduleEvent } from "../dummySchedules";
+import type { ScheduleEvent } from "../scheduleTypes";
 
 export type ScheduleFormSubmitValues = {
   title: string;
@@ -24,6 +24,7 @@ type ScheduleCreateFormProps = {
   mode: "create" | "edit";
   initialDate?: Date;
   schedule?: ScheduleEvent;
+  isSubmitting?: boolean;
   onCancel: () => void;
   onSubmit: (values: ScheduleFormSubmitValues) => void;
 };
@@ -33,7 +34,14 @@ function parseDateInput(value: string): Date {
   return new Date(year, month - 1, day);
 }
 
-export default function ScheduleCreateForm({ mode, initialDate, schedule, onCancel, onSubmit }: ScheduleCreateFormProps) {
+export default function ScheduleCreateForm({
+  mode,
+  initialDate,
+  schedule,
+  isSubmitting = false,
+  onCancel,
+  onSubmit,
+}: ScheduleCreateFormProps) {
   const [selectedColor, setSelectedColor] = useState<MemoColor>(schedule?.color ?? MEMO_COLORS[0]);
   const {
     register,
@@ -169,14 +177,19 @@ export default function ScheduleCreateForm({ mode, initialDate, schedule, onCanc
 
         <div className="mt-6 flex items-center justify-end gap-2">
           <button
-            className="h-10 rounded-lg border border-[#DCE9DF] bg-white px-4 text-[13px] font-medium text-[#64748B]"
+            className="h-10 rounded-lg border border-[#DCE9DF] bg-white px-4 text-[13px] font-medium text-[#64748B] disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={isSubmitting}
             type="button"
             onClick={onCancel}
           >
             취소
           </button>
-          <button className="h-10 rounded-lg bg-[#12182B] px-4 text-[13px] font-semibold text-white" type="submit">
-            {mode === "create" ? "등록" : "수정"}
+          <button
+            className="h-10 rounded-lg bg-[#12182B] px-4 text-[13px] font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={isSubmitting}
+            type="submit"
+          >
+            {isSubmitting ? "처리 중..." : mode === "create" ? "등록" : "수정"}
           </button>
         </div>
       </form>
