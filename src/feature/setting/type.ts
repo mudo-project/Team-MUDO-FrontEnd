@@ -82,3 +82,38 @@ interface WorkingHoursSaveResponse {
     message: string;
     data: WorkingHoursSaveData;
 }
+
+// 구글 연동 상태
+type GoogleConnectionStatus = "CONNECTED" | "EXPIRING" | "EXPIRED" | "FAILED";
+
+// 구글 연동 상태 조회 응답 데이터값
+interface GoogleConnectionData {
+    googleEmail: string;
+    connectedByUserId: number;
+    scope: string;
+    connectedAt: string;
+    tokenExpiresAt: string;
+    lastCheckedAt: string;
+    status: GoogleConnectionStatus;
+}
+
+// 구글 연동 상태 조회 응답값 (연동 안 됨이면 data가 null)
+interface GoogleConnectionResponse {
+    status: number;
+    code: string;
+    message: string;
+    data: GoogleConnectionData | null;
+}
+
+// 구글 계정 연동 시작(인가 URL 발급) 응답 데이터값
+interface GoogleAuthorizationUrlData {
+    authorizationUrl: string;
+}
+
+// 구글 계정 연동 시작(인가 URL 발급) 응답값
+interface GoogleAuthorizationUrlResponse {
+    status: number;
+    code: string;
+    message: string;
+    data: GoogleAuthorizationUrlData;
+}
