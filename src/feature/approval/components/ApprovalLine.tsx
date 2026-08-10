@@ -3,7 +3,7 @@
 import { Dispatch, RefObject, SetStateAction, useEffect, useRef, useState } from "react";
 import { ApprovalTemplateLineData, ApprovalTemplateListData } from "../type";
 import { getApprovalTemplateListAction } from "../actions";
-import { getUserListAction } from "@/feature/auth/actoins";
+import { getUserListAction } from "@/feature/auth/actions";
 import { ChevronDown, Plus } from "lucide-react";
 
 interface TemplateDatas {
