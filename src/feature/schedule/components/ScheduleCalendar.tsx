@@ -3,18 +3,28 @@
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { addMonths, subMonths } from "date-fns";
 import { ko } from "date-fns/locale";
-import { DayPicker } from "react-day-picker";
+import { DayPicker, type DayButtonProps } from "react-day-picker";
 import ScheduleDatePicker from "./ScheduleDatePicker";
 import ScheduleDayCell from "./ScheduleDayCell";
+import type { ScheduleEvent } from "../dummySchedules";
 
 type ScheduleCalendarProps = {
   month: Date;
+  events: ScheduleEvent[];
   selectedDate: Date | undefined;
   onChangeMonth: (month: Date) => void;
   onSelectDate: (date: Date | undefined) => void;
+  onAddClick: () => void;
 };
 
-export default function ScheduleCalendar({ month, selectedDate, onChangeMonth, onSelectDate }: ScheduleCalendarProps) {
+export default function ScheduleCalendar({
+  month,
+  events,
+  selectedDate,
+  onChangeMonth,
+  onSelectDate,
+  onAddClick,
+}: ScheduleCalendarProps) {
   return (
     <section className="flex min-w-0 flex-col xl:min-h-0" aria-label={`${month.getFullYear()}년 ${month.getMonth() + 1}월 일정`}>
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -54,37 +64,42 @@ export default function ScheduleCalendar({ month, selectedDate, onChangeMonth, o
         <button
           className="inline-flex h-11 items-center justify-center gap-1.5 rounded-lg bg-[#12182B] px-4 text-[12px] font-semibold text-white"
           type="button"
+          onClick={onAddClick}
         >
           <Plus className="size-4" strokeWidth={2.2} />
           일정 추가
         </button>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-[#DCE9DF] bg-white">
-        <DayPicker
-          components={{ DayButton: ScheduleDayCell }}
-          locale={ko}
-          mode="single"
-          month={month}
-          selected={selectedDate}
-          showOutsideDays
-          weekStartsOn={1}
-          classNames={{
-            root: "w-full",
-            months: "w-full",
-            month: "w-full",
-            month_caption: "hidden",
-            nav: "hidden",
-            month_grid: "w-full border-collapse",
-            weekdays: "grid grid-cols-7 border-b border-[#DCE9DF]",
-            weekday: "py-3 text-center text-[11px] font-semibold text-[#718096]",
-            week: "grid grid-cols-7 [&:last-child>td]:border-b-0",
-            day: "min-h-[128px] border-b border-r border-[#E5EEE7] p-0 align-top last:border-r-0",
-            outside: "text-[#A1ACBA]",
-          }}
-          onMonthChange={onChangeMonth}
-          onSelect={onSelectDate}
-        />
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-[#DCE9DF] bg-white">
+        <div className="min-h-0 flex-1 overflow-y-auto scrollbar-hide">
+          <DayPicker
+            components={{
+              DayButton: (props: DayButtonProps) => <ScheduleDayCell {...props} events={events} />,
+            }}
+            locale={ko}
+            mode="single"
+            month={month}
+            selected={selectedDate}
+            showOutsideDays
+            weekStartsOn={1}
+            classNames={{
+              root: "w-full",
+              months: "w-full",
+              month: "w-full",
+              month_caption: "hidden",
+              nav: "hidden",
+              month_grid: "w-full border-collapse",
+              weekdays: "grid grid-cols-7 border-b border-[#DCE9DF] bg-white",
+              weekday: "py-3 text-center text-[11px] font-semibold text-[#718096]",
+              week: "grid grid-cols-7 [&:last-child>td]:border-b-0",
+              day: "min-h-[128px] border-b border-r border-[#E5EEE7] p-0 align-top last:border-r-0",
+              outside: "text-[#A1ACBA]",
+            }}
+            onMonthChange={onChangeMonth}
+            onSelect={onSelectDate}
+          />
+        </div>
       </div>
     </section>
   );
