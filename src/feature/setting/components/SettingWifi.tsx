@@ -1,23 +1,54 @@
 "use client";
 
-import { useState } from "react";
-import { Check, Wifi } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { Check, Trash2, Wifi } from "lucide-react";
+import { toast } from "sonner";
 import SettingCard from "@/feature/setting/components/SettingCard";
 import SectionHeading from "@/feature/setting/components/SectionHeading";
-
-// 임시로 사용할 더미데이터입니다. 추후 API 연동을 진행하면서 실제 접속 IP 조회로 대체할 예정입니다.
-const DUMMY_CURRENT_IP = "106.101.137.196";
+import {
+  createWifiIpAction,
+  deleteWifiIpAction,
+  getCurrentIpAction,
+  getWifiIpListAction,
+} from "@/feature/setting/actions";
 
 export default function SettingWifi() {
   const [ipInput, setIpInput] = useState("");
   const [checkedIp, setCheckedIp] = useState<string | null>(null);
-  const [registeredIps, setRegisteredIps] = useState<string[]>([]);
+  const [wifiIps, setWifiIps] = useState<WifiIpListItemData[]>([]);
+  const [isChecking, setIsChecking] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const fetchWifiIps = useCallback(async () => {
+    try {
+      const data = await getWifiIpListAction();
+      setWifiIps(data);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "와이파이 IP 목록 조회에 실패하였습니다.";
+      toast.error(message);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchWifiIps();
+  }, [fetchWifiIps]);
 
   const trimmedIpInput = ipInput.trim();
-  const isSaved = trimmedIpInput.length > 0 && registeredIps.includes(trimmedIpInput);
+  const isRegistered =
+    trimmedIpInput.length > 0 && wifiIps.some((wifiIp) => wifiIp.ipAddress === trimmedIpInput);
 
-  function handleCheckIp() {
-    setCheckedIp(DUMMY_CURRENT_IP);
+  async function handleCheckIp() {
+    setIsChecking(true);
+
+    try {
+      const ipAddress = await getCurrentIpAction();
+      setCheckedIp(ipAddress);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "현재 접속 IP 조회에 실패하였습니다.";
+      toast.error(message);
+    } finally {
+      setIsChecking(false);
+    }
   }
 
   function handleRegisterCheckedIp() {
@@ -25,9 +56,30 @@ export default function SettingWifi() {
     setIpInput(checkedIp);
   }
 
-  function handleSave() {
-    if (!trimmedIpInput || registeredIps.includes(trimmedIpInput)) return;
-    setRegisteredIps((prev) => [...prev, trimmedIpInput]);
+  async function handleSave() {
+    if (!trimmedIpInput || isRegistered) return;
+
+    setIsSaving(true);
+    const result = await createWifiIpAction(trimmedIpInput, "");
+    setIsSaving(false);
+
+    if (result.success) {
+      toast.success(result.message);
+      fetchWifiIps();
+    } else {
+      toast.error(result.message);
+    }
+  }
+
+  async function handleDelete(wifiIpId: number) {
+    const result = await deleteWifiIpAction(wifiIpId);
+
+    if (result.success) {
+      toast.success(result.message);
+      fetchWifiIps();
+    } else {
+      toast.error(result.message);
+    }
   }
 
   return (
@@ -46,15 +98,17 @@ export default function SettingWifi() {
         />
         <button
           className="flex h-11 items-center justify-center gap-1 rounded-lg bg-[#0F172A] px-5 text-[13px] font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
-          disabled={!trimmedIpInput || isSaved}
+          disabled={!trimmedIpInput || isRegistered || isSaving}
           onClick={handleSave}
           type="button"
         >
-          {isSaved ? (
+          {isRegistered ? (
             <>
               <Check className="size-3.5" />
-              저장됨
+              등록됨
             </>
+          ) : isSaving ? (
+            "저장 중..."
           ) : (
             "저장"
           )}
@@ -64,11 +118,12 @@ export default function SettingWifi() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <p className="flex items-center gap-2"><Wifi className="size-3.5" />현재 연결된 네트워크의 IP를 자동으로 가져옵니다</p>
           <button
-            className="h-8 rounded-md border border-[#DCE9DF] bg-white px-3 text-[11px] font-medium text-[#475569] sm:ml-auto"
+            className="h-8 rounded-md border border-[#DCE9DF] bg-white px-3 text-[11px] font-medium text-[#475569] disabled:cursor-not-allowed disabled:opacity-50 sm:ml-auto"
+            disabled={isChecking}
             onClick={handleCheckIp}
             type="button"
           >
-            내 IP 확인
+            {isChecking ? "확인 중..." : "내 IP 확인"}
           </button>
         </div>
 
@@ -89,17 +144,25 @@ export default function SettingWifi() {
         )}
       </div>
 
-      {registeredIps.length > 0 && (
+      {wifiIps.length > 0 && (
         <div className="mt-4">
           <p className="text-[11px] font-medium text-[#718096]">등록된 와이파이 IP</p>
           <ul className="mt-2 space-y-2">
-            {registeredIps.map((ip) => (
+            {wifiIps.map((wifiIp) => (
               <li
                 className="flex items-center gap-2 rounded-lg border border-[#DCE9DF] px-3 py-2 text-[12px] text-[#172033]"
-                key={ip}
+                key={wifiIp.wifiIpId}
               >
                 <Wifi className="size-3.5 text-[#4D9560]" />
-                {ip}
+                <span className="min-w-0 flex-1">{wifiIp.ipAddress}</span>
+                <button
+                  aria-label={`${wifiIp.ipAddress} 삭제`}
+                  className="text-[#94A3B8]"
+                  onClick={() => handleDelete(wifiIp.wifiIpId)}
+                  type="button"
+                >
+                  <Trash2 className="size-3.5" />
+                </button>
               </li>
             ))}
           </ul>
