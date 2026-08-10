@@ -3,6 +3,7 @@
 import { X } from "lucide-react";
 import { isSameDay, isSameMonth } from "date-fns";
 import ScheduleListItem from "./ScheduleListItem";
+import { formatEventDate } from "../scheduleFormat";
 import type { ScheduleEvent } from "../dummySchedules";
 
 type ScheduleListProps = {
@@ -10,9 +11,10 @@ type ScheduleListProps = {
   events: ScheduleEvent[];
   selectedDate: Date | undefined;
   onClearSelectedDate: () => void;
+  onSelectEvent: (event: ScheduleEvent) => void;
 };
 
-export default function ScheduleList({ month, events, selectedDate, onClearSelectedDate }: ScheduleListProps) {
+export default function ScheduleList({ month, events, selectedDate, onClearSelectedDate, onSelectEvent }: ScheduleListProps) {
   const monthEvents = events.filter((event) => isSameMonth(event.date, month));
   const filteredEvents = selectedDate ? monthEvents.filter((event) => isSameDay(event.date, selectedDate)) : monthEvents;
 
@@ -22,7 +24,9 @@ export default function ScheduleList({ month, events, selectedDate, onClearSelec
       aria-label={`${month.getMonth() + 1}월 일정`}
     >
       <div className="flex items-center justify-between">
-        <h2 className="text-[16px] font-bold">{month.getMonth() + 1}월 일정</h2>
+        <h2 className="text-[16px] font-bold">
+          {selectedDate ? formatEventDate(selectedDate) : `${month.getMonth() + 1}월 일정`}
+        </h2>
         {selectedDate ? (
           <button aria-label="날짜 선택 해제" className="text-[#718096]" type="button" onClick={onClearSelectedDate}>
             <X className="size-4" strokeWidth={1.8} />
@@ -39,7 +43,7 @@ export default function ScheduleList({ month, events, selectedDate, onClearSelec
       ) : (
         <ol className="mt-4 min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
           {filteredEvents.map((event) => (
-            <ScheduleListItem event={event} key={event.id} />
+            <ScheduleListItem event={event} key={event.id} onClick={() => onSelectEvent(event)} />
           ))}
         </ol>
       )}
