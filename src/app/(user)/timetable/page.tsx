@@ -2,8 +2,6 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  Ellipsis,
-  List,
   Plus,
   Search,
 } from "lucide-react";
@@ -50,7 +48,7 @@ const classItems: ClassItem[] = [
 
 
 // 임시로 사용할 더미데이터 입니다. 추후 API 연동을 진행하면서 삭제할 예정입니다.
-const times = ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00"];
+const times = ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00"];
 
 // 임시로 사용할 더미데이터 입니다. 추후 API 연동을 진행하면서 삭제할 예정입니다.
 const classTone = {
@@ -78,11 +76,6 @@ export default function TimetablePage() {
                 </span>
                 <ChevronDown className="size-4 text-[#718096]" />
               </button>
-              <div className="inline-flex overflow-hidden rounded-lg border border-[#DCE9DF] bg-white text-[13px] font-medium">
-                <button className="bg-[#172033] px-5 py-2.5 text-white" type="button">강의실</button>
-                <button className="border-l border-[#DCE9DF] px-5 py-2.5 text-[#718096]" type="button">강사</button>
-                <button className="border-l border-[#DCE9DF] px-5 py-2.5 text-[#718096]" type="button">학년</button>
-              </div>
               <div className="flex items-center gap-1 text-[13px] font-semibold text-[#526071]">
                 <button 
                   aria-label="이전 주"
@@ -116,66 +109,42 @@ export default function TimetablePage() {
                 내보내기
               </button>
               <button 
-                aria-label="더보기"
-                className="flex size-10 items-center justify-center rounded-lg border border-[#DCE9DF] bg-white text-[#526071]"
+                className="h-10 rounded-lg border border-[#DCE9DF] bg-white px-4 text-[13px] font-medium text-[#526071]"
                 type="button"
               >
-                <Ellipsis className="size-4" />
+                시간표 관리
               </button>
             </div>
           </div>
 
           <div className="flex flex-col gap-3 py-3 xl:flex-row xl:items-center xl:justify-between">
-            <div className="flex flex-wrap gap-1.5">
-              {days.map(({ name }, index) => 
-                <button 
-                  className={`size-8 rounded-full text-[12px] font-semibold 
-                  ${index === 0
-                    ?
-                    "bg-[#273548] text-white"
-                    :
-                    "bg-[#273548] text-white"
-                    }
-                  `}
-                  key={name}
-                  type="button"
+            <div className="flex flex-wrap items-center gap-2">
+              <label className="relative">
+                <span className="sr-only">요일 선택</span>
+                <select
+                  className="h-9 min-w-24 appearance-none rounded-lg border border-[#DCE9DF] bg-white px-3 pr-8 text-[12px] font-medium text-[#526071] outline-none"
+                  defaultValue=""
                 >
-                  {name}
-                </button>
-              )}
-              <span className="mx-1 h-8 border-l border-[#DCE9DF]" />
-              {["전체", "6층", "5층", "4층", "3층", "다모아"].map((item, index) => 
-                <button 
-                  className={`h-8 rounded-full border px-3 text-[12px] 
-                    ${index === 0 
-                      ?
-                      "border-[#273548] bg-white font-semibold text-[#273548]"
-                      :
-                      "border-[#DCE9DF] bg-white text-[#94A3B8]"
-                      }
-                    `}
-                    key={item}
-                    type="button"
-                  >
-                    {item}
-                  </button>
-                )}
-              <span className="mx-1 h-8 border-l border-[#DCE9DF]" />
-              {["전체", "수업", "특강", "클리닉", "상시", "시험"].map((item, index) => 
-                <button className={`h-8 rounded-full border px-3 text-[12px] 
-                  ${index === 0 
-                    ?
-                    "border-[#273548] bg-white font-semibold text-[#273548]"
-                    :
-                    "border-[#DCE9DF] bg-white text-[#94A3B8]"
-                    }
-                  `}
-                  key={item} 
-                  type="button"
+                  <option value="" disabled>요일 선택</option>
+                  {days.map(({ name }) => <option key={name} value={name}>{name}요일</option>)}
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-2 top-1/2 size-3.5 -translate-y-1/2 text-[#718096]" />
+              </label>
+              <label className="relative">
+                <span className="sr-only">층 선택</span>
+                <select
+                  className="h-9 min-w-24 appearance-none rounded-lg border border-[#DCE9DF] bg-white px-3 pr-8 text-[12px] font-medium text-[#526071] outline-none"
+                  defaultValue="전체"
                 >
-                  {item}
-                </button>
-              )}
+                  <option value="전체">전체 층</option>
+                  <option value="6층">6층</option>
+                  <option value="5층">5층</option>
+                  <option value="4층">4층</option>
+                  <option value="3층">3층</option>
+                  <option value="다모아">다모아</option>
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-2 top-1/2 size-3.5 -translate-y-1/2 text-[#718096]" />
+              </label>
             </div>
             <div className="flex items-center gap-2">
               <label className="flex h-9 items-center gap-2 rounded-lg border border-[#DCE9DF] bg-white px-3 text-[12px] text-[#718096]">
@@ -183,13 +152,6 @@ export default function TimetablePage() {
                 <span className="sr-only">강사 검색</span>
                 <input className="w-28 outline-none placeholder:text-[#94A3B8]" placeholder="강사 검색" />
               </label>
-              <button 
-                aria-label="목록 보기"
-                className="flex size-9 items-center justify-center rounded-lg border border-[#DCE9DF] bg-white text-[#718096]"
-                type="button"
-              >
-                <List className="size-4" />
-              </button>
             </div>
           </div>
 
@@ -213,7 +175,7 @@ export default function TimetablePage() {
                   )}
                 </div>
                 <div className="grid grid-cols-[68px_repeat(7,minmax(0,1fr))]" role="row">
-                  <div className="relative h-[704px] border-r border-[#DCE9DF] bg-[#FCFCFC]">
+                  <div className="relative h-[808px] border-r border-[#DCE9DF] bg-[#FCFCFC]">
                     {times.map((time, index) => 
                       <span 
                         className="absolute left-0 w-full -translate-y-1/2 pr-2 text-right text-[10px] text-[#A1ACBA]"
@@ -221,7 +183,6 @@ export default function TimetablePage() {
                         style={{ top: `${index * 52 + 26}px` }}
                       >
                         {time}
-                        {time === "12:00" && <small className="ml-0.5 text-[8px]">점심</small>}
                       </span>
                     )}
                   </div>
@@ -232,8 +193,10 @@ export default function TimetablePage() {
                       </div>
                       <div
                         data-testid="weekly-timetable-grid"
-                        className="grid h-[676px] grid-cols-5 grid-rows-[repeat(26,26px)] bg-white"
-                        style={{ backgroundImage: "repeating-linear-gradient(to bottom, transparent 0, transparent 51px, #E8EFEB 51px, #E8EFEB 52px)" }}
+                        className="grid h-[780px] grid-cols-5 grid-rows-[repeat(30,26px)] bg-white"
+                        style={{
+                          backgroundImage: "repeating-linear-gradient(to right, transparent 0, transparent calc(20% - 1px), #E8EFEB calc(20% - 1px), #E8EFEB 20%), repeating-linear-gradient(to bottom, transparent 0, transparent 51px, #E8EFEB 51px, #E8EFEB 52px)",
+                        }}
                       >
                         {classItems.filter((item) => item.day === dayIndex).map((item) => 
                           <article 
