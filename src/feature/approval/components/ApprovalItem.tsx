@@ -1,4 +1,5 @@
 import { ApprovalListData, ApprovalDocumentStatus } from "../type";
+import ApprovalItemButton from "./ApprovalItemButton";
 
 const statusStyle: Record<ApprovalDocumentStatus, { label: string; className: string }> = {
     IN_PROGRESS: { label: "진행중", className: "bg-[#DCFCE7] text-[#2C8D50]" },
@@ -9,16 +10,17 @@ const statusStyle: Record<ApprovalDocumentStatus, { label: string; className: st
 
 interface ApprovalItemProps {
     approval: ApprovalListData;
+    type?: 'my' | 'other'
 }
 
-export default function ApprovalItem({ approval }: ApprovalItemProps) {
+export default function ApprovalItem({ approval, type = 'other' }: ApprovalItemProps) {
     const currentApprover = approval.currentApproverName
         ? `${approval.currentApproverStepOrder}차 · ${approval.currentApproverName}`
         : "-";
     const status = statusStyle[approval.status];
 
     return (
-        <div className="grid h-14 grid-cols-8 md:grid-cols-9 items-center border-b border-[#F7F8F9] px-1 sm:px-2 md:h-[62px] md:px-3 lg:h-[67px] lg:grid-cols-11 lg:px-5">
+        <ApprovalItemButton id={approval.id} type={type}>
             <div className="col-span-4 lg:col-span-6">
                 <p className="text-[10px] font-medium leading-[19.5px] text-[#0F172A] md:text-[12px] lg:text-[13px]">
                     {approval.title}
@@ -33,6 +35,6 @@ export default function ApprovalItem({ approval }: ApprovalItemProps) {
             <div className="col-span-1">
                 <span className={`rounded-[20px] px-1 py-0.5 text-[10px] font-medium leading-[16.5px] md:px-1.5 lg:px-[9px] lg:text-[11px] ${status.className}`}>{status.label}</span>
             </div>
-        </div>
+        </ApprovalItemButton>
     )
 }
