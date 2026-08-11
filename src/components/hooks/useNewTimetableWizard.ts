@@ -1,18 +1,20 @@
-import { type Dispatch, type SetStateAction, useState } from "react";
-import type { FloorConfig, TimetableTemplate } from "@/feature/timetable/types";
+import { useState } from "react";
+import { indexToDayOfWeek } from "@/feature/timetable/timetableFormat";
+import type { FloorConfig } from "@/feature/timetable/types";
 import type { NewTimetableBasicInfoFormValues } from "@/lib/newTimetableBasicInfoSchema";
 
-const weekDayNames = ["일", "월", "화", "수", "목", "금", "토"];
-
 type UseNewTimetableWizardParams = {
-  activeTemplate: TimetableTemplate;
-  onFinish: (template: TimetableTemplate) => void;
-  setTemplates: Dispatch<SetStateAction<TimetableTemplate[]>>;
+  activeClassroomGroups: FloorConfig[];
+  onFinish: (payload: TimetableSetCreateRequest, editingTimetableSetId: number | null) => void;
 };
+
+const DEFAULT_OPERATING_START_TIME = "08:30";
+const DEFAULT_OPERATING_END_TIME = "22:00";
+const DEFAULT_OPERATING_DAYS: DayOfWeek[] = indexToDayOfWeek;
 
 const buildDefaultFloors = (): FloorConfig[] => Array.from({ length: 5 }, (_, index) => ({ floor: `${index + 1}층`, rooms: [`${index + 1}01`] }));
 
-export function useNewTimetableWizard({ activeTemplate, onFinish, setTemplates }: UseNewTimetableWizardParams) {
+export function useNewTimetableWizard({ activeClassroomGroups, onFinish }: UseNewTimetableWizardParams) {
   const [step, setStep] = useState<1 | 2 | 3 | null>(null);
   const [form, setForm] = useState<NewTimetableBasicInfoFormValues>({ name: "", startDate: "", endDate: "" });
   const [isBasicInfoComplete, setIsBasicInfoComplete] = useState(false);
@@ -20,24 +22,33 @@ export function useNewTimetableWizard({ activeTemplate, onFinish, setTemplates }
   const [floors, setFloors] = useState<FloorConfig[]>([]);
   const [newRoomNames, setNewRoomNames] = useState<Record<number, string>>({});
   const [slot, setSlot] = useState<10 | 30 | 60>(30);
-  const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null);
+  const [editingTimetableSetId, setEditingTimetableSetId] = useState<number | null>(null);
+  const [operatingStartTime, setOperatingStartTime] = useState(DEFAULT_OPERATING_START_TIME);
+  const [operatingEndTime, setOperatingEndTime] = useState(DEFAULT_OPERATING_END_TIME);
+  const [operatingDays, setOperatingDays] = useState<DayOfWeek[]>(DEFAULT_OPERATING_DAYS);
 
   const open = () => {
-    setEditingTemplateId(null);
+    setEditingTimetableSetId(null);
     setForm({ name: "", startDate: "", endDate: "" });
     setIsBasicInfoComplete(false);
     setSelectedTemplateOption(null);
     setSlot(30);
     setFloors(buildDefaultFloors());
+    setOperatingStartTime(DEFAULT_OPERATING_START_TIME);
+    setOperatingEndTime(DEFAULT_OPERATING_END_TIME);
+    setOperatingDays(DEFAULT_OPERATING_DAYS);
     setStep(1);
   };
 
-  const startEdit = (template: TimetableTemplate) => {
-    setEditingTemplateId(template.id);
-    setForm({ name: template.title, startDate: template.startDate.toLocaleDateString("sv-SE"), endDate: template.endDate.toLocaleDateString("sv-SE") });
+  const startEdit = (detail: TimetableSetDetailData) => {
+    setEditingTimetableSetId(detail.timetableSetId);
+    setForm({ name: detail.name, startDate: detail.startDate, endDate: detail.endDate });
     setIsBasicInfoComplete(false);
-    setSlot(template.slotMinutes);
-    setFloors([{ floor: "강의실", rooms: [...template.roomsByDay[0].rooms] }]);
+    setSlot(detail.slotUnitMinutes as 10 | 30 | 60);
+    setFloors(detail.classrooms.map((group) => ({ floor: group.floor, rooms: [...group.codes] })));
+    setOperatingStartTime(detail.operatingStartTime);
+    setOperatingEndTime(detail.operatingEndTime);
+    setOperatingDays(detail.operatingDays);
     setSelectedTemplateOption("previous");
     setStep(1);
   };
@@ -49,7 +60,7 @@ export function useNewTimetableWizard({ activeTemplate, onFinish, setTemplates }
 
   const selectTemplateOption = (option: "empty" | "previous") => {
     setSelectedTemplateOption(option);
-    setFloors(option === "empty" ? buildDefaultFloors() : [{ floor: "현재 강의실", rooms: [...activeTemplate.roomsByDay[0].rooms] }]);
+    setFloors(option === "empty" ? buildDefaultFloors() : activeClassroomGroups.map((group) => ({ floor: group.floor, rooms: [...group.rooms] })));
   };
 
   const addFloor = () => setFloors((current) => [...current, { floor: `${current.length + 1}층`, rooms: [`${current.length + 1}01`] }]);
@@ -67,19 +78,18 @@ export function useNewTimetableWizard({ activeTemplate, onFinish, setTemplates }
   const changeNewRoomName = (floorIndex: number, value: string) => setNewRoomNames((current) => ({ ...current, [floorIndex]: value }));
 
   const finish = () => {
-    const template: TimetableTemplate = {
-      id: editingTemplateId ?? `template-${Date.now()}`,
-      title: form.name,
-      startDate: new Date(form.startDate),
-      endDate: new Date(form.endDate),
-      roomsByDay: weekDayNames.map((name) => ({ name, rooms: floors.flatMap((floor) => floor.rooms) })),
-      classes: editingTemplateId ? activeTemplate.classes : [],
-      slotMinutes: slot,
+    const payload: TimetableSetCreateRequest = {
+      name: form.name,
+      startDate: form.startDate,
+      endDate: form.endDate,
+      operatingStartTime,
+      operatingEndTime,
+      operatingDays,
+      slotUnitMinutes: slot,
+      classrooms: floors.map((floor) => ({ floor: floor.floor, codes: floor.rooms })),
     };
 
-    setTemplates((current) => editingTemplateId ? current.map((item) => item.id === editingTemplateId ? template : item) : [...current, template]);
-    onFinish(template);
-    setStep(null);
+    onFinish(payload, editingTimetableSetId);
   };
 
   return {
