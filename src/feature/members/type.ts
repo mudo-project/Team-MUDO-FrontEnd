@@ -1,11 +1,11 @@
-interface MembersApiResponse<T> {
+export interface MembersApiResponse<T> {
     status: number;
     code: string;
     message: string;
     data: T;
 }
 
-interface CreateEmployeeAccountRequest {
+export interface CreateEmployeeAccountRequest {
     username: string;
     name: string;
     phone: string;
@@ -13,15 +13,46 @@ interface CreateEmployeeAccountRequest {
     roleId: number;
 }
 
-interface CreateEmployeeAccountData {
+export interface CreateEmployeeAccountData {
     userId: number;
     username: string;
-    temporaryPassword: string;
+    passwordSetupLink: string;
 }
 
-type CreateEmployeeAccountResponse =
+export type CreateEmployeeAccountResponse =
     MembersApiResponse<CreateEmployeeAccountData>;
 
-interface ChangeEmployeeRoleRequest {
+export interface ChangeEmployeeRoleRequest {
     roleId: number;
 }
+
+export type MemberAccountStatus = "ACTIVE" | "RESIGNED" | "INACTIVE";
+export type MemberAttendanceStatus = "PRESENT" | "ABSENT" | "OFF" | "LEAVE";
+
+export interface MemberListParams {
+    keyword?: string;
+    roleId?: number;
+    page?: number;
+    size?: number;
+}
+
+export interface MemberListData {
+    userId: number;
+    name: string;
+    email: string;
+    phone: string;
+    roleId: number | null;
+    roleName: string | null;
+    joinedAt: string;
+    status: MemberAccountStatus;
+    attendanceStatus: MemberAttendanceStatus | null;
+}
+
+export interface MemberListPageData {
+    content: MemberListData[];
+    page: number;
+    size: number;
+    hasNext: boolean;
+}
+
+export type MemberListResponse = MembersApiResponse<MemberListPageData>;
