@@ -8,6 +8,7 @@ import { classRegistrationSchema, type ClassRegistrationFormValues } from "@/lib
 type ClassRegistrationModalProps = {
   defaultValues: ClassRegistrationFormValues;
   getAvailableRooms: (day: string) => string[];
+  isSubmitting?: boolean;
   onClose: () => void;
   onSubmit: (values: ClassRegistrationFormValues) => void;
 };
@@ -15,6 +16,7 @@ type ClassRegistrationModalProps = {
 export default function ClassRegistrationModal({
   defaultValues,
   getAvailableRooms,
+  isSubmitting = false,
   onClose,
   onSubmit,
 }: ClassRegistrationModalProps) {
@@ -127,19 +129,20 @@ export default function ClassRegistrationModal({
           </div>
         </form>
         <footer className="flex justify-end gap-2 border-t border-[#E5EEE7] px-5 py-3">
-          <button 
-            className="h-8 rounded-md border border-[#DCE9DF] bg-white px-3 text-[12px] font-medium text-[#526071]" 
-            onClick={onClose} 
+          <button
+            className="h-8 rounded-md border border-[#DCE9DF] bg-white px-3 text-[12px] font-medium text-[#526071]"
+            onClick={onClose}
             type="button"
           >
             취소
           </button>
-          <button 
-            className="h-8 rounded-md bg-[#273548] px-3 text-[12px] font-semibold text-white" 
-            form="class-registration-form" 
+          <button
+            className="h-8 rounded-md bg-[#273548] px-3 text-[12px] font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+            disabled={isSubmitting}
+            form="class-registration-form"
             type="submit"
           >
-            등록
+            {isSubmitting ? "등록 중..." : "등록"}
           </button>
         </footer>
       </section>

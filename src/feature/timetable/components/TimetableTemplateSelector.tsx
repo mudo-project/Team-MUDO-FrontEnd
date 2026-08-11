@@ -1,19 +1,19 @@
 import { ChevronDown, Plus } from "lucide-react";
 
-import type { TemplateStatus, TimetableTemplate } from "../types";
+import type { TemplateStatus } from "../types";
 
 type TimetableTemplateSelectorProps = {
-  activeTemplate: TimetableTemplate;
-  getStatus: (template: TimetableTemplate) => TemplateStatus;
+  activeTemplate: TimetableSetListData;
+  getStatus: (status: TimetableSetStatus) => TemplateStatus;
   isOpen: boolean;
   onCreate: () => void;
-  onSelect: (template: TimetableTemplate) => void;
+  onSelect: (template: TimetableSetListData) => void;
   onToggle: () => void;
-  templates: TimetableTemplate[];
+  templates: TimetableSetListData[];
 };
 
-const formatTemplateDateRange = (template: TimetableTemplate) =>
-  `${template.startDate.toLocaleDateString("sv-SE")} ~ ${template.endDate.toLocaleDateString("sv-SE")}`;
+const formatTemplateDateRange = (template: TimetableSetListData) =>
+  `${template.startDate} ~ ${template.endDate}`;
 
 export default function TimetableTemplateSelector({
   activeTemplate,
@@ -24,7 +24,7 @@ export default function TimetableTemplateSelector({
   onToggle,
   templates,
 }: TimetableTemplateSelectorProps) {
-  const activeStatus = getStatus(activeTemplate);
+  const activeStatus = getStatus(activeTemplate.status);
 
   return (
     <div className="relative">
@@ -37,7 +37,7 @@ export default function TimetableTemplateSelector({
         type="button"
       >
         <span>
-          <strong className="block text-sm text-[#273548]">{activeTemplate.title}</strong>
+          <strong className="block text-sm text-[#273548]">{activeTemplate.name}</strong>
           <span className="mt-0.5 flex items-center gap-1.5 text-[11px] text-[#94A3B8]">
             {formatTemplateDateRange(activeTemplate)}
             <span className={`rounded-full px-1.5 py-0.5 font-semibold ${activeStatus.tone}`}>
@@ -55,17 +55,17 @@ export default function TimetableTemplateSelector({
         >
           <div className="max-h-[280px] overflow-y-auto scrollbar-hide">
             {templates.map((template) => {
-              const status = getStatus(template);
+              const status = getStatus(template.status);
 
               return (
                 <button
                   className="flex w-full items-center justify-between border-b border-[#E5EEE7] px-4 py-3 text-left hover:bg-[#F8FAF8]"
-                  key={template.id}
+                  key={template.timetableSetId}
                   onClick={() => onSelect(template)}
                   type="button"
                 >
                   <span>
-                    <strong className="block text-sm text-[#273548]">{template.title}</strong>
+                    <strong className="block text-sm text-[#273548]">{template.name}</strong>
                     <span className="mt-1 block text-[11px] text-[#94A3B8]">{formatTemplateDateRange(template)}</span>
                   </span>
                   <span className={`rounded-full px-2 py-1 text-[11px] font-semibold ${status.tone}`}>{status.label}</span>
