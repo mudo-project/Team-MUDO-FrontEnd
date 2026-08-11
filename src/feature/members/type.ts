@@ -33,7 +33,6 @@ export interface MemberListParams {
     keyword?: string;
     roleId?: number;
     page?: number;
-    size?: number;
 }
 
 export interface MemberListData {
