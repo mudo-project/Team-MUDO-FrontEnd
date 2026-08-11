@@ -18,13 +18,12 @@ export default function WorkspaceSidebar() {
         error: string;
         data: WorkspaceListData[];
     }>({
-        loading: false,
+        loading: true,
         error: '',
         data: []
     })
 
     useEffect(() => {
-        setWorkspaceList({ ...workspaceList, loading: true })
         const fetchWorkspace = async () => {
             const response: WorkspaceActionResult<WorkspaceListData[]> = await getWorkspaceListAction();
             setWorkspaceList({
