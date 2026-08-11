@@ -1,13 +1,8 @@
 import { type Dispatch, type SetStateAction, useState } from "react";
 import type { FloorConfig, TimetableTemplate } from "@/feature/timetable/types";
+import type { NewTimetableBasicInfoFormValues } from "@/lib/newTimetableBasicInfoSchema";
 
 const weekDayNames = ["일", "월", "화", "수", "목", "금", "토"];
-
-type NewTimetableFormValue = {
-  endDate: string;
-  name: string;
-  startDate: string;
-};
 
 type UseNewTimetableWizardParams = {
   activeTemplate: TimetableTemplate;
@@ -19,18 +14,18 @@ const buildDefaultFloors = (): FloorConfig[] => Array.from({ length: 5 }, (_, in
 
 export function useNewTimetableWizard({ activeTemplate, onFinish, setTemplates }: UseNewTimetableWizardParams) {
   const [step, setStep] = useState<1 | 2 | 3 | null>(null);
-  const [form, setForm] = useState<NewTimetableFormValue>({ name: "", startDate: "", endDate: "" });
+  const [form, setForm] = useState<NewTimetableBasicInfoFormValues>({ name: "", startDate: "", endDate: "" });
+  const [isBasicInfoComplete, setIsBasicInfoComplete] = useState(false);
   const [selectedTemplateOption, setSelectedTemplateOption] = useState<"empty" | "previous" | null>(null);
   const [floors, setFloors] = useState<FloorConfig[]>([]);
   const [newRoomNames, setNewRoomNames] = useState<Record<number, string>>({});
   const [slot, setSlot] = useState<10 | 30 | 60>(30);
   const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null);
 
-  const isBasicInfoComplete = Boolean(form.name && form.startDate && form.endDate);
-
   const open = () => {
     setEditingTemplateId(null);
     setForm({ name: "", startDate: "", endDate: "" });
+    setIsBasicInfoComplete(false);
     setSelectedTemplateOption(null);
     setSlot(30);
     setFloors(buildDefaultFloors());
@@ -40,6 +35,7 @@ export function useNewTimetableWizard({ activeTemplate, onFinish, setTemplates }
   const startEdit = (template: TimetableTemplate) => {
     setEditingTemplateId(template.id);
     setForm({ name: template.title, startDate: template.startDate.toLocaleDateString("sv-SE"), endDate: template.endDate.toLocaleDateString("sv-SE") });
+    setIsBasicInfoComplete(false);
     setSlot(template.slotMinutes);
     setFloors([{ floor: "강의실", rooms: [...template.roomsByDay[0].rooms] }]);
     setSelectedTemplateOption("previous");
@@ -47,7 +43,7 @@ export function useNewTimetableWizard({ activeTemplate, onFinish, setTemplates }
   };
 
   const close = () => setStep(null);
-  const changeForm = (patch: Partial<NewTimetableFormValue>) => setForm((current) => ({ ...current, ...patch }));
+  const changeForm = (patch: Partial<NewTimetableBasicInfoFormValues>) => setForm((current) => ({ ...current, ...patch }));
   const goToNextStep = () => setStep((current) => (current === 1 ? 2 : 3));
   const goToPrevStep = () => setStep((current) => (current === 3 ? 2 : 1));
 
@@ -89,6 +85,7 @@ export function useNewTimetableWizard({ activeTemplate, onFinish, setTemplates }
   return {
     addFloor,
     addRoom,
+    changeBasicInfoValidity: setIsBasicInfoComplete,
     changeForm,
     changeNewRoomName,
     changeSlot: setSlot,
