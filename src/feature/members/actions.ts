@@ -104,7 +104,6 @@ export const getMemberListAction = async (
     const keyword = params.keyword?.trim() || undefined;
     const roleId = params.roleId;
     const page = params.page ?? 0;
-    const size = params.size ?? 20;
 
     if (roleId !== undefined && !isPositiveInteger(roleId)) {
         return { success: false, message: "역할 번호가 올바르지 않습니다." };
@@ -114,12 +113,9 @@ export const getMemberListAction = async (
         return { success: false, message: "페이지 번호가 올바르지 않습니다." };
     }
 
-    if (!Number.isInteger(size) || size < 1 || size > 100) {
-        return { success: false, message: "페이지 크기는 1 이상 100 이하여야 합니다." };
-    }
 
     try {
-        const response = await getMemberList({ keyword, roleId, page, size });
+        const response = await getMemberList({ keyword, roleId, page });
 
         return {
             success: true,

@@ -2,7 +2,7 @@ import { X } from "lucide-react";
 
 export default function TwoButtonModal({ title, content, closeModal, activeModal }: { title: string, content: string, closeModal: () => void, activeModal: () => void }) {
     return (
-        <div onClick={closeModal} className="fixed top-0 left-0 z-999 flex h-screen w-screen items-center justify-center bg-[#162236]/30">
+        <div onClick={closeModal} className="fixed top-0 left-0 z-1001 flex h-screen w-screen items-center justify-center bg-[#162236]/30">
             <section
                 onClick={(e) => e.stopPropagation()}
                 className="w-[420px] rounded-[12px] bg-white p-6 shadow-[0_8px_16px_rgba(22,34,54,0.16)]">
@@ -14,6 +14,7 @@ export default function TwoButtonModal({ title, content, closeModal, activeModal
                         aria-label="템플릿 삭제 모달 닫기"
                         className="ml-auto flex size-3.5 items-center justify-center text-[#C0C8D0]"
                         type="button"
+                        onClick={closeModal}
                     >
                         <X className="size-3.5" strokeWidth={1.5} />
                     </button>
