@@ -1,14 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { addDays, addWeeks, format, parseISO, startOfWeek } from "date-fns";
 import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import AttendanceAllEmployeesItem from "./AttendanceAllEmployeesItem";
 import AttendanceEmployeesDetail from "./AttendanceEmployeesDetail";
 import {
   EMPLOYEE_WEEK_ROWS,
   WEEKDAY_LABELS,
-  WEEK_DATES,
-  WEEK_LABEL,
   type EmployeeDayStatus,
   type EmployeeWeekRow,
 } from "../attendanceAllEmployeesDemo";
@@ -33,7 +32,19 @@ const LEGEND = [
 export default function AttendanceAllEmployees() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("전체");
+  const [selectedDate, setSelectedDate] = useState("2026-08-05");
   const [selectedEmployee, setSelectedEmployee] = useState<EmployeeWeekRow | null>(null);
+  const selectedWeek = useMemo(() => {
+    const weekStart = startOfWeek(parseISO(selectedDate), { weekStartsOn: 0 });
+
+    return Array.from({ length: 7 }, (_, index) => addDays(weekStart, index));
+  }, [selectedDate]);
+  const weekDates = selectedWeek.map((date) => format(date, "MM.dd"));
+  const weekLabel = `${weekDates[0]} ~ ${weekDates[6]}`;
+
+  const handleWeekChange = (amount: number) => {
+    setSelectedDate(format(addWeeks(parseISO(selectedDate), amount), "yyyy-MM-dd"));
+  };
 
   const filteredEmployees = useMemo(() => {
     const activeFilter = STATUS_FILTERS.find((filter) => filter.label === statusFilter);
@@ -46,18 +57,35 @@ export default function AttendanceAllEmployees() {
   }, [search, statusFilter]);
 
   if (selectedEmployee) {
-    return <AttendanceEmployeesDetail employee={selectedEmployee} onBack={() => setSelectedEmployee(null)} />;
+    return (
+      <AttendanceEmployeesDetail
+        employee={selectedEmployee}
+        weekDates={weekDates}
+        weekdayLabels={WEEKDAY_LABELS}
+        onBack={() => setSelectedEmployee(null)}
+      />
+    );
   }
 
   return (
     <div>
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center gap-3">
-          <button aria-label="이전 주" type="button">
+          <button aria-label="이전 주" type="button" onClick={() => handleWeekChange(-1)}>
             <ChevronLeft className="size-4 text-[#718096]" />
           </button>
-          <span className="text-[13px] font-semibold text-[#172033]">{WEEK_LABEL}</span>
-          <button aria-label="다음 주" type="button">
+          <label className="flex items-center gap-2 text-[13px] font-semibold text-[#172033]">
+            <span>{weekLabel}</span>
+            <span className="sr-only">조회 날짜</span>
+            <input
+              aria-label="조회 날짜"
+              className="h-8 rounded-lg border border-[#DCE9DF] bg-white px-2 text-[12px] font-medium text-[#172033] outline-none focus:border-[#4D9560]"
+              type="date"
+              value={selectedDate}
+              onChange={(event) => setSelectedDate(event.target.value)}
+            />
+          </label>
+          <button aria-label="다음 주" type="button" onClick={() => handleWeekChange(1)}>
             <ChevronRight className="size-4 text-[#718096]" />
           </button>
         </div>
@@ -104,7 +132,7 @@ export default function AttendanceAllEmployees() {
           <thead>
             <tr className="border-b border-[#DCE9DF] text-[11px] text-[#64748B]">
               <th className="px-4 py-3 font-medium">직원</th>
-              {WEEK_DATES.map((date, index) => (
+              {weekDates.map((date, index) => (
                 <th className="px-2 py-3 text-center font-medium" key={date}>
                   <span className={index === 0 ? "text-[#B45252]" : index === 6 ? "text-[#4D9560]" : ""}>{WEEKDAY_LABELS[index]}</span>
                   <span className="block">{date}</span>

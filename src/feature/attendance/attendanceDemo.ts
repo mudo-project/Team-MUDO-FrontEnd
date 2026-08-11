@@ -88,6 +88,36 @@ export type AttendanceEditRequest = {
   status: "대기" | "승인" | "반려";
 };
 
+export const INITIAL_MY_EDIT_REQUESTS: AttendanceEditRequest[] = [
+  {
+    id: "my-edit-1",
+    targetDate: new Date(2026, 7, 5),
+    type: "clockIn",
+    changeSummary: "출근 09:35 → 09:05",
+    reason: "지하철 운행 지연으로 실제 출근 시각과 다르게 기록되었습니다. 지연 증빙을 첨부했습니다.",
+    requestedAt: new Date(2026, 7, 5, 20, 15),
+    status: "대기",
+  },
+  {
+    id: "my-edit-2",
+    targetDate: new Date(2026, 7, 3),
+    type: "clockOut",
+    changeSummary: "퇴근 19:20 → 18:30",
+    reason: "퇴근 체크를 완료한 뒤 기록이 늦게 반영되어 수정 요청합니다.",
+    requestedAt: new Date(2026, 7, 3, 21, 30),
+    status: "승인",
+  },
+  {
+    id: "my-edit-3",
+    targetDate: new Date(2026, 6, 31),
+    type: "missing",
+    changeSummary: "누락 기록 추가",
+    reason: "체크인 기기 오류로 출퇴근 기록이 누락되었습니다.",
+    requestedAt: new Date(2026, 6, 31, 18, 20),
+    status: "반려",
+  },
+];
+
 // 06:00 ~ 22:00까지 5분 단위 시각 선택지입니다. "오전/오후 h:mm" 형식으로 표시합니다.
 // 실제 출퇴근 기록은 30분 단위로 정렬되지 않으므로, select의 value가 항상 실제 기록 시각과
 // 일치하는 옵션을 가질 수 있도록 촘촘한 간격을 씁니다(일치하는 옵션이 없으면 브라우저가

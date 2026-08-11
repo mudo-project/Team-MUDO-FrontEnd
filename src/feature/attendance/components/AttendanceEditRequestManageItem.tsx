@@ -12,11 +12,22 @@ type AttendanceEditRequestManageItemProps = {
   request: ManagedEditRequest;
   onApprove: (id: string) => void;
   onReject: (id: string) => void;
+  onSelect: (request: ManagedEditRequest) => void;
 };
 
-export default function AttendanceEditRequestManageItem({ request, onApprove, onReject }: AttendanceEditRequestManageItemProps) {
+export default function AttendanceEditRequestManageItem({ request, onApprove, onReject, onSelect }: AttendanceEditRequestManageItemProps) {
   return (
-    <tr className="border-b border-[#E5EEE7] last:border-0 text-[12px]">
+    <tr
+      className="cursor-pointer border-b border-[#E5EEE7] text-[12px] transition hover:bg-[#FBFCFB] last:border-0"
+      tabIndex={0}
+      onClick={() => onSelect(request)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onSelect(request);
+        }
+      }}
+    >
       <td className="px-4 py-3">
         <span className="flex items-center gap-2">
           <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-[#0F172A] text-[8px] font-bold text-white">
@@ -48,14 +59,20 @@ export default function AttendanceEditRequestManageItem({ request, onApprove, on
             <button 
               className="text-[12px] font-medium text-[#C65A50]" 
               type="button" 
-              onClick={() => onReject(request.id)}
+              onClick={(event) => {
+                event.stopPropagation();
+                onReject(request.id);
+              }}
             >
               반려
             </button>
             <button 
               className="h-8 rounded-md bg-[#172033] px-3 text-[12px] font-semibold text-white" 
               type="button" 
-              onClick={() => onApprove(request.id)}
+              onClick={(event) => {
+                event.stopPropagation();
+                onApprove(request.id);
+              }}
             >
               승인
             </button>

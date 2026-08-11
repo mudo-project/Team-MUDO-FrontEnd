@@ -15,15 +15,21 @@ type AttendanceMyEditRequestItemProps = {
 
 export default function AttendanceMyEditRequestItem({ request, onSelect }: AttendanceMyEditRequestItemProps) {
   return (
-    <tr className="border-b border-[#E5EEE7] text-[12px] last:border-0 hover:bg-[#FBFCFB]">
+    <tr
+      className="cursor-pointer border-b border-[#E5EEE7] text-[12px] transition hover:bg-[#FBFCFB] last:border-0"
+      tabIndex={0}
+      onClick={() => onSelect(request)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onSelect(request);
+        }
+      }}
+    >
       <td className="px-4 py-3 text-[#344054]">
-        <button 
-          className="text-left font-medium text-[#172033] underline-offset-2 hover:underline" 
-          type="button" 
-          onClick={() => onSelect(request)}
-        >
+        <span className="font-medium text-[#172033]">
           {formatDateWithWeekday(request.targetDate)}
-        </button>
+        </span>
       </td>
       <td className="px-4 py-3 text-[#344054]">{EDIT_REQUEST_TYPE_LABEL[request.type]}</td>
       <td className="px-4 py-3 text-[#344054]">{request.changeSummary}</td>
