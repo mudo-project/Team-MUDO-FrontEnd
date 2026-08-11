@@ -41,7 +41,7 @@ export default function ReceivedReasonModal({ mode, closeModal, id }: { mode: '�
             <form
                 onSubmit={handleSubmit}
                 onClick={(e) => e.stopPropagation()}
-                className="fixed top-1/2 left-1/2 z-1000 max-h-[85vh] w-[420px] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-[12px] bg-white p-6 shadow-[0_8px_16px_rgba(22,34,54,0.16)]">
+                className="fixed top-1/2 left-1/2 z-1000 w-[420px] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-[12px] bg-white p-6 shadow-[0_8px_16px_rgba(22,34,54,0.16)]">
                 <div className="flex h-[23px] items-center">
                     <h2 className="text-[15px] font-bold leading-[22.5px] text-[#0F172A]">
                         결재 {mode}
