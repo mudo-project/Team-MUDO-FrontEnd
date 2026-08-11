@@ -13,14 +13,14 @@ export default function ApprovalTemplateModal({ id, closeModal, activeModal, non
         error: string;
         data: ApprovalTemplateDetailData | undefined
     }>({
-        loading: false,
+        loading: true,
         error: '',
         data: undefined
     })
 
     useEffect(() => {
-        setTemplateDetail({ ...templateDetail, loading: true })
         const fetchTemplateDetail = async () => {
+
             const response: ApprovalActionResult<ApprovalTemplateDetailData> = await getApprovalTemplateDetailAction(id);
             setTemplateDetail({
                 loading: false,

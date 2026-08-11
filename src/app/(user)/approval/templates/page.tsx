@@ -5,7 +5,7 @@ import { ApprovalPageData, ApprovalTemplateListData } from "@/feature/approval/t
 
 
 export default async function Page() {
-    let response: ApprovalActionResult<ApprovalPageData<ApprovalTemplateListData>> = await getApprovalTemplateListAction();
+    const response: ApprovalActionResult<ApprovalPageData<ApprovalTemplateListData>> = await getApprovalTemplateListAction();
 
     return (
         <main className="min-h-[calc(100dvh-52px)] w-full bg-[#FCFCFC] px-2 py-4 sm:px-2.5 md:px-4 md:py-5 lg:px-8 lg:py-7">

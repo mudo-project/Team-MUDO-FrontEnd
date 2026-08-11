@@ -14,6 +14,7 @@ import {
     ChangeEvent,
     DragEvent,
     FormEvent,
+    useEffect,
     useRef,
     useState,
 } from "react";
@@ -43,6 +44,14 @@ export default function CreateApprovalModal({
 }: CreateApprovalModalProps) {
     const router = useRouter();
     const isMounted = useRef(true);
+
+    useEffect(() => {
+        isMounted.current = true;
+
+        return () => {
+            isMounted.current = false;
+        };
+    }, []);
 
     const [templateDatas, setTemplateDatas] = useState<TemplateDatas>({
         templates: [],
@@ -215,7 +224,7 @@ export default function CreateApprovalModal({
                         </button>
                     </div>
 
-                    <ApprovalLine setSelectedTemplateId={setSelectedTemplateId} setApprovalLines={setApprovalLines} setHasChangedApprovalLine={setHasChangedApprovalLine} approvalLines={approvalLines} selectedTemplateId={selectedTemplateId} templateDatas={templateDatas} setTemplateDatas={setTemplateDatas} isMounted={isMounted} />
+                    <ApprovalLine setSelectedTemplateId={setSelectedTemplateId} setApprovalLines={setApprovalLines} setHasChangedApprovalLine={setHasChangedApprovalLine} approvalLines={approvalLines} selectedTemplateId={selectedTemplateId} templateDatas={templateDatas} setTemplateDatas={setTemplateDatas} />
 
                     <div className="mt-4 w-full">
                         <label className="block pb-1.5 text-[12px] font-medium leading-[18px] text-[#6B7280]" htmlFor="approval-title">제목 <span className="text-[#C0483F]">*</span></label>

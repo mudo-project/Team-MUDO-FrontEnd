@@ -22,15 +22,14 @@ export default function ApprovalLineItem({ line, removeApprovalLine, changeAppro
         error: string;
         data: UserListResponse[];
     }>({
-        loading: false,
+        loading: true,
         error: '',
         data: []
     })
 
     useEffect(() => {
-        setUserList({ ...userList, loading: true })
-
         const getUserList = async () => {
+
             const response = await getUserListAction();
             setUserList({
                 loading: false,

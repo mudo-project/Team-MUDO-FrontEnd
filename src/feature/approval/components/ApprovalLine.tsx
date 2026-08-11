@@ -1,6 +1,6 @@
 'use client'
 
-import { Dispatch, RefObject, SetStateAction, useEffect, useRef, useState } from "react";
+import { Dispatch, SetStateAction, useEffect } from "react";
 import { ApprovalTemplateLineData, ApprovalTemplateListData } from "../type";
 import { getApprovalTemplateListAction } from "../actions";
 import { getUserListAction } from "@/feature/auth/actions";
@@ -22,13 +22,11 @@ interface Props {
     selectedTemplateId: string;
     templateDatas: TemplateDatas,
     setTemplateDatas: Dispatch<SetStateAction<TemplateDatas>>;
-    isMounted: RefObject<boolean>;
 }
 
-export default function ApprovalLine({ setSelectedTemplateId, setApprovalLines, setHasChangedApprovalLine, approvalLines, selectedTemplateId, templateDatas, setTemplateDatas, isMounted }: Props) {
+export default function ApprovalLine({ setSelectedTemplateId, setApprovalLines, setHasChangedApprovalLine, approvalLines, selectedTemplateId, templateDatas, setTemplateDatas }: Props) {
 
     useEffect(() => {
-        isMounted.current = true;
         let cancelled = false;
 
         const loadInitialData = async () => {
@@ -60,7 +58,6 @@ export default function ApprovalLine({ setSelectedTemplateId, setApprovalLines, 
 
         return () => {
             cancelled = true;
-            isMounted.current = false;
         };
     }, []);
 
