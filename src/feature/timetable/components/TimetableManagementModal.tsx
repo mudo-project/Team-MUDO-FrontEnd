@@ -1,20 +1,21 @@
 import { Plus, X } from "lucide-react";
 import { modalSurfaceClass } from "@/feature/timetable/constants";
-import type { ClassItem, TemplateStatus, TimetableTemplate } from "@/feature/timetable/types";
+import type { TemplateStatus } from "@/feature/timetable/types";
 
 type TimetableManagementModalProps = {
-  getStatus: (template: TimetableTemplate) => TemplateStatus;
+  classCounts: Record<number, number>;
+  getStatus: (status: TimetableSetStatus) => TemplateStatus;
   onClose: () => void;
   onCreate: () => void;
-  onDeleteTemplate: (templateId: string) => void;
-  onEditTemplate: (template: TimetableTemplate) => void;
-  onToggleOption: (templateId: string) => void;
-  openOptionId: string | null;
-  registeredClasses: Record<string, ClassItem[]>;
-  templates: TimetableTemplate[];
+  onDeleteTemplate: (templateId: number) => void;
+  onEditTemplate: (template: TimetableSetListData) => void;
+  onToggleOption: (templateId: number) => void;
+  openOptionId: number | null;
+  templates: TimetableSetListData[];
 };
 
 export default function TimetableManagementModal({
+  classCounts,
   getStatus,
   onClose,
   onCreate,
@@ -22,7 +23,6 @@ export default function TimetableManagementModal({
   onEditTemplate,
   onToggleOption,
   openOptionId,
-  registeredClasses,
   templates,
 }: TimetableManagementModalProps) {
   return (
@@ -46,25 +46,25 @@ export default function TimetableManagementModal({
         </header>
         <div className="flex-1">
           {templates.map((template) => (
-            <article className="flex items-center justify-between border-b border-[#E5EEE7] px-5 py-3.5" key={template.id}>
+            <article className="flex items-center justify-between border-b border-[#E5EEE7] px-5 py-3.5" key={template.timetableSetId}>
               <div>
-                <strong className="block text-base text-[#273548]">{template.title}</strong>
+                <strong className="block text-base text-[#273548]">{template.name}</strong>
                 <span className="mt-1 block text-[13px] text-[#94A3B8]">
-                  {template.startDate.toLocaleDateString("sv-SE")} ~ {template.endDate.toLocaleDateString("sv-SE")} · {template.classes.length + (registeredClasses[template.id] ?? []).length}개 수업
+                  {template.startDate} ~ {template.endDate} · {classCounts[template.timetableSetId] ?? 0}개 수업
                 </span>
               </div>
               <div className="relative flex items-center gap-3">
-                <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${getStatus(template).tone}`}>{getStatus(template).label}</span>
-                <button 
-                  aria-label={`${template.title} 옵션`}
-                  aria-expanded={openOptionId === template.id}
-                  className="flex size-7 items-center justify-center rounded-md text-lg leading-none text-[#94A3B8]" 
-                  onClick={() => onToggleOption(template.id)} 
+                <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${getStatus(template.status).tone}`}>{getStatus(template.status).label}</span>
+                <button
+                  aria-label={`${template.name} 옵션`}
+                  aria-expanded={openOptionId === template.timetableSetId}
+                  className="flex size-7 items-center justify-center rounded-md text-lg leading-none text-[#94A3B8]"
+                  onClick={() => onToggleOption(template.timetableSetId)}
                   type="button"
                 >
                   …
                 </button>
-                {openOptionId === template.id && 
+                {openOptionId === template.timetableSetId &&
                   <div className="absolute right-0 top-full z-10 mt-1 w-20 overflow-hidden rounded-lg border border-[#DCE9DF] bg-white py-1 shadow-[0_8px_18px_rgba(28,42,34,0.14)]">
                     <button 
                       className="w-full px-3 py-1.5 text-left text-[12px] text-[#526071] hover:bg-[#F3F6F4]" 
@@ -75,7 +75,7 @@ export default function TimetableManagementModal({
                     </button>
                     <button 
                       className="w-full px-3 py-1.5 text-left text-[12px] text-[#C46A62] hover:bg-[#FFF5F3]" 
-                      onClick={() => onDeleteTemplate(template.id)} type="button"
+                      onClick={() => onDeleteTemplate(template.timetableSetId)} type="button"
                     >
                       삭제
                       </button>

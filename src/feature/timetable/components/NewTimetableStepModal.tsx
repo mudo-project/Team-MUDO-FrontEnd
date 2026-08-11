@@ -23,6 +23,7 @@ type NewTimetableStepModalProps = {
   onPrev: () => void;
   onRemoveRoom: (floorIndex: number, room: string) => void;
   onSelectTemplateOption: (option: "empty" | "previous") => void;
+  isSubmitting?: boolean;
   selectedTemplateOption: "empty" | "previous" | null;
   slot: 10 | 30 | 60;
   step: 1 | 2 | 3;
@@ -47,6 +48,7 @@ export default function NewTimetableStepModal({
   onPrev,
   onRemoveRoom,
   onSelectTemplateOption,
+  isSubmitting = false,
   selectedTemplateOption,
   slot,
   step,
@@ -130,30 +132,31 @@ export default function NewTimetableStepModal({
             >
               이전
             </button>}
-          <button 
+          <button
             className="h-10 rounded-lg border border-[#DCE9DF] px-4 text-sm text-[#526071]"
             onClick={onClose}
             type="button"
           >
             취소
           </button>
-          {step < 3 
-            ? 
-            <button 
-              className="h-10 rounded-lg bg-[#273548] px-5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-[#EEF2F6] disabled:text-[#94A3B8]" 
-              disabled={step === 1 ? !isBasicInfoComplete : !selectedTemplateOption} 
-              onClick={onNext} 
+          {step < 3
+            ?
+            <button
+              className="h-10 rounded-lg bg-[#273548] px-5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-[#EEF2F6] disabled:text-[#94A3B8]"
+              disabled={step === 1 ? !isBasicInfoComplete : !selectedTemplateOption}
+              onClick={onNext}
               type="button"
             >
               다음
             </button>
             :
-            <button 
-              className="h-10 rounded-lg bg-[#273548] px-5 text-sm font-semibold text-white" 
-              onClick={onComplete} 
+            <button
+              className="h-10 rounded-lg bg-[#273548] px-5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={isSubmitting}
+              onClick={onComplete}
               type="button"
             >
-              완료
+              {isSubmitting ? "저장 중..." : "완료"}
             </button>}
         </footer>
       </section>

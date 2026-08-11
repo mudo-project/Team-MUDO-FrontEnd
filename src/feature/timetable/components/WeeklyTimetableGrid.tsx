@@ -102,7 +102,7 @@ export default function WeeklyTimetableGrid({
                     <button
                       aria-label={`${item.course} 수업 상세`}
                       className={`z-10 m-1 border-l-[3px] p-1 text-left text-[10px] font-semibold ${classTone[item.tone]}`}
-                      key={`${item.course}-${item.room}-${item.start}`} onClick={() => onSelectClass(item)} 
+                      key={item.slotId} onClick={() => onSelectClass(item)}
                       style={{ gridColumn: roomIndex + 1, gridRow: `${item.start} / span ${item.duration}` }} 
                       type="button"
                     >
