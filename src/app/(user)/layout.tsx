@@ -6,7 +6,7 @@ import MemoContainer from "@/feature/memo/components/MemoContainer";
 export default function Layout({ children }: { children: React.ReactNode }) {
     return (
         <QueryProvider>
-            <section className="min-h-full flex overflow-auto scrollbar-hide">
+            <section className="min-h-full flex overflow-hidden">
                 <Sidebar />
 
                 <div className="min-w-0 flex-1">

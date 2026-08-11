@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { createWorkspaceTaskCommentAction } from "../actions";
-import { getUserListAction } from "@/feature/auth/actoins";
+import { getUserListAction } from "@/feature/auth/actions";
 import { WorkspaceMemberData } from "../type";
 
 export default function CommentBar({ selectedTask, workspaceId, workspaceMembers }: { selectedTask: number, workspaceId: string, workspaceMembers: WorkspaceMemberData[] }) {

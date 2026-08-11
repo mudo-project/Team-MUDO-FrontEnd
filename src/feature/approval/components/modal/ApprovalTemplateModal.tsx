@@ -38,7 +38,7 @@ export default function ApprovalTemplateModal({ id, closeModal, activeModal, non
             className="fixed top-0 left-0 z-999 h-screen w-screen bg-[#162236]/35">
             <div
                 onClick={(e) => e.stopPropagation()}
-                className="fixed top-1/2 left-1/2 z-1000 min-h-[0px] w-[680px] -translate-x-1/2 -translate-y-1/2 rounded-[14px] bg-white p-8 shadow-[0_8px_20px_rgba(22,34,54,0.18)]">
+                className="fixed top-1/2 left-1/2 z-1000 max-h-[85vh] w-[680px] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-[14px] bg-white p-8 shadow-[0_8px_20px_rgba(22,34,54,0.18)]">
                 <div className="flex h-[49px] w-full items-start gap-3">
                     <div className="w-full">
                         <h2 className="text-[18px] font-bold leading-[27px] text-[#0F172A]">

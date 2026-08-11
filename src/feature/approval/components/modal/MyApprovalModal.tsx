@@ -114,7 +114,7 @@ export default function MyApprovalModal({ closeModal, id }: MyApprovalModalProps
 
     return (
         <div className="fixed top-0 left-0 z-999 h-screen w-screen bg-[#162236]/35" onClick={closeModal}>
-            <div className="fixed top-1/2 left-1/2 z-1000 max-h-[85vh] w-5/6 max-w-[680px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[14px] bg-white p-6 shadow-[0_8px_20px_rgba(22,34,54,0.18)] md:w-3/5 lg:w-[680px] lg:p-8" onClick={(event) => event.stopPropagation()}>
+            <div className="fixed top-1/2 left-1/2 z-1000 max-h-[85vh] w-5/6 max-w-[680px] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-[14px] bg-white p-6 shadow-[0_8px_20px_rgba(22,34,54,0.18)] md:w-3/5 lg:w-[680px] lg:p-8" onClick={(event) => event.stopPropagation()}>
                 <div className="flex w-full items-start gap-3">
                     <div className="w-full">
                         {approval ? (

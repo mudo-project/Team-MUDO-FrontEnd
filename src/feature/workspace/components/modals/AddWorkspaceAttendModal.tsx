@@ -4,7 +4,7 @@ import { X } from "lucide-react";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { getUserListAction } from "@/feature/auth/actoins";
+import { getUserListAction } from "@/feature/auth/actions";
 import { addWorkspaceMembersAction } from "../../actions";
 import WorkspaceAttends from "../WorkspaceAttends";
 import WorkspaceAttendItem from "../WorkspaceAttendItem";
