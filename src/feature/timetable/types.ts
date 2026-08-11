@@ -28,13 +28,3 @@ export type TemplateStatus = {
   label: string;
   tone: string;
 };
-
-export type ClassRegistrationFormValue = {
-  course: string;
-  day: string;
-  endTime: string;
-  grade: string;
-  room: string;
-  startTime: string;
-  teacher: string;
-};
