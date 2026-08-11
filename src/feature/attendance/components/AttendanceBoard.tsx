@@ -19,6 +19,7 @@ import {
   createEmptyAttendanceRecord,
   getStandardEnd,
   getStandardStart,
+  INITIAL_MY_EDIT_REQUESTS,
   isSameDate,
   type AttendanceEditRequest,
   type EditRequestType,
@@ -39,7 +40,7 @@ export default function AttendanceBoard() {
   // Date가 다르면 하이드레이션 불일치가 나기 때문에, 마운트 전에는 null로 두고 렌더를 건너뜁니다.
   const [nowState, setNow] = useState<Date | null>(null);
   const [record, setRecord] = useState(createEmptyAttendanceRecord);
-  const [editRequests, setEditRequests] = useState<AttendanceEditRequest[]>([]);
+  const [editRequests, setEditRequests] = useState<AttendanceEditRequest[]>(INITIAL_MY_EDIT_REQUESTS);
   const [modal, setModal] = useState<ModalState>(null);
   const [tab, setTab] = useState<TabKey>("mine");
 
@@ -114,7 +115,7 @@ export default function AttendanceBoard() {
 
   function handleDemoReset() {
     setRecord(createEmptyAttendanceRecord());
-    setEditRequests([]);
+    setEditRequests(INITIAL_MY_EDIT_REQUESTS);
     setModal(null);
   }
 

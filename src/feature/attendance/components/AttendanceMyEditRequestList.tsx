@@ -21,10 +21,10 @@ export default function AttendanceMyEditRequestList({ requests }: AttendanceMyEd
 
   return (
     <div>
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-2">
         {FILTERS.map((item) => (
           <button
-            className={`h-9 rounded-lg px-3 text-[12px] font-medium ${
+            className={`flex h-9 items-center gap-1.5 rounded-lg px-3 text-[12px] font-medium ${
               filter === item ? "bg-[#172033] text-white" : "border border-[#DCE9DF] bg-white text-[#64748B]"
             }`}
             key={item}
@@ -32,6 +32,11 @@ export default function AttendanceMyEditRequestList({ requests }: AttendanceMyEd
             onClick={() => setFilter(item)}
           >
             {item}
+            {item === "대기" && (
+              <span className={`rounded-full px-1.5 py-0.5 text-[9px] ${filter === item ? "bg-white/20" : "bg-[#F1F5F2] text-[#718096]"}`}>
+                {requests.filter((request) => request.status === "대기").length}
+              </span>
+            )}
           </button>
         ))}
       </div>
