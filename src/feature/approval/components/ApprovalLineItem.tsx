@@ -1,5 +1,5 @@
 'use client'
-import { getUserListAction } from "@/feature/auth/actoins";
+import { getUserListAction } from "@/feature/auth/actions";
 import { ChevronDown } from "lucide-react";
 import { useEffect, useState } from "react";
 
