@@ -8,7 +8,7 @@ const approvers = [
 export default function UpdateApprovalModal() {
     return (
         <div className="fixed top-0 left-0 z-999 h-screen w-screen bg-[#162236]/30">
-            <form className="fixed top-1/2 left-1/2 z-1000 h-[565px] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-[12px] bg-white p-6 shadow-[0_8px_16px_rgba(22,34,54,0.16)]">
+            <form className="fixed top-1/2 left-1/2 z-1000 h-[565px] max-h-[85vh] w-[420px] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-[12px] bg-white p-6 shadow-[0_8px_16px_rgba(22,34,54,0.16)]">
                 <div className="flex h-[23px] items-center">
                     <h2 className="text-[15px] font-bold leading-[22.5px] text-[#0F172A]">
                         결재 수정

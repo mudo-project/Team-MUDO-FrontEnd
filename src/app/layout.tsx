@@ -20,7 +20,7 @@ export default function RootLayout({
     <html
       lang="en" className={cn("font-sans", geist.variable)}
     >
-      <body>
+      <body className="overflow-hidden">
         {children}
         <Toaster
           position="top-center"

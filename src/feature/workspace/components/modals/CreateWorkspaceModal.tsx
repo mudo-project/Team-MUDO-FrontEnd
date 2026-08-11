@@ -2,7 +2,7 @@
 
 import { X } from "lucide-react";
 import { useActionState, useEffect, useRef, useState } from "react";
-import { getUserListAction } from "@/feature/auth/actoins";
+import { getUserListAction } from "@/feature/auth/actions";
 import { createWorkspaceAction } from "../../actions";
 import WorkspaceAttends from "../WorkspaceAttends";
 import WorkspaceAttendItem from "../WorkspaceAttendItem";
