@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Check, FileText, Folder, Loader2, Table2, TriangleAlert, X } from "lucide-react";
+import { toast } from "sonner";
+import { getGoogleAuthorizationUrlAction, getGoogleConnectionAction } from "@/feature/setting/actions";
 
 type ReplaceStep = 1 | 2 | 3;
 
@@ -19,11 +21,63 @@ const PERMISSIONS = [
 
 export default function SettingGoogleReplaceModal({ email, onClose }: { email: string; onClose: () => void }) {
   const [step, setStep] = useState<ReplaceStep>(1);
+  const [isRequestingAuth, setIsRequestingAuth] = useState(false);
+  const [resultEmail, setResultEmail] = useState<string | null>(null);
+  const authorizationUrlRef = useRef<string | null>(null);
+  const popupRef = useRef<Window | null>(null);
+  const pollIntervalRef = useRef<number | null>(null);
+
+  function openPopup() {
+    const url = authorizationUrlRef.current;
+    if (!url) return;
+
+    popupRef.current = window.open(url, "google-oauth", "width=520,height=650");
+
+    if (!popupRef.current) {
+      toast.error("팝업이 차단되었습니다. 브라우저 팝업 차단을 해제해주세요.");
+      return;
+    }
+
+    pollIntervalRef.current = window.setInterval(async () => {
+      if (popupRef.current?.closed) {
+        if (pollIntervalRef.current !== null) {
+          window.clearInterval(pollIntervalRef.current);
+          pollIntervalRef.current = null;
+        }
+
+        const data = await getGoogleConnectionAction();
+        setResultEmail(data ? data.googleEmail : null);
+        setStep(3);
+      }
+    }, 500);
+  }
+
+  async function handleAgree() {
+    setIsRequestingAuth(true);
+    const result = await getGoogleAuthorizationUrlAction(true);
+    setIsRequestingAuth(false);
+
+    if (!result.success || !result.authorizationUrl) {
+      toast.error(result.message);
+      return;
+    }
+
+    authorizationUrlRef.current = result.authorizationUrl;
+    setStep(2);
+    openPopup();
+  }
+
+  function handleClose() {
+    if (pollIntervalRef.current !== null) {
+      window.clearInterval(pollIntervalRef.current);
+    }
+    onClose();
+  }
 
   return (
     <div
       className="fixed inset-0 z-999 flex items-center justify-center bg-[#162236]/30"
-      onClick={onClose}
+      onClick={handleClose}
     >
       <section
         className="w-[440px] rounded-xl bg-white p-6 shadow-[0_8px_16px_rgba(22,34,54,0.16)]"
@@ -34,7 +88,7 @@ export default function SettingGoogleReplaceModal({ email, onClose }: { email: s
           <button
             aria-label="구글 계정 교체 모달 닫기"
             className="text-[#94A3B8]"
-            onClick={onClose}
+            onClick={handleClose}
             type="button"
           >
             <X className="size-4" />
@@ -94,17 +148,18 @@ export default function SettingGoogleReplaceModal({ email, onClose }: { email: s
             <div className="mt-5 flex gap-2">
               <button
                 className="h-11 flex-1 rounded-lg border border-[#DCE9DF] bg-white text-[13px] font-medium text-[#475569]"
-                onClick={onClose}
+                onClick={handleClose}
                 type="button"
               >
                 취소
               </button>
               <button
-                className="h-11 flex-1 rounded-lg bg-[#0F172A] text-[13px] font-semibold text-white"
-                onClick={() => setStep(2)}
+                className="h-11 flex-1 rounded-lg bg-[#0F172A] text-[13px] font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={isRequestingAuth}
+                onClick={handleAgree}
                 type="button"
               >
-                동의하고 계속하기
+                {isRequestingAuth ? "요청 중..." : "동의하고 계속하기"}
               </button>
             </div>
           </div>
@@ -116,7 +171,7 @@ export default function SettingGoogleReplaceModal({ email, onClose }: { email: s
             <p className="mt-4 text-[14px] font-medium text-[#172033]">구글 로그인 창에서 계속 진행해주세요</p>
             <button
               className="mt-2 text-[13px] font-medium text-[#4D9560]"
-              onClick={() => setStep(3)}
+              onClick={openPopup}
               type="button"
             >
               창이 열리지 않았나요? 다시 열기
@@ -126,15 +181,26 @@ export default function SettingGoogleReplaceModal({ email, onClose }: { email: s
 
         {step === 3 && (
           <div className="mt-6 flex flex-col items-center py-4 text-center">
-            <span className="flex size-10 items-center justify-center rounded-full bg-[#EDF5EE] text-[#4D9560]">
-              <Check className="size-5" />
-            </span>
-            <p className="mt-4 text-[14px] text-[#172033]">
-              <strong className="font-semibold">{email}</strong> 계정이 연결되었습니다
-            </p>
+            {resultEmail ? (
+              <>
+                <span className="flex size-10 items-center justify-center rounded-full bg-[#EDF5EE] text-[#4D9560]">
+                  <Check className="size-5" />
+                </span>
+                <p className="mt-4 text-[14px] text-[#172033]">
+                  <strong className="font-semibold">{resultEmail}</strong> 계정이 연결되었습니다
+                </p>
+              </>
+            ) : (
+              <>
+                <span className="flex size-10 items-center justify-center rounded-full bg-[#FEF2F2] text-[#DC2626]">
+                  <X className="size-5" />
+                </span>
+                <p className="mt-4 text-[14px] text-[#172033]">계정 연동이 완료되지 않았습니다. 다시 시도해주세요.</p>
+              </>
+            )}
             <button
               className="mt-6 h-11 w-full rounded-lg bg-[#0F172A] text-[13px] font-semibold text-white"
-              onClick={onClose}
+              onClick={handleClose}
               type="button"
             >
               확인
