@@ -1,5 +1,6 @@
 import { X } from "lucide-react";
 import { modalSurfaceClass, weekDayNames } from "@/feature/timetable/constants";
+import { getClassStartTime } from "@/feature/timetable/timetableFormat";
 import type { ClassItem, TimetableTemplate } from "@/feature/timetable/types";
 
 type ClassDetailModalProps = {
@@ -44,7 +45,7 @@ export default function ClassDetailModal({
             <span>강사: {selectedClass.teacher}</span>
             <span>요일: {weekDayNames[selectedClass.day]}요일</span>
             <span>강의실: {activeTemplate.roomsByDay[selectedClass.day].rooms[selectedClass.room]}</span>
-            <span>시간: {String(8 + Math.floor((selectedClass.start - 1) * activeTemplate.slotMinutes / 60)).padStart(2, "0")}:00</span>
+            <span>시간: {getClassStartTime(activeTemplate, selectedClass)}</span>
           </div>
         </div>
         <footer className="flex justify-end gap-2 border-t border-[#E5EEE7] px-5 py-3">
