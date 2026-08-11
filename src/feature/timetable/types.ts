@@ -1,4 +1,6 @@
 export type ClassItem = {
+  slotId: number;
+  classType: TimetableClassType;
   day: number;
   room: number;
   start: number;
@@ -10,11 +12,16 @@ export type ClassItem = {
 };
 
 export type TimetableTemplate = {
-  id: string;
+  id: number;
   title: string;
   startDate: Date;
   endDate: Date;
+  status: TimetableSetStatus;
+  operatingStartTime: string;
+  operatingEndTime: string;
+  operatingDays: DayOfWeek[];
   roomsByDay: { name: string; rooms: string[] }[];
+  classroomGroups: FloorConfig[];
   classes: ClassItem[];
   slotMinutes: 10 | 30 | 60;
 };
