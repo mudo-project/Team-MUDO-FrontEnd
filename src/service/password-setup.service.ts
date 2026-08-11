@@ -1,11 +1,6 @@
 import { fetchWithoutAuth } from "@/lib/fetch";
 import { getErrorMessage } from "@/lib/stateError";
-
-interface PasswordSetupRequest {
-    username: string;
-    tempPassword: string;
-    newPassword: string;
-}
+import { PasswordSetupRequest } from "@/feature/password-setup/type";
 
 export const setupPassword = async (
     payload: PasswordSetupRequest,
@@ -18,7 +13,7 @@ export const setupPassword = async (
     if (!response.ok) {
         const message = await getErrorMessage(
             response,
-            "비밀번호 설정에 실패했습니다.",
+            "최초 비밀번호 설정에 실패했습니다.",
         );
         throw new Error(message);
     }
