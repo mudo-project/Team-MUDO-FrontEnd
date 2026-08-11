@@ -2,7 +2,6 @@
 
 import { Plus } from "lucide-react";
 import { useState } from "react";
-import { useClassRegistrationForm } from "@/components/hooks/useClassRegistrationForm";
 import { useNewTimetableWizard } from "@/components/hooks/useNewTimetableWizard";
 import ClassDetailModal from "@/feature/timetable/components/ClassDetailModal";
 import ClassRegistrationModal from "@/feature/timetable/components/ClassRegistrationModal";
@@ -14,6 +13,7 @@ import TimetableTemplateSelector from "@/feature/timetable/components/TimetableT
 import TimetableWeekNav from "@/feature/timetable/components/TimetableWeekNav";
 import WeeklyTimetableGrid from "@/feature/timetable/components/WeeklyTimetableGrid";
 import type { ClassItem, TemplateStatus, TimetableTemplate } from "@/feature/timetable/types";
+import type { ClassRegistrationFormValues } from "@/lib/classRegistrationSchema";
 
 // 임시로 사용할 더미데이터 입니다. 추후 API 연동을 진행하면서 삭제할 예정입니다.
 const days = [
@@ -68,6 +68,18 @@ const getShiftedWeekStart = (startDate: Date, amount: number) => {
 
 const getClassKey = (item: ClassItem) => `${item.day}-${item.room}-${item.start}-${item.course}-${item.teacher}`;
 
+const blankRegistrationDefaultValues: ClassRegistrationFormValues = { day: "월", room: "", startTime: "09:00", endTime: "11:00", grade: "고3", teacher: "", course: "" };
+
+const buildRegistrationDefaultValues = (classItem: ClassItem, activeTemplate: TimetableTemplate): ClassRegistrationFormValues => ({
+  day: weekDayNames[classItem.day],
+  room: activeTemplate.roomsByDay[classItem.day].rooms[classItem.room],
+  startTime: `${String(8 + Math.floor((classItem.start - 1) * activeTemplate.slotMinutes / 60)).padStart(2, "0")}:00`,
+  endTime: `${String(8 + Math.floor((classItem.start - 1 + classItem.duration) * activeTemplate.slotMinutes / 60)).padStart(2, "0")}:00`,
+  grade: classItem.grade ?? "고3",
+  teacher: classItem.teacher,
+  course: classItem.course,
+});
+
 export default function TimetableContainer() {
   const [isTemplateMenuOpen, setIsTemplateMenuOpen] = useState(false);
   const [isClassRegistrationOpen, setIsClassRegistrationOpen] = useState(false);
@@ -81,6 +93,7 @@ export default function TimetableContainer() {
   const [selectedFloorFilter, setSelectedFloorFilter] = useState("전체");
   const [courseSearch, setCourseSearch] = useState("");
   const [selectedClassKey, setSelectedClassKey] = useState<string | null>(null);
+  const [editingClassKey, setEditingClassKey] = useState<string | null>(null);
   const activeTemplate = templates.find((template) => template.id === selectedTemplateId) ?? templates[0];
   const [weekStart, setWeekStart] = useState(() => new Date(timetableTemplates[0].startDate));
   const weekEnd = getWeekEndDate(weekStart);
@@ -126,6 +139,9 @@ export default function TimetableContainer() {
     return `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
   });
   const selectedClass = selectedClassKey ? activeClasses.find((item) => getClassKey(item) === selectedClassKey) ?? null : null;
+  const editingClass = editingClassKey ? activeClasses.find((item) => getClassKey(item) === editingClassKey) ?? null : null;
+  const registrationDefaultValues = editingClass ? buildRegistrationDefaultValues(editingClass, activeTemplate) : blankRegistrationDefaultValues;
+  const getAvailableRoomsForDay = (day: string) => activeTemplate.roomsByDay[weekDayNames.indexOf(day)]?.rooms ?? [];
 
   const selectTimetableTemplate = (template: TimetableTemplate) => {
     setSelectedTemplateId(template.id);
@@ -138,24 +154,41 @@ export default function TimetableContainer() {
 
   const wizard = useNewTimetableWizard({ activeTemplate, onFinish: selectTimetableTemplate, setTemplates });
 
-  const classRegistration = useClassRegistrationForm({
-    activeTemplate,
-    onSubmit: (classItem, editingClassKey) => {
-      if (editingClassKey) {
-        const matches = (item: ClassItem) => getClassKey(item) === editingClassKey;
-        setTemplates((current) => current.map((template) => template.id === activeTemplate.id ? { ...template, classes: template.classes.map((item) => matches(item) ? classItem : item) } : template));
-        setRegisteredClasses((current) => ({ ...current, [activeTemplate.id]: (current[activeTemplate.id] ?? []).map((item) => matches(item) ? classItem : item) }));
-      } else {
-        setRegisteredClasses((current) => ({ ...current, [activeTemplate.id]: [...(current[activeTemplate.id] ?? []), classItem] }));
-      }
-      setIsClassRegistrationOpen(false);
-    },
-  });
+  const submitClassRegistration = (values: ClassRegistrationFormValues) => {
+    const dayIndex = weekDayNames.indexOf(values.day);
+    const roomIndex = activeTemplate.roomsByDay[dayIndex]?.rooms.indexOf(values.room) ?? -1;
+
+    if (roomIndex < 0) return;
+
+    const startHour = Number(values.startTime.slice(0, 2));
+    const endHour = Number(values.endTime.slice(0, 2));
+
+    const classItem: ClassItem = {
+      day: dayIndex,
+      room: roomIndex,
+      start: ((startHour - 8) * 60) / activeTemplate.slotMinutes + 1,
+      duration: ((endHour - startHour) * 60) / activeTemplate.slotMinutes,
+      grade: values.grade,
+      course: values.course,
+      teacher: values.teacher,
+      tone: "blue",
+    };
+
+    if (editingClassKey) {
+      const matches = (item: ClassItem) => getClassKey(item) === editingClassKey;
+      setTemplates((current) => current.map((template) => template.id === activeTemplate.id ? { ...template, classes: template.classes.map((item) => matches(item) ? classItem : item) } : template));
+      setRegisteredClasses((current) => ({ ...current, [activeTemplate.id]: (current[activeTemplate.id] ?? []).map((item) => matches(item) ? classItem : item) }));
+    } else {
+      setRegisteredClasses((current) => ({ ...current, [activeTemplate.id]: [...(current[activeTemplate.id] ?? []), classItem] }));
+    }
+    setEditingClassKey(null);
+    setIsClassRegistrationOpen(false);
+  };
 
   const openEditForSelectedClass = () => {
     if (!selectedClass || !selectedClassKey) return;
 
-    classRegistration.startEdit(selectedClass, selectedClassKey);
+    setEditingClassKey(selectedClassKey);
     setSelectedClassKey(null);
     setIsClassRegistrationOpen(true);
   };
@@ -215,7 +248,10 @@ export default function TimetableContainer() {
             <div className="flex items-center gap-2">
               <button
                 className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-[#273548] px-4 text-[13px] font-semibold text-white"
-                onClick={() => setIsClassRegistrationOpen(true)}
+                onClick={() => {
+                  setEditingClassKey(null);
+                  setIsClassRegistrationOpen(true);
+                }}
                 type="button"
               >
                 <Plus className="size-4" />
@@ -264,11 +300,10 @@ export default function TimetableContainer() {
       </div>
       {isClassRegistrationOpen && (
         <ClassRegistrationModal
-          availableRooms={classRegistration.availableRooms}
-          form={classRegistration.form}
-          onChange={classRegistration.changeForm}
+          defaultValues={registrationDefaultValues}
+          getAvailableRooms={getAvailableRoomsForDay}
           onClose={() => setIsClassRegistrationOpen(false)}
-          onSubmit={classRegistration.submit}
+          onSubmit={submitClassRegistration}
         />
       )}
       {selectedClass && (
@@ -304,6 +339,7 @@ export default function TimetableContainer() {
           newRoomNames={wizard.newRoomNames}
           onAddFloor={wizard.addFloor}
           onAddRoom={wizard.addRoom}
+          onBasicInfoValidityChange={wizard.changeBasicInfoValidity}
           onChangeForm={wizard.changeForm}
           onChangeNewRoomName={wizard.changeNewRoomName}
           onChangeSlot={wizard.changeSlot}
