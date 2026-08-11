@@ -178,11 +178,14 @@ export const deleteRoleAction = async (
 
 export const changeRolePermissionsAction = async (
     roleId: number,
-    permissionCodes: string[],
+    prevState: RoleActionResult,
+    formData: FormData,
 ): Promise<RoleActionResult> => {
     if (!isPositiveInteger(roleId)) {
         return { success: false, message: "역할 번호가 올바르지 않습니다." };
     }
+
+    const permissionCodes = formData.getAll("permissionCodes").map(String);
 
     if (permissionCodes.some((code) => !code.trim())) {
         return { success: false, message: "권한 코드가 올바르지 않습니다." };

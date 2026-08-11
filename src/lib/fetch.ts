@@ -20,34 +20,28 @@ export async function fetchWithoutAuth(endpoint: string, options: RequestInit = 
 }
 
 export async function fetchWithAuth(endpoint: string, options: RequestInit = {}): Promise<Response> {
-    //쿠키 accessToken 꺼내고 
     const cookieStore = await cookies();
     const accessToken = cookieStore.get('accessToken')?.value;
 
     const isFormData = options.body instanceof FormData;
-    //Header 설정
     const headers = {
         ...(!isFormData && { "Content-Type": "application/json" }),
         ...(accessToken && { 'Authorization': `Bearer ${accessToken}` }),
         ...options.headers
     }
 
-    //api 통신
     const response = await fetch(`${BASE_URL}${endpoint}`, {
         ...options,
         headers,
     });
 
-    //어세스 토큰 재발급 로직
     if (response.status !== 401) {
-        //401이 아니면 바로 리턴
         return response;
     }
 
     const newAccessToken = await refreshGet();
 
     if (!newAccessToken) {
-        //새로운 어세스가 없으면 바로 리턴
         return response;
     }
 
