@@ -7,6 +7,7 @@ import {
 } from "@/service/members.service";
 import {
     CreateEmployeeAccountData,
+    CreateEmployeeAccountRequest,
     MemberListPageData,
     MemberListParams,
 } from "./type";
@@ -24,43 +25,11 @@ const getActionErrorMessage = (error: unknown, fallbackMessage: string) =>
     error instanceof Error ? error.message : fallbackMessage;
 
 export const createEmployeeAccountAction = async (
-    prevState: MembersActionResult<CreateEmployeeAccountData>,
-    formData: FormData,
+    payload: CreateEmployeeAccountRequest
 ): Promise<MembersActionResult<CreateEmployeeAccountData>> => {
-    const username = String(formData.get("username") ?? "").trim();
-    const name = String(formData.get("name") ?? "").trim();
-    const phone = String(formData.get("phone") ?? "").trim();
-    const email = String(formData.get("email") ?? "").trim();
-    const roleId = Number(formData.get("roleId"));
-
-    if (!username || username.length > 50) {
-        return { success: false, message: "아이디는 1자 이상 50자 이하로 입력해주세요." };
-    }
-
-    if (!name || name.length > 50) {
-        return { success: false, message: "이름은 1자 이상 50자 이하로 입력해주세요." };
-    }
-
-    if (!phone || phone.length > 20) {
-        return { success: false, message: "전화번호는 1자 이상 20자 이하로 입력해주세요." };
-    }
-
-    if (!email || email.length > 100) {
-        return { success: false, message: "이메일은 1자 이상 100자 이하로 입력해주세요." };
-    }
-
-    if (!isPositiveInteger(roleId)) {
-        return { success: false, message: "역할 번호가 올바르지 않습니다." };
-    }
 
     try {
-        const response = await createEmployeeAccount({
-            username,
-            name,
-            phone,
-            email,
-            roleId,
-        });
+        const response = await createEmployeeAccount(payload);
 
         return {
             success: true,

@@ -1,4 +1,5 @@
 import { getMemberListAction } from "@/feature/members/actions";
+import MemberCreateButton from "@/feature/members/components/MemberCreateButton";
 import MemberItem from "@/feature/members/components/MemberItem";
 import MemberSearchInput from "@/feature/members/components/MemberSearchInput";
 import MemberStateFilter from "@/feature/members/components/MemberStateFilter";
@@ -35,6 +36,7 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
                     <div className="ml-auto flex items-center gap-4 text-[13px] text-[#64748B]">
                         <span>총 <strong className="font-bold text-[#0F172A]">{members.length}</strong>명</span>
                     </div>
+                    <MemberCreateButton />
                 </div>
 
                 <div className="mt-4 overflow-hidden rounded-[12px] border border-[#D7E8DB] bg-white md:min-w-[680px]">

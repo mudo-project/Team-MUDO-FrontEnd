@@ -55,7 +55,6 @@ export default function PasswordForm({ username, tempPassword }: { username: str
                             {...register('newPassword')}
                             maxLength={100}
                             className="h-12 w-full rounded-[10px] border-[1.5px] bg-white border-[#DCE8E2] pr-11 pl-3.5 text-[14px] font-normal text-[#1D2B3A] outline-none placeholder:text-[#64748B]/50"
-                            name="password"
                             placeholder="비밀번호를 입력하세요"
                             type={`${toggleEye ? 'password' : 'text'}`}
                         />
@@ -83,7 +82,6 @@ export default function PasswordForm({ username, tempPassword }: { username: str
                             {...register('confirmPassword')}
                             maxLength={100}
                             className="h-12 w-full rounded-[10px] border-[1.5px] bg-white border-[#DCE8E2] pr-11 pl-3.5 text-[14px] font-normal text-[#1D2B3A] outline-none placeholder:text-[#64748B]/50"
-                            name="password"
                             placeholder="비밀번호를 다시 입력하세요"
                             type={`${toggleEyeCheck ? 'password' : 'text'}`}
                         />
