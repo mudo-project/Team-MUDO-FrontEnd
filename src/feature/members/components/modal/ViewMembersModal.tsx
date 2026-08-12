@@ -3,8 +3,8 @@
 import { getRoleListAction } from "@/feature/role/actions";
 import { changeEmployeeRoleAction, changeMemberStatusAction, updateMemberAction } from "@/feature/members/actions";
 import { ChevronDown, X } from "lucide-react";
-import { MemberListData } from "../../type";
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { MemberAccountStatus, MemberListData } from "../../type";
+import { useEffect, useRef, useState } from "react";
 import useModal from "@/components/hooks/useModal";
 import TwoButtonModal from "@/components/ui/TwoButtonModal";
 import { useRouter } from "next/navigation";
@@ -30,7 +30,7 @@ export default function ViewMembersModal({ closeModal, member }: { closeModal: (
     const [roles, setRoles] = useState<RoleOption[]>([]);
     const [isSaving, setIsSaving] = useState(false);
     const focusRef = useRef<HTMLInputElement>(null);
-    const statusRef = useRef<'ACTIVE' | 'INACTIVE' | 'RESIGNED'>('ACTIVE');
+    const [selectedStatus, setSelectedStatus] = useState<MemberAccountStatus>("ACTIVE");
 
     const modal = useModal(closeModal);
     const statusModal = useModal(clickButton);
@@ -116,7 +116,7 @@ export default function ViewMembersModal({ closeModal, member }: { closeModal: (
 
     //계정 상태 변경
     async function clickButton() {
-        const response = await changeMemberStatusAction(member.userId, statusRef.current);
+        const response = await changeMemberStatusAction(member.userId, selectedStatus);
 
         if (!response.success) {
             toast.error(response.message);
@@ -216,7 +216,7 @@ export default function ViewMembersModal({ closeModal, member }: { closeModal: (
                         {member.status !== 'ACTIVE' &&
                             <button
                                 className=" h-9 shrink-0 rounded-[7px] border border-[#2C8D50] bg-white px-3.5 text-[12px] font-medium text-[#2C8D50]"
-                                onClick={() => { statusModal.openModal(); statusRef.current = 'ACTIVE' }}
+                                onClick={() => { setSelectedStatus('ACTIVE'); statusModal.openModal(); }}
                                 type="button"
                             >
                                 계정 활성화
@@ -224,7 +224,7 @@ export default function ViewMembersModal({ closeModal, member }: { closeModal: (
                         {member.status !== 'INACTIVE' &&
                             <button
                                 className="h-9 shrink-0 rounded-[7px] border border-[#D7E8DB] bg-white px-3.5 text-[12px] font-medium text-[#64748B]"
-                                onClick={() => { statusModal.openModal(); statusRef.current = 'INACTIVE' }}
+                                onClick={() => { setSelectedStatus('INACTIVE'); statusModal.openModal(); }}
                                 type="button"
                             >
                                 휴직 처리
@@ -232,7 +232,7 @@ export default function ViewMembersModal({ closeModal, member }: { closeModal: (
                         {member.status !== 'RESIGNED' &&
                             <button
                                 className=" h-9 shrink-0 rounded-[7px] border border-[#C0483F] bg-white px-3.5 text-[12px] font-medium text-[#C0483F]"
-                                onClick={() => { statusModal.openModal(); statusRef.current = 'RESIGNED' }}
+                                onClick={() => { setSelectedStatus('RESIGNED'); statusModal.openModal(); }}
                                 type="button"
                             >
                                 퇴사 처리
@@ -268,8 +268,8 @@ export default function ViewMembersModal({ closeModal, member }: { closeModal: (
                 (
                     <TwoButtonModal
                         closeModal={statusModal.closeModal}
-                        title={`${status[statusRef.current]} 처리`}
-                        content={`해당 직원을 ${status[statusRef.current]} 처리 하시겠습니까?`}
+                        title={`${status[selectedStatus]} 처리`}
+                        content={`해당 직원을 ${status[selectedStatus]} 처리 하시겠습니까?`}
                         activeModal={statusModal.activeModal}
                     />
                 )
