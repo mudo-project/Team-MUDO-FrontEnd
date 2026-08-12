@@ -29,6 +29,10 @@ import {
 type ModalState = "late" | "leave" | "overtime" | "detail" | "editRequest" | null;
 type TabKey = "mine" | "all" | "manage" | "myEdits";
 
+type AttendanceBoardProps = {
+  initialNow: string;
+};
+
 const TABS: { key: TabKey; label: string }[] = [
   { key: "mine", label: "내 근태" },
   { key: "all", label: "전직원 현황" },
@@ -43,9 +47,12 @@ function combineDateWithTime(base: Date, timeStr: string): Date {
   return result;
 }
 
-export default function AttendanceBoard() {
-  const [nowState, setNow] = useState<Date | null>(null);
-  const [monthState, setMonth] = useState<Date | null>(null);
+export default function AttendanceBoard({ initialNow }: AttendanceBoardProps) {
+  const [now, setNow] = useState(() => new Date(initialNow));
+  const [month, setMonth] = useState(() => {
+    const initialDate = new Date(initialNow);
+    return new Date(initialDate.getFullYear(), initialDate.getMonth(), 1);
+  });
   const serverOffsetRef = useRef(0);
 
   const [dashboard, setDashboard] = useState<AttendanceDashboardData | null>(null);
@@ -62,10 +69,6 @@ export default function AttendanceBoard() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    const initial = new Date();
-    setNow(initial);
-    setMonth(new Date(initial.getFullYear(), initial.getMonth(), 1));
-
     const timer = setInterval(() => {
       setNow(new Date(Date.now() + serverOffsetRef.current));
     }, 1000);
@@ -74,9 +77,6 @@ export default function AttendanceBoard() {
   }, []);
 
   const loadTeam = useCallback(() => {
-    setIsTeamLoading(true);
-    setTeamError(null);
-
     return getTeamTodayAction()
       .then(setTeam)
       .catch((error) => {
@@ -103,9 +103,6 @@ export default function AttendanceBoard() {
 
   const loadDashboard = useCallback(
     (targetMonth: Date) => {
-      setIsDashboardLoading(true);
-      setDashboardError(null);
-
       return getMyDashboardAction({ year: targetMonth.getFullYear(), month: targetMonth.getMonth() + 1 })
         .then((data) => {
           setDashboard(data);
@@ -123,12 +120,17 @@ export default function AttendanceBoard() {
   );
 
   useEffect(() => {
-    if (monthState) loadDashboard(monthState);
-  }, [monthState, loadDashboard]);
+    void loadDashboard(month);
+  }, [month, loadDashboard]);
 
-  if (nowState === null || monthState === null) {
-    return null;
-  }
+  const refreshDashboard = useCallback(
+    (targetMonth: Date) => {
+      setIsDashboardLoading(true);
+      setDashboardError(null);
+      return loadDashboard(targetMonth);
+    },
+    [loadDashboard],
+  );
 
   if ((dashboardError && !dashboard) || (teamError && !team)) {
     return (
@@ -138,8 +140,12 @@ export default function AttendanceBoard() {
           className="h-9 rounded-lg border border-[#DCE9DF] bg-white px-4 text-[12px] font-medium text-[#344054]"
           type="button"
           onClick={() => {
-            if (dashboardError) loadDashboard(monthState);
-            if (teamError) loadTeam();
+            if (dashboardError) void refreshDashboard(month);
+            if (teamError) {
+              setIsTeamLoading(true);
+              setTeamError(null);
+              void loadTeam();
+            }
           }}
         >
           다시 시도
@@ -152,9 +158,6 @@ export default function AttendanceBoard() {
     return <main className="flex h-[calc(100dvh-3.25rem)] items-center justify-center bg-[#FCFCFC] text-[13px] text-[#718096]">근태 정보를 불러오는 중입니다...</main>;
   }
 
-  // 이후 클로저(핸들러)에서도 non-null로 좁혀지도록 명시적으로 타입을 고정한 값을 사용합니다.
-  const now: Date = nowState;
-  const month: Date = monthState;
   const today = dashboard.today;
   const standardStart = combineDateWithTime(now, today.workStartTime);
   const standardEnd = combineDateWithTime(now, today.workEndTime);
@@ -175,7 +178,7 @@ export default function AttendanceBoard() {
 
     if (result.success) {
       toast.success(result.message);
-      loadDashboard(month);
+      void refreshDashboard(month);
     } else {
       toast.error(result.message);
     }
@@ -189,7 +192,7 @@ export default function AttendanceBoard() {
     if (result.success) {
       toast.success(result.message);
       setModal(null);
-      loadDashboard(month);
+      void refreshDashboard(month);
     } else {
       toast.error(result.message);
     }
@@ -203,7 +206,7 @@ export default function AttendanceBoard() {
     if (result.success) {
       toast.success(result.message);
       setModal(null);
-      loadDashboard(month);
+      void refreshDashboard(month);
     } else {
       toast.error(result.message);
     }
@@ -217,7 +220,7 @@ export default function AttendanceBoard() {
     if (result.success) {
       toast.success(result.message);
       setModal(null);
-      loadDashboard(month);
+      void refreshDashboard(month);
     } else {
       toast.error(result.message);
     }
@@ -245,7 +248,7 @@ export default function AttendanceBoard() {
       setModal(null);
       setSelectedDayDetail(null);
       loadMyRequests();
-      loadDashboard(month);
+      void refreshDashboard(month);
     } else {
       toast.error(result.message);
     }
@@ -278,7 +281,11 @@ export default function AttendanceBoard() {
                     days={dashboard.calendar.days}
                     month={month}
                     pendingCorrectionDates={pendingCorrectionDates}
-                    onChangeMonth={setMonth}
+                    onChangeMonth={(nextMonth) => {
+                      setIsDashboardLoading(true);
+                      setDashboardError(null);
+                      setMonth(nextMonth);
+                    }}
                     onSelectDay={handleSelectDay}
                   />
 

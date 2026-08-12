@@ -87,18 +87,17 @@ export default function SettingGoogleConnection() {
       ? { ...STATUS_BANNER_STYLE[status], title: getBannerTitle(status, connection) }
       : null;
 
-  const fetchConnection = useCallback(async () => {
-    try {
-      const data = await getGoogleConnectionAction();
-      setConnection(data);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "구글 연동 상태 조회에 실패하였습니다.";
-      toast.error(message);
-    }
+  const fetchConnection = useCallback(() => {
+    return getGoogleConnectionAction()
+      .then(setConnection)
+      .catch((error) => {
+        const message = error instanceof Error ? error.message : "구글 연동 상태 조회에 실패하였습니다.";
+        toast.error(message);
+      });
   }, []);
 
   useEffect(() => {
-    fetchConnection().finally(() => setIsLoadingConnection(false));
+    void fetchConnection().finally(() => setIsLoadingConnection(false));
 
     return () => {
       if (pollIntervalRef.current !== null) {
@@ -131,7 +130,7 @@ export default function SettingGoogleConnection() {
           window.clearInterval(pollIntervalRef.current);
           pollIntervalRef.current = null;
         }
-        fetchConnection().finally(() => setIsConnecting(false));
+        void fetchConnection().finally(() => setIsConnecting(false));
       }
     }, 500);
   }
@@ -318,7 +317,7 @@ export default function SettingGoogleConnection() {
           email={connection.googleEmail}
           onClose={() => {
             setIsReplaceModalOpen(false);
-            fetchConnection();
+            void fetchConnection();
           }}
         />
       )}

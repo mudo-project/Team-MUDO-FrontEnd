@@ -14,27 +14,30 @@ export default function TaskSidebar({ view }: { view: "received" | "sent" }) {
     const [roomTaskCards, setRoomTaskCards] = useState<RoomTaskCard[]>([]);
     const [roomIds, setRoomIds] = useState<number[]>([]);
 
-    const loadTaskCards = useCallback(async () => {
-        const rooms = await getChatRoomsAction();
-        setRoomIds(rooms.map((room) => room.id));
-        const perRoom = await Promise.all(
-            rooms.map(async (room) => {
-                const data = await getTaskCardsAction(room.id);
-                return data.content.map((card) => ({ roomId: room.id, roomName: room.name, card }));
+    const loadTaskCards = useCallback(() => {
+        return getChatRoomsAction()
+            .then((rooms) => {
+                setRoomIds(rooms.map((room) => room.id));
+                return Promise.all(
+                    rooms.map((room) =>
+                        getTaskCardsAction(room.id).then((data) =>
+                            data.content.map((card) => ({ roomId: room.id, roomName: room.name, card })),
+                        ),
+                    ),
+                );
             })
-        );
-        setRoomTaskCards(perRoom.flat());
+            .then((perRoom) => setRoomTaskCards(perRoom.flat()));
     }, []);
 
     useEffect(() => {
         getCurrentUserIdAction().then(setCurrentUserId);
-        loadTaskCards();
+        void loadTaskCards();
     }, [loadTaskCards]);
 
     useMessengerRealtimeRoomList(roomIds);
     useMessengerRealtime((event) => {
         if (event.eventType.startsWith("TASK_CARD_")) {
-            loadTaskCards();
+            void loadTaskCards();
         }
     });
 

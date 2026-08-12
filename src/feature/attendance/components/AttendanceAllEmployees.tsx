@@ -45,9 +45,6 @@ export default function AttendanceAllEmployees() {
   useEffect(() => {
     let cancelled = false;
 
-    setIsLoading(true);
-    setError(null);
-
     const activeFilter = STATUS_FILTERS.find((filter) => filter.label === statusFilter);
 
     getEmployeesWeeklyAction({
@@ -71,7 +68,14 @@ export default function AttendanceAllEmployees() {
   }, [selectedDate, search, statusFilter]);
 
   if (selectedEmployee) {
-    return <AttendanceEmployeesDetail date={selectedDate} employee={selectedEmployee} onBack={() => setSelectedEmployee(null)} />;
+    return (
+      <AttendanceEmployeesDetail
+        key={`${selectedEmployee.userId}:${selectedDate}`}
+        date={selectedDate}
+        employee={selectedEmployee}
+        onBack={() => setSelectedEmployee(null)}
+      />
+    );
   }
 
   const weekDays = weekData ? eachDayOfInterval({ start: parseISO(weekData.week.startDate), end: parseISO(weekData.week.endDate) }) : [];
@@ -81,7 +85,15 @@ export default function AttendanceAllEmployees() {
     <div>
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center gap-3">
-          <button aria-label="이전 주" type="button" onClick={() => setSelectedDate((prev) => format(addWeeks(parseISO(prev), -1), "yyyy-MM-dd"))}>
+          <button
+            aria-label="이전 주"
+            type="button"
+            onClick={() => {
+              setIsLoading(true);
+              setError(null);
+              setSelectedDate((prev) => format(addWeeks(parseISO(prev), -1), "yyyy-MM-dd"));
+            }}
+          >
             <ChevronLeft className="size-4 text-[#718096]" />
           </button>
           <label className="flex items-center gap-2 text-[13px] font-semibold text-[#172033]">
@@ -92,10 +104,22 @@ export default function AttendanceAllEmployees() {
               className="h-8 rounded-lg border border-[#DCE9DF] bg-white px-2 text-[12px] font-medium text-[#172033] outline-none focus:border-[#4D9560]"
               type="date"
               value={selectedDate}
-              onChange={(event) => setSelectedDate(event.target.value)}
+              onChange={(event) => {
+                setIsLoading(true);
+                setError(null);
+                setSelectedDate(event.target.value);
+              }}
             />
           </label>
-          <button aria-label="다음 주" type="button" onClick={() => setSelectedDate((prev) => format(addWeeks(parseISO(prev), 1), "yyyy-MM-dd"))}>
+          <button
+            aria-label="다음 주"
+            type="button"
+            onClick={() => {
+              setIsLoading(true);
+              setError(null);
+              setSelectedDate((prev) => format(addWeeks(parseISO(prev), 1), "yyyy-MM-dd"));
+            }}
+          >
             <ChevronRight className="size-4 text-[#718096]" />
           </button>
         </div>
@@ -109,7 +133,11 @@ export default function AttendanceAllEmployees() {
               placeholder="이름 검색"
               type="text"
               value={search}
-              onChange={(event) => setSearch(event.target.value)}
+              onChange={(event) => {
+                setIsLoading(true);
+                setError(null);
+                setSearch(event.target.value);
+              }}
             />
           </div>
           <div className="flex items-center gap-1">
@@ -120,7 +148,13 @@ export default function AttendanceAllEmployees() {
                 }`}
                 key={filter.label}
                 type="button"
-                onClick={() => setStatusFilter(filter.label)}
+                onClick={() => {
+                  if (statusFilter === filter.label) return;
+
+                  setIsLoading(true);
+                  setError(null);
+                  setStatusFilter(filter.label);
+                }}
               >
                 {STATUS_FILTER_LABEL[filter.label]}
               </button>

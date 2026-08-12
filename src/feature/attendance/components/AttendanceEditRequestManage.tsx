@@ -18,20 +18,27 @@ export default function AttendanceEditRequestManage() {
   const [selectedRequest, setSelectedRequest] = useState<AttendanceAdminCorrectionRequestData | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const loadRequests = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const data = await getAdminCorrectionRequestListAction({ size: 100 });
-      setRequests(data.content);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "근태 수정 요청 목록 조회에 실패하였습니다.");
-    } finally {
-      setIsLoading(false);
-    }
+  const loadRequests = useCallback((isCancelled: () => boolean = () => false) => {
+    return getAdminCorrectionRequestListAction({ size: 100 })
+      .then((data) => {
+        if (!isCancelled()) setRequests(data.content);
+      })
+      .catch((error) => {
+        if (!isCancelled()) toast.error(error instanceof Error ? error.message : "근태 수정 요청 목록 조회에 실패하였습니다.");
+      })
+      .finally(() => {
+        if (!isCancelled()) setIsLoading(false);
+      });
   }, []);
 
   useEffect(() => {
-    loadRequests();
+    let cancelled = false;
+
+    void loadRequests(() => cancelled);
+
+    return () => {
+      cancelled = true;
+    };
   }, [loadRequests]);
 
   const pendingCount = useMemo(() => requests.filter((request) => request.status === "PENDING").length, [requests]);
@@ -45,7 +52,8 @@ export default function AttendanceEditRequestManage() {
     if (result.success) {
       toast.success(result.message);
       setSelectedRequest(null);
-      loadRequests();
+      setIsLoading(true);
+      void loadRequests();
     } else {
       toast.error(result.message);
     }
@@ -59,7 +67,8 @@ export default function AttendanceEditRequestManage() {
     if (result.success) {
       toast.success(result.message);
       setSelectedRequest(null);
-      loadRequests();
+      setIsLoading(true);
+      void loadRequests();
     } else {
       toast.error(result.message);
     }

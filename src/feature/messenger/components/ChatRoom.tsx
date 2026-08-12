@@ -16,14 +16,12 @@ export default function ChatRoom({ roomId }: { roomId: number }) {
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
 
-    const loadMessages = useCallback(async () => {
-        const data = await getMessagesAction(roomId);
-        setMessages(data.content);
+    const loadMessages = useCallback(() => {
+        return getMessagesAction(roomId).then((data) => setMessages(data.content));
     }, [roomId]);
 
-    const loadTaskCards = useCallback(async () => {
-        const data = await getTaskCardsAction(roomId);
-        setTaskCards(data.content);
+    const loadTaskCards = useCallback(() => {
+        return getTaskCardsAction(roomId).then((data) => setTaskCards(data.content));
     }, [roomId]);
 
     useEffect(() => {
@@ -34,17 +32,17 @@ export default function ChatRoom({ roomId }: { roomId: number }) {
         getChatRoomsAction().then((rooms) => {
             setRoom(rooms.find((item) => item.id === roomId) ?? null);
         });
-        loadMessages();
-        loadTaskCards();
+        void loadMessages();
+        void loadTaskCards();
     }, [roomId, loadMessages, loadTaskCards]);
 
     useMessengerRealtimeSubscription(roomId);
     useMessengerRealtime((event) => {
         if (event.chatRoomId !== roomId) return;
         if (event.eventType.startsWith("TASK_CARD_")) {
-            loadTaskCards();
+            void loadTaskCards();
         } else if (event.eventType === "MESSAGE_SENT" || event.eventType === "MESSAGE_EDITED" || event.eventType === "MESSAGE_DELETED") {
-            loadMessages();
+            void loadMessages();
         }
     });
 

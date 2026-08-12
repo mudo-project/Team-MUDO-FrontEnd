@@ -12,18 +12,17 @@ export default function ChatSidebar() {
     const [query, setQuery] = useState("");
     const pathname = usePathname();
 
-    const loadRooms = useCallback(async () => {
-        const data = await getChatRoomsAction();
-        setRooms(data);
+    const loadRooms = useCallback(() => {
+        return getChatRoomsAction().then(setRooms);
     }, []);
 
     useEffect(() => {
-        loadRooms();
+        void loadRooms();
     }, [loadRooms, pathname]);
 
     useMessengerRealtime((event) => {
         if (event.eventType === "MESSAGE_READ") return;
-        loadRooms();
+        void loadRooms();
     });
 
     useMessengerRealtimeRoomList(rooms.map((room) => room.id));

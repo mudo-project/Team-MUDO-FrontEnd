@@ -22,7 +22,10 @@ const MessengerRealtimeContext = createContext<MessengerRealtimeContextValue | n
 export function useMessengerRealtime(onEvent: Listener) {
     const context = useContext(MessengerRealtimeContext);
     const onEventRef = useRef(onEvent);
-    onEventRef.current = onEvent;
+
+    useEffect(() => {
+        onEventRef.current = onEvent;
+    }, [onEvent]);
 
     useEffect(() => {
         if (!context) return;
