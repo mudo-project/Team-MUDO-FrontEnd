@@ -1,77 +1,87 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { addDays, addWeeks, format, parseISO, startOfWeek } from "date-fns";
+import { useEffect, useState } from "react";
+import { addWeeks, eachDayOfInterval, format, parseISO } from "date-fns";
+import { ko } from "date-fns/locale";
 import { ChevronLeft, ChevronRight, Search } from "lucide-react";
-import AttendanceAllEmployeesItem from "./AttendanceAllEmployeesItem";
+import AttendanceAllEmployeesItem, { type EmployeeWeeklyRow } from "./AttendanceAllEmployeesItem";
 import AttendanceEmployeesDetail from "./AttendanceEmployeesDetail";
-import {
-  EMPLOYEE_WEEK_ROWS,
-  WEEKDAY_LABELS,
-  type EmployeeDayStatus,
-  type EmployeeWeekRow,
-} from "../attendanceAllEmployeesDemo";
+import { getEmployeesWeeklyAction } from "../actions";
 
-type StatusFilter = "전체" | "지각" | "결근" | "연가";
+type StatusFilter = "전체" | "LATE" | "ABSENT";
 
-const STATUS_FILTERS: { label: StatusFilter; status?: EmployeeDayStatus }[] = [
+const STATUS_FILTERS: { label: StatusFilter; status?: AttendanceStatus }[] = [
   { label: "전체" },
-  { label: "지각", status: "late" },
-  { label: "결근", status: "absent" },
-  { label: "연가", status: "leave" },
+  { label: "LATE", status: "LATE" },
+  { label: "ABSENT", status: "ABSENT" },
 ];
+
+const STATUS_FILTER_LABEL: Record<StatusFilter, string> = {
+  전체: "전체",
+  LATE: "지각",
+  ABSENT: "결근",
+};
 
 const LEGEND = [
   ["출근", "bg-[#0F172A]"],
   ["지각", "bg-[#B78236]"],
-  ["연가", "bg-[#4D9560]"],
   ["결근", "bg-[#B45252]"],
   ["미기록", "border border-[#DCE9DF]"],
 ] as const;
 
+function today(): string {
+  return format(new Date(), "yyyy-MM-dd");
+}
+
 export default function AttendanceAllEmployees() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("전체");
-  const [selectedDate, setSelectedDate] = useState("2026-08-05");
-  const [selectedEmployee, setSelectedEmployee] = useState<EmployeeWeekRow | null>(null);
-  const selectedWeek = useMemo(() => {
-    const weekStart = startOfWeek(parseISO(selectedDate), { weekStartsOn: 0 });
+  const [selectedDate, setSelectedDate] = useState(today);
+  const [selectedEmployee, setSelectedEmployee] = useState<EmployeeWeeklyRow | null>(null);
+  const [weekData, setWeekData] = useState<AttendanceEmployeesWeeklyData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-    return Array.from({ length: 7 }, (_, index) => addDays(weekStart, index));
-  }, [selectedDate]);
-  const weekDates = selectedWeek.map((date) => format(date, "MM.dd"));
-  const weekLabel = `${weekDates[0]} ~ ${weekDates[6]}`;
+  useEffect(() => {
+    let cancelled = false;
 
-  const handleWeekChange = (amount: number) => {
-    setSelectedDate(format(addWeeks(parseISO(selectedDate), amount), "yyyy-MM-dd"));
-  };
+    setIsLoading(true);
+    setError(null);
 
-  const filteredEmployees = useMemo(() => {
     const activeFilter = STATUS_FILTERS.find((filter) => filter.label === statusFilter);
 
-    return EMPLOYEE_WEEK_ROWS.filter((employee) => {
-      const matchesSearch = employee.name.includes(search.trim());
-      const matchesStatus = !activeFilter?.status || employee.days.some((day) => day.status === activeFilter.status);
-      return matchesSearch && matchesStatus;
-    });
-  }, [search, statusFilter]);
+    getEmployeesWeeklyAction({
+      date: selectedDate,
+      keyword: search.trim() || undefined,
+      status: activeFilter?.status,
+    })
+      .then((data) => {
+        if (!cancelled) setWeekData(data);
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err instanceof Error ? err.message : "전 직원 주간 출결 현황 조회에 실패하였습니다.");
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedDate, search, statusFilter]);
 
   if (selectedEmployee) {
-    return (
-      <AttendanceEmployeesDetail
-        employee={selectedEmployee}
-        weekDates={weekDates}
-        weekdayLabels={WEEKDAY_LABELS}
-        onBack={() => setSelectedEmployee(null)}
-      />
-    );
+    return <AttendanceEmployeesDetail date={selectedDate} employee={selectedEmployee} onBack={() => setSelectedEmployee(null)} />;
   }
+
+  const weekDays = weekData ? eachDayOfInterval({ start: parseISO(weekData.week.startDate), end: parseISO(weekData.week.endDate) }) : [];
+  const weekLabel = weekData ? `${format(parseISO(weekData.week.startDate), "MM.dd")} ~ ${format(parseISO(weekData.week.endDate), "MM.dd")}` : "";
 
   return (
     <div>
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center gap-3">
-          <button aria-label="이전 주" type="button" onClick={() => handleWeekChange(-1)}>
+          <button aria-label="이전 주" type="button" onClick={() => setSelectedDate((prev) => format(addWeeks(parseISO(prev), -1), "yyyy-MM-dd"))}>
             <ChevronLeft className="size-4 text-[#718096]" />
           </button>
           <label className="flex items-center gap-2 text-[13px] font-semibold text-[#172033]">
@@ -85,7 +95,7 @@ export default function AttendanceAllEmployees() {
               onChange={(event) => setSelectedDate(event.target.value)}
             />
           </label>
-          <button aria-label="다음 주" type="button" onClick={() => handleWeekChange(1)}>
+          <button aria-label="다음 주" type="button" onClick={() => setSelectedDate((prev) => format(addWeeks(parseISO(prev), 1), "yyyy-MM-dd"))}>
             <ChevronRight className="size-4 text-[#718096]" />
           </button>
         </div>
@@ -112,7 +122,7 @@ export default function AttendanceAllEmployees() {
                 type="button"
                 onClick={() => setStatusFilter(filter.label)}
               >
-                {filter.label}
+                {STATUS_FILTER_LABEL[filter.label]}
               </button>
             ))}
           </div>
@@ -132,30 +142,46 @@ export default function AttendanceAllEmployees() {
           <thead>
             <tr className="border-b border-[#DCE9DF] text-[11px] text-[#64748B]">
               <th className="px-4 py-3 font-medium">직원</th>
-              {weekDates.map((date, index) => (
-                <th className="px-2 py-3 text-center font-medium" key={date}>
-                  <span className={index === 0 ? "text-[#B45252]" : index === 6 ? "text-[#4D9560]" : ""}>{WEEKDAY_LABELS[index]}</span>
-                  <span className="block">{date}</span>
+              {weekDays.map((date, index) => (
+                <th className="px-2 py-3 text-center font-medium" key={date.toISOString()}>
+                  <span className={index === 6 ? "text-[#4D9560]" : ""}>{format(date, "EEEEE", { locale: ko })}</span>
+                  <span className="block">{format(date, "MM.dd")}</span>
                 </th>
               ))}
               <th className="px-4 py-3 text-center font-medium">주간 요약</th>
             </tr>
           </thead>
           <tbody>
-            {filteredEmployees.length === 0 ? (
+            {isLoading ? (
+              <tr>
+                <td className="px-4 py-8 text-center text-[12px] text-[#718096]" colSpan={9}>
+                  불러오는 중입니다...
+                </td>
+              </tr>
+            ) : error ? (
+              <tr>
+                <td className="px-4 py-8 text-center text-[12px] text-[#C65A50]" colSpan={9}>
+                  {error}
+                </td>
+              </tr>
+            ) : !weekData || weekData.employees.content.length === 0 ? (
               <tr>
                 <td className="px-4 py-8 text-center text-[12px] text-[#718096]" colSpan={9}>
                   조건에 맞는 직원이 없습니다
                 </td>
               </tr>
             ) : (
-              filteredEmployees.map((employee) => (
-                <AttendanceAllEmployeesItem 
-                  employee={employee} 
-                  key={employee.id} 
-                  onSelect={setSelectedEmployee} 
-                />
-              ))
+              weekData.employees.content.map((employee) => {
+                const rowDays = weekDays.map((date) => {
+                  const dateStr = format(date, "yyyy-MM-dd");
+                  const found = employee.days.find((day) => day.date === dateStr);
+                  return found ?? { date: dateStr, status: "UNRECORDED" as AttendanceStatus, clockInAt: null };
+                });
+
+                return (
+                  <AttendanceAllEmployeesItem employee={{ ...employee, days: rowDays }} key={employee.userId} onSelect={setSelectedEmployee} />
+                );
+              })
             )}
           </tbody>
         </table>
