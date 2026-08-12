@@ -14,7 +14,7 @@ export interface CreateEmployeeAccountRequest {
 export interface CreateEmployeeAccountData {
     userId: number;
     username: string;
-    passwordSetupLink: string;
+    temporaryPassword: string;
 }
 
 export type CreateEmployeeAccountResponse =
@@ -51,6 +51,7 @@ export interface UpdateMemberRequest {
     phone?: string;
     email?: string;
     joinedAt?: string;
+    roleId?: number;
 }
 
 export interface ChangeMemberStatusRequest {

@@ -1,6 +1,6 @@
 'use client'
 
-import { Eye, EyeClosed } from "lucide-react";
+import { Eye, EyeClosed, Phone } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -9,7 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { setupPasswordAction } from "../actions";
 import { toast } from "sonner";
 
-export default function PasswordForm({ username, tempPassword }: { username: string, tempPassword: string }) {
+export default function PasswordForm() {
     const route = useRouter();
     const [toggleEye, setToggleEye] = useState<boolean>(true);
     const [toggleEyeCheck, setToggleEyeCheck] = useState<boolean>(true);
@@ -25,7 +25,7 @@ export default function PasswordForm({ username, tempPassword }: { username: str
 
     const onSubmit = async (data: PasswordSetupFormValues) => {
         const payload = {
-            username, tempPassword, newPassword: data.newPassword
+            email: data.email, phone: data.phone, newPassword: data.newPassword
         }
 
         try {
@@ -47,6 +47,29 @@ export default function PasswordForm({ username, tempPassword }: { username: str
             className="w-full  px-8 pt-9 pb-7 ">
             <div className="flex w-full flex-col gap-[18px]">
 
+                <label className="text-[12px] font-semibold leading-[18px] tracking-[0.24px] text-[#64748B]">
+                    이메일
+                    <input
+                        {...register('email')}
+                        maxLength={50}
+                        className="mt-[7px] h-12 w-full rounded-[10px] border-[1.5px] border-[#DCE8E2] px-3.5 text-[14px] font-normal text-[#1D2B3A] outline-none placeholder:text-[#64748B]/50"
+                        placeholder="이메일을 입력하세요"
+                        type="text"
+                    />
+                </label>
+                {errors.email?.message && <p>{errors.email.message}</p>}
+
+                <label className="text-[12px] font-semibold leading-[18px] tracking-[0.24px] text-[#64748B]">
+                    전화번호
+                    <input
+                        {...register('phone')}
+                        maxLength={50}
+                        className="mt-[7px] h-12 w-full rounded-[10px] border-[1.5px] border-[#DCE8E2] px-3.5 text-[14px] font-normal text-[#1D2B3A] outline-none placeholder:text-[#64748B]/50"
+                        placeholder="전화번호를 입력하세요"
+                        type="text"
+                    />
+                </label>
+                {errors.phone?.message && <p>{errors.phone.message}</p>}
 
                 <label className="text-[12px] font-semibold leading-[18px] tracking-[0.24px] text-[#64748B]">
                     비밀번호
@@ -103,10 +126,10 @@ export default function PasswordForm({ username, tempPassword }: { username: str
 
                 <button
                     disabled={isSubmitting}
-                    className={`mt-1 h-[50px] w-full rounded-[10px] text-[15px] font-semibold leading-[22.5px] tracking-[0.15px]  ${true ? 'bg-[#0F172A50]' : 'text-white bg-[#0F172A]'}`}
+                    className={`mt-1 h-[50px] w-full rounded-[10px] text-[15px] font-semibold leading-[22.5px] tracking-[0.15px]  ${isSubmitting ? 'bg-[#0F172A50]' : 'text-white bg-[#0F172A]'}`}
                     type="submit"
                 >
-                    비밀번호 저장
+                    저장
                 </button>
             </div>
 

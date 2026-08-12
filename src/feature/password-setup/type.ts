@@ -1,5 +1,5 @@
 export interface PasswordSetupRequest {
-    username: string;
-    tempPassword: string;
+    email: string;
+    phone: string;
     newPassword: string;
 }
