@@ -32,9 +32,12 @@ export const authEditSchema = z.object({
     phone: z
         .string()
         .regex(/^\d{3}-\d{4}-\d{4}$/, { message: '전화번호 형식이 맞지 않습니다. (예: 010-1234-5678)' }),
+    roleId: z
+        .coerce.number().int().min(0, "존재하지 않는 값입니다.")
 })
 
-export type authEditFormValues = z.infer<typeof authEditSchema>;
+export type authEditFormInput = z.input<typeof authEditSchema>;
+export type authEditFormValues = z.output<typeof authEditSchema>;
 
 export const myInfoUpdateSchema = z.object({
     email: z

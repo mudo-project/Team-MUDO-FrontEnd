@@ -1,7 +1,7 @@
 "use client";
 
 import { getRoleListAction } from "@/feature/role/actions";
-import { changeEmployeeRoleAction, changeMemberStatusAction, updateMemberAction } from "@/feature/members/actions";
+import { changeMemberStatusAction, updateMemberAction } from "@/feature/members/actions";
 import { ChevronDown, X } from "lucide-react";
 import { MemberAccountStatus, MemberListData } from "../../type";
 import { useEffect, useRef, useState } from "react";
@@ -11,7 +11,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { authEditFormValues, authEditSchema } from "@/lib/authSchema";
+import { authEditFormInput, authEditFormValues, authEditSchema } from "@/lib/authSchema";
 import { format } from "date-fns";
 
 interface RoleOption {
@@ -29,7 +29,6 @@ export default function ViewMembersModal({ closeModal, member }: { closeModal: (
     const [role, setRole] = useState<number | "">(member.roleId ?? "");
     const [roles, setRoles] = useState<RoleOption[]>([]);
     const [isSaving, setIsSaving] = useState(false);
-    const focusRef = useRef<HTMLInputElement>(null);
     const [selectedStatus, setSelectedStatus] = useState<MemberAccountStatus>("ACTIVE");
 
     const modal = useModal(closeModal);
@@ -37,10 +36,29 @@ export default function ViewMembersModal({ closeModal, member }: { closeModal: (
 
     const router = useRouter();
 
+    //구성원 정보 수정
+    const {
+        register,
+        handleSubmit,
+        setFocus,
+        formState: { errors, isSubmitting },
+    } = useForm<authEditFormInput, unknown, authEditFormValues>({
+        resolver: zodResolver(authEditSchema),
+        defaultValues: {
+            name: member.name,
+            email: member.email,
+            phone: member.phone,
+            joinedAt: format(member.joinedAt, 'yyyy-MM-dd'),
+            roleId: member.roleId
+        },
+        mode: 'onSubmit',
+    });
+
+
     //역할 목록 불러오기
     useEffect(() => {
         let cancelled = false;
-        focusRef.current?.focus();
+        setFocus("name");
 
         const loadRoles = async () => {
             const response = await getRoleListAction();
@@ -55,26 +73,17 @@ export default function ViewMembersModal({ closeModal, member }: { closeModal: (
         return () => {
             cancelled = true;
         };
-    }, []);
-
-    //구성원 정보 수정
-    const {
-        register,
-        handleSubmit,
-        formState: { errors, isSubmitting },
-    } = useForm<authEditFormValues>({
-        resolver: zodResolver(authEditSchema),
-        mode: 'onSubmit',
-    });
+    }, [setFocus]);
 
     const onSubmit = async (data: authEditFormValues) => {
         const newName = data.name === member.name ? ({}) : ({ name: data.name });
         const newJoinedAt = data.joinedAt === format(member.joinedAt, 'yyyy-MM-dd') ? ({}) : ({ joinedAt: `${data.joinedAt}T00:00:00` })
         const newEmail = data.email === member.email ? ({}) : ({ email: data.email });
         const newPhone = data.phone === member.phone ? ({}) : ({ phone: data.phone });
+        const newRole = data.roleId === member.roleId ? ({}) : ({ roleId: Number(role) })
 
         const payload = {
-            ...newName, ...newJoinedAt, ...newEmail, ...newPhone
+            ...newName, ...newJoinedAt, ...newEmail, ...newPhone, ...newRole
         }
 
         if (!role) {
@@ -85,9 +94,6 @@ export default function ViewMembersModal({ closeModal, member }: { closeModal: (
         setIsSaving(true);
 
         try {
-            if (member.roleId !== role) {
-                const roleResponse = await changeEmployeeRoleAction(member.userId, role);
-            }
             const response = await updateMemberAction(member.userId, payload);
 
 
@@ -101,7 +107,7 @@ export default function ViewMembersModal({ closeModal, member }: { closeModal: (
             router.refresh();
             closeModal();
         } catch {
-            toast.error("직원 역할 변경에 실패했습니다.");
+            toast.error("직원 정보 수정에 실패했습니다.");
             setIsSaving(false);
         }
     };
@@ -154,18 +160,16 @@ export default function ViewMembersModal({ closeModal, member }: { closeModal: (
                         이름 <span className="text-[#C0483F]">*</span>
                         <input
                             {...register('name')}
-                            ref={focusRef}
                             placeholder="이름을 입력해주세요"
-                            defaultValue={member.name}
                             className="mt-1.5 h-11 w-full rounded-[8px] border border-[#D7E8DB] px-3  text-[14px] font-normal text-[#0F172A] outline-none focus:border-2 focus:border-[#B7D5BE]" />
                     </label>
+                    {errors.name?.message && <p>{errors.name?.message}</p>}
 
                     <label className="relative col-span-2 text-[12px] font-medium leading-[18px] text-[#64748B]">
                         역할
                         <select
                             className="mt-1.5 h-11 w-full appearance-none rounded-[8px] border border-[#D7E8DB] bg-white px-4 text-[14px] font-normal text-[#0F172A] outline-none focus:border-2 focus:border-[#B7D5BE]"
-                            onChange={(e) => setRole(Number(e.target.value))}
-                            value={role}
+                            {...register('roleId')}
                         >
                             <option disabled value="">역할을 선택해주세요.</option>
                             {roles.length === 0 && (
@@ -177,24 +181,28 @@ export default function ViewMembersModal({ closeModal, member }: { closeModal: (
                         </select>
                         <ChevronDown className="pointer-events-none absolute right-3 bottom-[17px] size-3 text-[#64748B]" strokeWidth={1.5} />
                     </label>
+                    {errors.roleId?.message && <p>{errors.roleId?.message}</p>}
+
 
                     <label className="text-[12px] font-medium leading-[18px] text-[#64748B]">
                         연락처
                         <input
                             {...register('phone')}
                             placeholder="전화번호를 입력해주세요"
-                            defaultValue={member.phone}
                             className="mt-1.5 h-11 w-full rounded-[8px] border border-[#D7E8DB] px-3  text-[14px] font-normal text-[#0F172A] outline-none focus:border-2 focus:border-[#B7D5BE]" />
                     </label>
+                    {errors.phone?.message && <p>{errors.phone?.message}</p>}
+
 
                     <label className="text-[12px] font-medium leading-[18px] text-[#64748B]">
                         이메일
                         <input
                             {...register('email')}
                             placeholder="이메일을 입력해주세요"
-                            defaultValue={member.email}
                             className="mt-1.5 h-11 w-full rounded-[8px] border border-[#D7E8DB] px-3  text-[14px] font-normal text-[#0F172A] outline-none focus:border-2 focus:border-[#B7D5BE]" />
                     </label>
+                    {errors.email?.message && <p>{errors.email?.message}</p>}
+
 
                     <label className="col-span-2 text-[12px] font-medium leading-[18px] text-[#64748B]">
                         입사일
@@ -202,9 +210,10 @@ export default function ViewMembersModal({ closeModal, member }: { closeModal: (
                             {...register('joinedAt')}
                             type="date"
                             placeholder="입사일을 선택해주세요"
-                            defaultValue={format(member.joinedAt, 'yyyy-MM-dd')}
                             className="mt-1.5 h-11 w-full rounded-[8px] border border-[#D7E8DB] px-3  text-[14px] font-normal text-[#0F172A] outline-none focus:border-2 focus:border-[#B7D5BE]" />
                     </label>
+                    {errors.joinedAt?.message && <p>{errors.joinedAt?.message}</p>}
+
                 </div>
 
                 <div className="mt-5 flex w-full items-center gap-3 rounded-[10px] border border-[#D7E8DB] bg-[#EDF0F4] px-4 py-3.5">
