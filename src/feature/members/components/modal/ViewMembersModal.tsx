@@ -1,29 +1,46 @@
 "use client";
 
 import { getRoleListAction } from "@/feature/role/actions";
-import { changeEmployeeRoleAction } from "@/feature/members/actions";
+import { changeEmployeeRoleAction, changeMemberStatusAction, updateMemberAction } from "@/feature/members/actions";
 import { ChevronDown, X } from "lucide-react";
 import { MemberListData } from "../../type";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import useModal from "@/components/hooks/useModal";
 import TwoButtonModal from "@/components/ui/TwoButtonModal";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { authEditFormValues, authEditSchema } from "@/lib/authSchema";
+import { format } from "date-fns";
 
 interface RoleOption {
     roleId: number;
     name: string;
 }
 
+const status = {
+    ACTIVE: '활성',
+    INACTIVE: '휴직',
+    RESIGNED: '퇴사'
+}
+
 export default function ViewMembersModal({ closeModal, member }: { closeModal: () => void, member: MemberListData }) {
     const [role, setRole] = useState<number | "">(member.roleId ?? "");
     const [roles, setRoles] = useState<RoleOption[]>([]);
     const [isSaving, setIsSaving] = useState(false);
+    const focusRef = useRef<HTMLInputElement>(null);
+    const statusRef = useRef<'ACTIVE' | 'INACTIVE' | 'RESIGNED'>('ACTIVE');
+
     const modal = useModal(closeModal);
+    const statusModal = useModal(clickButton);
+
     const router = useRouter();
 
+    //역할 목록 불러오기
     useEffect(() => {
         let cancelled = false;
+        focusRef.current?.focus();
 
         const loadRoles = async () => {
             const response = await getRoleListAction();
@@ -40,29 +57,39 @@ export default function ViewMembersModal({ closeModal, member }: { closeModal: (
         };
     }, []);
 
-    const handleClose = () => {
-        if (member.roleId !== role) {
-            modal.openModal();
-            return;
-        }
-        closeModal();
-    }
+    //구성원 정보 수정
+    const {
+        register,
+        handleSubmit,
+        formState: { errors, isSubmitting },
+    } = useForm<authEditFormValues>({
+        resolver: zodResolver(authEditSchema),
+        mode: 'onSubmit',
+    });
 
-    const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
+    const onSubmit = async (data: authEditFormValues) => {
+        const newName = data.name === member.name ? ({}) : ({ name: data.name });
+        const newJoinedAt = data.joinedAt === format(member.joinedAt, 'yyyy-MM-dd') ? ({}) : ({ joinedAt: `${data.joinedAt}T00:00:00` })
+        const newEmail = data.email === member.email ? ({}) : ({ email: data.email });
+        const newPhone = data.phone === member.phone ? ({}) : ({ phone: data.phone });
+
+        const payload = {
+            ...newName, ...newJoinedAt, ...newEmail, ...newPhone
+        }
 
         if (!role) {
             toast.error("역할을 선택해주세요.");
-            return;
-        }
-        if (member.roleId === role) {
             return;
         }
 
         setIsSaving(true);
 
         try {
-            const response = await changeEmployeeRoleAction(member.userId, role);
+            if (member.roleId !== role) {
+                const roleResponse = await changeEmployeeRoleAction(member.userId, role);
+            }
+            const response = await updateMemberAction(member.userId, payload);
+
 
             if (!response.success) {
                 toast.error(response.message);
@@ -79,9 +106,31 @@ export default function ViewMembersModal({ closeModal, member }: { closeModal: (
         }
     };
 
+    const handleClose = () => {
+        if (member.roleId !== role) {
+            modal.openModal();
+            return;
+        }
+        closeModal();
+    }
+
+    //계정 상태 변경
+    async function clickButton() {
+        const response = await changeMemberStatusAction(member.userId, statusRef.current);
+
+        if (!response.success) {
+            toast.error(response.message);
+            return;
+        }
+
+        toast.success(response.message);
+        router.refresh();
+    }
+
+
     return (
         <div onClick={handleClose} className="fixed top-0 left-0 z-999 h-screen w-screen bg-[#162236]/45">
-            <form onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit} className="fixed top-1/2 left-1/2 z-1000 w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-[12px] bg-white p-7 shadow-[0_8px_12px_rgba(22,34,54,0.12)]">
+            <form onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit(onSubmit)} className="fixed top-1/2 left-1/2 z-1000 w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-[12px] bg-white p-7 shadow-[0_8px_12px_rgba(22,34,54,0.12)]">
                 <div className="flex w-full items-center gap-3.5">
                     <div>
                         <h2 className="text-[18px] font-bold leading-[27px] text-[#0F172A]">{member.name}</h2>
@@ -103,15 +152,18 @@ export default function ViewMembersModal({ closeModal, member }: { closeModal: (
                 <div className="grid w-full grid-cols-2 gap-4">
                     <label className="col-span-2 text-[12px] font-medium leading-[18px] text-[#64748B]">
                         이름 <span className="text-[#C0483F]">*</span>
-                        <div className="flex items-center mt-1.5 h-11 w-full rounded-[8px] border border-[#D7E8DB] px-3  text-[14px] font-normal text-[#0F172A] outline-none">
-                            {member.name}
-                        </div>
+                        <input
+                            {...register('name')}
+                            ref={focusRef}
+                            placeholder="이름을 입력해주세요"
+                            defaultValue={member.name}
+                            className="mt-1.5 h-11 w-full rounded-[8px] border border-[#D7E8DB] px-3  text-[14px] font-normal text-[#0F172A] outline-none focus:border-2 focus:border-[#B7D5BE]" />
                     </label>
 
                     <label className="relative col-span-2 text-[12px] font-medium leading-[18px] text-[#64748B]">
                         역할
                         <select
-                            className="mt-1.5 h-11 w-full appearance-none rounded-[8px] border border-[#D7E8DB] bg-white px-4 text-[14px] font-normal text-[#0F172A] outline-none"
+                            className="mt-1.5 h-11 w-full appearance-none rounded-[8px] border border-[#D7E8DB] bg-white px-4 text-[14px] font-normal text-[#0F172A] outline-none focus:border-2 focus:border-[#B7D5BE]"
                             onChange={(e) => setRole(Number(e.target.value))}
                             value={role}
                         >
@@ -128,37 +180,64 @@ export default function ViewMembersModal({ closeModal, member }: { closeModal: (
 
                     <label className="text-[12px] font-medium leading-[18px] text-[#64748B]">
                         연락처
-                        <div className="flex items-center mt-1.5 h-11 w-full rounded-[8px] border border-[#D7E8DB] px-3 text-[14px] font-normal text-[#0F172A] outline-none">
-                            {member.phone}
-                        </div>
+                        <input
+                            {...register('phone')}
+                            placeholder="전화번호를 입력해주세요"
+                            defaultValue={member.phone}
+                            className="mt-1.5 h-11 w-full rounded-[8px] border border-[#D7E8DB] px-3  text-[14px] font-normal text-[#0F172A] outline-none focus:border-2 focus:border-[#B7D5BE]" />
                     </label>
 
                     <label className="text-[12px] font-medium leading-[18px] text-[#64748B]">
                         이메일
-                        <div className="flex items-center mt-1.5 h-11 w-full rounded-[8px] border border-[#D7E8DB] px-3 text-[14px] font-normal text-[#0F172A] outline-none">
-                            {member.email}
-                        </div>
+                        <input
+                            {...register('email')}
+                            placeholder="이메일을 입력해주세요"
+                            defaultValue={member.email}
+                            className="mt-1.5 h-11 w-full rounded-[8px] border border-[#D7E8DB] px-3  text-[14px] font-normal text-[#0F172A] outline-none focus:border-2 focus:border-[#B7D5BE]" />
                     </label>
 
                     <label className="col-span-2 text-[12px] font-medium leading-[18px] text-[#64748B]">
                         입사일
-                        <div className="flex items-center mt-1.5 h-11 w-full rounded-[8px] border border-[#D7E8DB] px-3 text-[14px] font-normal text-[#0F172A] outline-none">
-                            {member.joinedAt}
-                        </div>
+                        <input
+                            {...register('joinedAt')}
+                            type="date"
+                            placeholder="입사일을 선택해주세요"
+                            defaultValue={format(member.joinedAt, 'yyyy-MM-dd')}
+                            className="mt-1.5 h-11 w-full rounded-[8px] border border-[#D7E8DB] px-3  text-[14px] font-normal text-[#0F172A] outline-none focus:border-2 focus:border-[#B7D5BE]" />
                     </label>
                 </div>
 
                 <div className="mt-5 flex w-full items-center gap-3 rounded-[10px] border border-[#D7E8DB] bg-[#EDF0F4] px-4 py-3.5">
                     <div>
-                        <strong className="block text-[13px] font-semibold leading-[19.5px] text-[#0F172A]">활성 계정</strong>
-                        <p className="pt-0.5 text-[12px] leading-[18px] text-[#64748B]">이 계정은 현재 정상 활성 상태입니다.</p>
+                        <strong className="block text-[13px] font-semibold leading-[19.5px] text-[#0F172A]">{status[member.status]} 계정</strong>
+                        <p className="pt-0.5 text-[12px] leading-[18px] text-[#64748B]">이 계정은 현재 {status[member.status]} 상태입니다.</p>
                     </div>
-                    <button
-                        className="ml-auto h-9 shrink-0 rounded-[7px] border border-[#C0483F] bg-white px-3.5 text-[12px] font-medium text-[#C0483F]"
-                        type="button"
-                    >
-                        계정 비활성화
-                    </button>
+                    <div className="flex gap-1 ml-auto">
+                        {member.status !== 'ACTIVE' &&
+                            <button
+                                className=" h-9 shrink-0 rounded-[7px] border border-[#2C8D50] bg-white px-3.5 text-[12px] font-medium text-[#2C8D50]"
+                                onClick={() => { statusModal.openModal(); statusRef.current = 'ACTIVE' }}
+                                type="button"
+                            >
+                                계정 활성화
+                            </button>}
+                        {member.status !== 'INACTIVE' &&
+                            <button
+                                className="h-9 shrink-0 rounded-[7px] border border-[#D7E8DB] bg-white px-3.5 text-[12px] font-medium text-[#64748B]"
+                                onClick={() => { statusModal.openModal(); statusRef.current = 'INACTIVE' }}
+                                type="button"
+                            >
+                                휴직 처리
+                            </button>}
+                        {member.status !== 'RESIGNED' &&
+                            <button
+                                className=" h-9 shrink-0 rounded-[7px] border border-[#C0483F] bg-white px-3.5 text-[12px] font-medium text-[#C0483F]"
+                                onClick={() => { statusModal.openModal(); statusRef.current = 'RESIGNED' }}
+                                type="button"
+                            >
+                                퇴사 처리
+                            </button>}
+                    </div>
                 </div>
 
                 <div className="mt-5 flex w-full justify-end gap-2">
@@ -185,6 +264,16 @@ export default function ViewMembersModal({ closeModal, member }: { closeModal: (
                     content={`역할이 저장되지 않았습니다.\n저장하지 않고 나가시겠습니까?`}
                     title="구성원" />
             )}
+            {statusModal.isModal &&
+                (
+                    <TwoButtonModal
+                        closeModal={statusModal.closeModal}
+                        title={`${status[statusRef.current]} 처리`}
+                        content={`해당 직원을 ${status[statusRef.current]} 처리 하시겠습니까?`}
+                        activeModal={statusModal.activeModal}
+                    />
+                )
+            }
 
         </div>
     );
