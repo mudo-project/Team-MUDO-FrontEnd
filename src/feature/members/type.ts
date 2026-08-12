@@ -47,6 +47,18 @@ export interface MemberListData {
     attendanceStatus: MemberAttendanceStatus | null;
 }
 
+
+export interface UpdateMemberRequest {
+    name?: string;
+    phone?: string;
+    email?: string;
+    joinedAt?: string;
+}
+
+export interface ChangeMemberStatusRequest {
+    status: MemberAccountStatus;
+}
+
 export interface MemberListPageData {
     content: MemberListData[];
     page: number;
