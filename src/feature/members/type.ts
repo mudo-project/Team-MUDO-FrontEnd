@@ -8,8 +8,6 @@ export interface MembersApiResponse<T> {
 export interface CreateEmployeeAccountRequest {
     username: string;
     name: string;
-    phone: string;
-    email: string;
     roleId: number;
 }
 

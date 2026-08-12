@@ -68,8 +68,6 @@ export default function CreateMemberModal({ closeModal }: { closeModal: () => vo
             name: data.name,
             username: data.username,
             roleId: data.roleId,
-            phone: data.phone,
-            email: data.email
         }
 
         try {
@@ -153,25 +151,6 @@ export default function CreateMemberModal({ closeModal }: { closeModal: () => vo
                     </label>
                     {errors.roleId?.message && <p>{errors.roleId.message}</p>}
 
-                    <label className="text-[12px] font-medium leading-[18px] text-[#64748B]">
-                        연락처
-                        <input
-                            placeholder="연락처를 입력해주세요"
-                            {...register('phone')}
-                            className=" mt-1.5 h-11 w-full rounded-[8px] border border-[#D7E8DB] px-3 text-[14px] font-normal text-[#0F172A] outline-none" />
-
-                    </label>
-                    {errors.phone?.message && <p>{errors.phone.message}</p>}
-
-                    <label className="text-[12px] font-medium leading-[18px] text-[#64748B]">
-                        이메일
-                        <input
-                            placeholder="이메일을 입력해주세요"
-                            {...register('email')}
-                            className="flex items-center mt-1.5 h-11 w-full rounded-[8px] border border-[#D7E8DB] px-3 text-[14px] font-normal text-[#0F172A] outline-none" />
-
-                    </label>
-                    {errors.email?.message && <p>{errors.email.message}</p>}
 
                 </div>
                 {(typeof link === 'string' && link) ? (
