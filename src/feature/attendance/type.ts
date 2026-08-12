@@ -335,11 +335,14 @@ interface AttendanceMyCorrectionRequestDetailResponse {
     data: AttendanceMyCorrectionRequestData;
 }
 
-// 근태 수정 요청 등록 요청값. 명세 Request Body 표에는 CLOCK_IN_TIME 유형 기준 필드만 명시되어 있다.
+// 근태 수정 요청 등록 요청값
 interface AttendanceCorrectionCreateRequest {
     date: string;
     type: AttendanceCorrectionType;
     requestedClockInTime?: string;
+    requestedClockOutTime?: string;
+    requestedClockInNote?: string;
+    requestedClockOutNote?: string;
     reason: string;
 }
 

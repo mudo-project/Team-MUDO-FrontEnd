@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Pencil } from "lucide-react";
+import { toast } from "sonner";
 import AttendanceTodaySituation from "./AttendanceTodaySituation";
 import AttendanceCalendar from "./AttendanceCalendar";
 import AttendanceCommuteInformation from "./AttendanceCommuteInformation";
@@ -16,14 +17,14 @@ import AttendanceAllEmployees from "./AttendanceAllEmployees";
 import AttendanceEditRequestManage from "./AttendanceEditRequestManage";
 import AttendanceMyEditRequestList from "./AttendanceMyEditRequestList";
 import {
-  createEmptyAttendanceRecord,
-  getStandardEnd,
-  getStandardStart,
-  INITIAL_MY_EDIT_REQUESTS,
-  isSameDate,
-  type AttendanceEditRequest,
-  type EditRequestType,
-} from "../attendanceDemo";
+  checkInAction,
+  checkOutAction,
+  createCorrectionRequestAction,
+  getMyCorrectionRequestListAction,
+  getMyDashboardAction,
+  getMyDayDetailAction,
+  getTeamTodayAction,
+} from "../actions";
 
 type ModalState = "late" | "leave" | "overtime" | "detail" | "editRequest" | null;
 type TabKey = "mine" | "all" | "manage" | "myEdits";
@@ -35,140 +36,263 @@ const TABS: { key: TabKey; label: string }[] = [
   { key: "myEdits", label: "내 근태수정" },
 ];
 
+function combineDateWithTime(base: Date, timeStr: string): Date {
+  const [hour, minute] = timeStr.split(":").map(Number);
+  const result = new Date(base);
+  result.setHours(hour, minute, 0, 0);
+  return result;
+}
+
 export default function AttendanceBoard() {
-  // `now`는 클라이언트에서만 채워집니다. 서버 렌더링 시점의 Date와 하이드레이션 시점의
-  // Date가 다르면 하이드레이션 불일치가 나기 때문에, 마운트 전에는 null로 두고 렌더를 건너뜁니다.
   const [nowState, setNow] = useState<Date | null>(null);
-  const [record, setRecord] = useState(createEmptyAttendanceRecord);
-  const [editRequests, setEditRequests] = useState<AttendanceEditRequest[]>(INITIAL_MY_EDIT_REQUESTS);
+  const [monthState, setMonth] = useState<Date | null>(null);
+  const serverOffsetRef = useRef(0);
+
+  const [dashboard, setDashboard] = useState<AttendanceDashboardData | null>(null);
+  const [isDashboardLoading, setIsDashboardLoading] = useState(true);
+  const [dashboardError, setDashboardError] = useState<string | null>(null);
+  const [team, setTeam] = useState<AttendanceTeamTodayData | null>(null);
+  const [isTeamLoading, setIsTeamLoading] = useState(true);
+  const [teamError, setTeamError] = useState<string | null>(null);
+  const [myRequests, setMyRequests] = useState<AttendanceMyCorrectionRequestData[]>([]);
+
   const [modal, setModal] = useState<ModalState>(null);
+  const [selectedDayDetail, setSelectedDayDetail] = useState<AttendanceDayDetailData | null>(null);
   const [tab, setTab] = useState<TabKey>("mine");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    setNow(new Date());
+    const initial = new Date();
+    setNow(initial);
+    setMonth(new Date(initial.getFullYear(), initial.getMonth(), 1));
+
     const timer = setInterval(() => {
-      setNow((prev) => new Date((prev ?? new Date()).getTime() + 1000));
+      setNow(new Date(Date.now() + serverOffsetRef.current));
     }, 1000);
 
     return () => clearInterval(timer);
   }, []);
 
-  if (nowState === null) {
+  const loadTeam = useCallback(() => {
+    setIsTeamLoading(true);
+    setTeamError(null);
+
+    return getTeamTodayAction()
+      .then(setTeam)
+      .catch((error) => {
+        const message = error instanceof Error ? error.message : "오늘 팀 근태 현황 조회에 실패하였습니다.";
+        setTeamError(message);
+        toast.error(message);
+      })
+      .finally(() => setIsTeamLoading(false));
+  }, []);
+
+  useEffect(() => {
+    loadTeam();
+  }, [loadTeam]);
+
+  const loadMyRequests = useCallback(() => {
+    getMyCorrectionRequestListAction()
+      .then(setMyRequests)
+      .catch((error) => toast.error(error instanceof Error ? error.message : "내 근태 수정 요청 목록 조회에 실패하였습니다."));
+  }, []);
+
+  useEffect(() => {
+    loadMyRequests();
+  }, [loadMyRequests]);
+
+  const loadDashboard = useCallback(
+    (targetMonth: Date) => {
+      setIsDashboardLoading(true);
+      setDashboardError(null);
+
+      return getMyDashboardAction({ year: targetMonth.getFullYear(), month: targetMonth.getMonth() + 1 })
+        .then((data) => {
+          setDashboard(data);
+          serverOffsetRef.current = new Date(data.today.serverTime).getTime() - Date.now();
+          setNow(new Date(Date.now() + serverOffsetRef.current));
+        })
+        .catch((error) => {
+          const message = error instanceof Error ? error.message : "근태 대시보드 조회에 실패하였습니다.";
+          setDashboardError(message);
+          toast.error(message);
+        })
+        .finally(() => setIsDashboardLoading(false));
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (monthState) loadDashboard(monthState);
+  }, [monthState, loadDashboard]);
+
+  if (nowState === null || monthState === null) {
     return null;
+  }
+
+  if ((dashboardError && !dashboard) || (teamError && !team)) {
+    return (
+      <main className="flex h-[calc(100dvh-3.25rem)] flex-col items-center justify-center gap-3 bg-[#FCFCFC] text-[13px] text-[#718096]">
+        <p>{dashboardError ?? teamError}</p>
+        <button
+          className="h-9 rounded-lg border border-[#DCE9DF] bg-white px-4 text-[12px] font-medium text-[#344054]"
+          type="button"
+          onClick={() => {
+            if (dashboardError) loadDashboard(monthState);
+            if (teamError) loadTeam();
+          }}
+        >
+          다시 시도
+        </button>
+      </main>
+    );
+  }
+
+  if (isDashboardLoading || isTeamLoading || !dashboard || !team) {
+    return <main className="flex h-[calc(100dvh-3.25rem)] items-center justify-center bg-[#FCFCFC] text-[13px] text-[#718096]">근태 정보를 불러오는 중입니다...</main>;
   }
 
   // 이후 클로저(핸들러)에서도 non-null로 좁혀지도록 명시적으로 타입을 고정한 값을 사용합니다.
   const now: Date = nowState;
-  const standardStart = getStandardStart(now);
-  const standardEnd = getStandardEnd(now);
-  const hasClockedIn = record.clockInAt !== null;
-  const hasClockedOut = record.clockOutAt !== null;
-  const canOvertime = hasClockedIn && !hasClockedOut && now.getTime() >= standardEnd.getTime() && !record.overtimeStartedAt;
-  const hasEditRequestToday = editRequests.some((request) => isSameDate(request.targetDate, now));
+  const month: Date = monthState;
+  const today = dashboard.today;
+  const standardStart = combineDateWithTime(now, today.workStartTime);
+  const standardEnd = combineDateWithTime(now, today.workEndTime);
+  const hasClockedIn = today.clockInAt !== null;
+  const hasClockedOut = today.clockOutAt !== null;
+  const canOvertime = hasClockedIn && !hasClockedOut && now.getTime() >= standardEnd.getTime();
+  const pendingCorrectionDates = new Set(myRequests.filter((request) => request.status === "PENDING").map((request) => request.date));
 
-  function handleClockInClick() {
+  async function handleClockInClick() {
     if (now.getTime() > standardStart.getTime()) {
       setModal("late");
       return;
     }
 
-    setRecord((prev) => ({ ...prev, clockInAt: now, isLate: false }));
+    setIsSubmitting(true);
+    const result = await checkInAction();
+    setIsSubmitting(false);
+
+    if (result.success) {
+      toast.success(result.message);
+      loadDashboard(month);
+    } else {
+      toast.error(result.message);
+    }
   }
 
-  function handleLateConfirm(note: string) {
-    setRecord((prev) => ({ ...prev, clockInAt: now, isLate: true, clockInNote: note }));
-    setModal(null);
+  async function handleLateConfirm(note: string) {
+    setIsSubmitting(true);
+    const result = await checkInAction({ clockInNote: note });
+    setIsSubmitting(false);
+
+    if (result.success) {
+      toast.success(result.message);
+      setModal(null);
+      loadDashboard(month);
+    } else {
+      toast.error(result.message);
+    }
   }
 
-  function handleLeaveConfirm(note: string) {
-    setRecord((prev) => ({ ...prev, clockOutAt: now, clockOutNote: note }));
-    setModal(null);
+  async function handleLeaveConfirm(note: string) {
+    setIsSubmitting(true);
+    const result = await checkOutAction({ clockOutType: "NORMAL", clockOutNote: note || undefined });
+    setIsSubmitting(false);
+
+    if (result.success) {
+      toast.success(result.message);
+      setModal(null);
+      loadDashboard(month);
+    } else {
+      toast.error(result.message);
+    }
   }
 
-  function handleOvertimeConfirm(reason: string) {
-    setRecord((prev) => ({ ...prev, overtimeStartedAt: now, overtimeReason: reason }));
-    setModal(null);
+  async function handleOvertimeConfirm(reason: string) {
+    setIsSubmitting(true);
+    const result = await checkOutAction({ clockOutType: "OVERTIME", clockOutNote: reason });
+    setIsSubmitting(false);
+
+    if (result.success) {
+      toast.success(result.message);
+      setModal(null);
+      loadDashboard(month);
+    } else {
+      toast.error(result.message);
+    }
   }
 
-  function handleEditRequestSubmit(type: EditRequestType, changeSummary: string, reason: string) {
-    const request: AttendanceEditRequest = {
-      id: `edit-${now.getTime()}`,
-      targetDate: now,
-      type,
-      changeSummary,
-      reason,
-      requestedAt: now,
-      status: "대기",
-    };
-
-    setEditRequests((prev) => [...prev, request]);
-    setModal(null);
+  async function handleSelectDay(dateStr: string) {
+    try {
+      const detail = await getMyDayDetailAction(dateStr);
+      setSelectedDayDetail(detail);
+      setModal("detail");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "근태 상세 조회에 실패하였습니다.");
+    }
   }
 
-  function handleDemoJump(hour: number, minute: number) {
-    setNow((prev) => {
-      const next = new Date(prev ?? new Date());
-      next.setHours(hour, minute, 0, 0);
-      return next;
-    });
-  }
+  async function handleEditRequestSubmit(payload: Omit<AttendanceCorrectionCreateRequest, "date">) {
+    if (!selectedDayDetail) return;
 
-  function handleDemoReset() {
-    setRecord(createEmptyAttendanceRecord());
-    setEditRequests(INITIAL_MY_EDIT_REQUESTS);
-    setModal(null);
+    setIsSubmitting(true);
+    const result = await createCorrectionRequestAction({ ...payload, date: selectedDayDetail.date });
+    setIsSubmitting(false);
+
+    if (result.success) {
+      toast.success(result.message);
+      setModal(null);
+      setSelectedDayDetail(null);
+      loadMyRequests();
+      loadDashboard(month);
+    } else {
+      toast.error(result.message);
+    }
   }
 
   return (
     <>
-      <main className="h-[calc(100dvh-3.25rem)] overflow-hidden bg-[#FCFCFC] px-5 py-6 pb-16 text-[#172033] lg:px-6">
+      <main className="h-[calc(100dvh-3.25rem)] overflow-hidden bg-[#FCFCFC] px-5 py-6 text-[#172033] lg:px-6">
         <div className="h-full overflow-y-auto scrollbar-hide">
           <div className="mx-auto w-full max-w-[1360px]">
-            <AttendanceTodaySituation />
+            <AttendanceTodaySituation team={team} />
 
             <section className="mt-6">
               <nav aria-label="근태 메뉴" className="flex gap-7 border-b border-[#DCE9DF] text-[12px]">
                 {TABS.map((item) => (
                   <button
-                    className={
-                      tab === item.key
-                        ? "border-b-2 border-[#4D9560] px-1 pb-3 font-semibold"
-                        : "pb-3 text-[#718096]"
-                    }
+                    className={tab === item.key ? "border-b-2 border-[#4D9560] px-1 pb-3 font-semibold" : "pb-3 text-[#718096]"}
                     key={item.key}
                     type="button"
                     onClick={() => setTab(item.key)}
                   >
                     {item.label}
-                    {item.key === "manage" && <span className="ml-1 rounded-full bg-[#172033] px-1.5 py-0.5 text-[8px] text-white">3</span>}
                   </button>
                 ))}
               </nav>
 
               {tab === "mine" && (
                 <div className="mt-5 grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_250px]">
-                  <AttendanceCalendar 
-                    record={record} 
-                    hasEditRequest={hasEditRequestToday} 
-                    onSelectToday={() => setModal("detail")} 
+                  <AttendanceCalendar
+                    days={dashboard.calendar.days}
+                    month={month}
+                    pendingCorrectionDates={pendingCorrectionDates}
+                    onChangeMonth={setMonth}
+                    onSelectDay={handleSelectDay}
                   />
 
                   <aside className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-1">
                     <AttendanceCommuteInformation
-                      now={now}
-                      record={record}
-                      standardStart={standardStart}
-                      standardEnd={standardEnd}
                       canOvertime={canOvertime}
+                      now={now}
+                      today={today}
                       onClockIn={handleClockInClick}
                       onClockOut={() => setModal("leave")}
                       onOvertime={() => setModal("overtime")}
                     />
-                    <AttendanceAnnualLeave />
-                    <AttendanceMyEditRequest 
-                      requests={editRequests} 
-                      onViewAll={() => setTab("myEdits")} 
-                    />
+                    <AttendanceAnnualLeave employment={dashboard.employment} leave={dashboard.leave} />
+                    <AttendanceMyEditRequest requests={myRequests} onViewAll={() => setTab("myEdits")} />
                   </aside>
                 </div>
               )}
@@ -187,7 +311,7 @@ export default function AttendanceBoard() {
 
               {tab === "myEdits" && (
                 <div className="mt-5">
-                  <AttendanceMyEditRequestList requests={editRequests} />
+                  <AttendanceMyEditRequestList requests={myRequests} />
                 </div>
               )}
             </section>
@@ -196,7 +320,7 @@ export default function AttendanceBoard() {
         <button
           aria-label="수정 요청 작성"
           type="button"
-          className="fixed bottom-24 right-6 flex size-12 items-center justify-center rounded-full bg-[#0F172A] text-white shadow-lg"
+          className="fixed bottom-6 right-6 flex size-12 items-center justify-center rounded-full bg-[#0F172A] text-white shadow-lg"
         >
           <Pencil className="size-5" />
         </button>
@@ -209,37 +333,44 @@ export default function AttendanceBoard() {
           onConfirm={handleLateConfirm} 
         />
       }
-      {modal === "leave" && (
+      {modal === "leave" && 
         <AttendanceLeaveWorkModal 
-          now={now}
-          record={record}
-          onCancel={() => setModal(null)}
+          now={now} 
+          today={today} 
+          onCancel={() => setModal(null)} 
           onConfirm={handleLeaveConfirm} 
         />
-      )}
-      {modal === "overtime" && (
+      }
+      {modal === "overtime" && 
         <AttendanceOvertimeWork 
-          now={now}
-          standardEnd={standardEnd}
-          onCancel={() => setModal(null)}
+          now={now} 
+          today={today} 
+          onCancel={() => setModal(null)} 
           onConfirm={handleOvertimeConfirm} 
         />
-      )}
-      {modal === "detail" && (
+      }
+      {modal === "detail" && selectedDayDetail && (
         <AttendanceDetailModal
-          date={now}
-          record={record}
-          hasEditRequest={hasEditRequestToday}
-          onClose={() => setModal(null)}
+          dayDetail={selectedDayDetail}
+          onClose={() => {
+            setModal(null);
+            setSelectedDayDetail(null);
+          }}
           onEditRequest={() => setModal("editRequest")}
         />
       )}
-      {modal === "editRequest" && (
+      {modal === "editRequest" && selectedDayDetail && (
         <AttendanceCreateEditRequestModal 
-          date={now}
-          record={record}
-          onCancel={() => setModal(null)} onSubmit={handleEditRequestSubmit} 
+          dayDetail={selectedDayDetail} 
+          onCancel={() => setModal("detail")}
+          onSubmit={handleEditRequestSubmit} 
         />
+      )}
+
+      {isSubmitting && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/10">
+          <div className="rounded-lg bg-white px-4 py-2 text-[12px] text-[#718096] shadow">처리 중입니다...</div>
+        </div>
       )}
     </>
   );
