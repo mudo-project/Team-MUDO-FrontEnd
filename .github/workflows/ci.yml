@@ -1,0 +1,54 @@
+# Pull Request의 코드 품질과 프로덕션 빌드 가능성을 검증하는 CI workflow다.
+name: CI
+
+# develop 또는 main을 대상으로 하는 PR이 생성되거나 갱신될 때 실행한다.
+on:
+  pull_request:
+    branches: [develop, main]
+
+# 소스 checkout에 필요한 최소 읽기 권한만 부여한다.
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Lint, test and build
+    # GitHub가 제공하는 최신 Ubuntu runner에서 검증한다.
+    runs-on: ubuntu-latest
+    # 비정상적으로 오래 실행되는 Job을 자동 종료한다.
+    timeout-minutes: 20
+    # NEXT_PUBLIC 환경변수는 Next.js 빌드 시 브라우저 번들에 포함되는 공개값이다.
+    env:
+      NEXT_PUBLIC_API_BASE_URL: ${{ vars.NEXT_PUBLIC_API_BASE_URL }}
+
+    steps:
+      # PR에 포함된 소스 코드를 runner로 내려받는다.
+      - name: Checkout source code
+        uses: actions/checkout@v6
+
+      # Dockerfile과 동일한 Node.js 20을 사용하고 npm 다운로드 cache를 활성화한다.
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: npm
+
+      # Repository Variable 누락으로 잘못된 프론트 이미지를 만들지 않도록 먼저 실패시킨다.
+      - name: Validate build configuration
+        run: test -n "$NEXT_PUBLIC_API_BASE_URL"
+
+      # package-lock.json을 기준으로 동일한 의존성을 설치한다.
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      # ESLint 정적 검사를 실행한다.
+      - name: Run lint
+        run: npm run lint
+
+      # Jest 단위·통합 테스트를 한 프로세스에서 순차 실행한다.
+      - name: Run unit and integration tests
+        run: npm test -- --runInBand
+
+      # Next.js 프로덕션 빌드와 TypeScript 검사를 최종 확인한다.
+      - name: Run production build
+        run: npm run build
