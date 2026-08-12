@@ -14,6 +14,8 @@ type LoginResponse = AuthApiResponse<AccessTokenData>;
 
 interface AccessTokenData {
     accessToken: string;
+    mustChangePw: boolean;
+    permissions: string[];
 }
 
 type LogoutResponse = AuthApiResponse<null>;

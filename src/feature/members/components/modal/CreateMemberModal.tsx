@@ -18,9 +18,17 @@ interface RoleOption {
     name: string;
 }
 
+interface Temporary {
+    username: string;
+    temporaryPassword: string;
+}
+
 export default function CreateMemberModal({ closeModal }: { closeModal: () => void }) {
     const [roles, setRoles] = useState<RoleOption[]>([]);
-    const [link, setLink] = useState<string | undefined>('');
+    const [temporary, setTemporary] = useState<Temporary>({
+        username: '',
+        temporaryPassword: ''
+    });
     const modal = useModal(handleCloseAll);
     const router = useRouter();
 
@@ -50,7 +58,7 @@ export default function CreateMemberModal({ closeModal }: { closeModal: () => vo
     });
 
     const handleClose = () => {
-        if (link) {
+        if (temporary.temporaryPassword || temporary.username) {
             modal.openModal();
             return;
         }
@@ -75,7 +83,10 @@ export default function CreateMemberModal({ closeModal }: { closeModal: () => vo
 
             if (response.success) {
                 toast.success(response.message);
-                setLink(response.data?.passwordSetupLink)
+                setTemporary({
+                    username: response.data?.username ?? '',
+                    temporaryPassword: response.data?.temporaryPassword ?? ''
+                })
             } else {
                 toast.error(response.message);
             }
@@ -86,7 +97,7 @@ export default function CreateMemberModal({ closeModal }: { closeModal: () => vo
 
     const handleCopy = async () => {
         try {
-            await navigator.clipboard.writeText(link as string);
+            await navigator.clipboard.writeText(`아이디: ${temporary.username} 비밀번호: ${temporary.temporaryPassword}`);
 
             toast.success('복사되었습니다')
         } catch (error) {
@@ -153,17 +164,19 @@ export default function CreateMemberModal({ closeModal }: { closeModal: () => vo
 
 
                 </div>
-                {(typeof link === 'string' && link) ? (
-                    <div className="mt-5 flex w-full items-center gap-3 rounded-[10px] border border-[#D7E8DB] bg-[#EDF0F4] px-4 py-3.5">
+                {(temporary.username && temporary.temporaryPassword) ? (
+                    <div className="mt-5 flex w-full items-center gap-5 rounded-[10px] border border-[#D7E8DB] bg-[#EDF0F4] px-4 py-3.5">
                         <button
                             type="button"
                             onClick={handleCopy}
                             aria-label="링크 복사"
-                            className="ml-auto"
                         >
                             <Copy size={14} />
                         </button>
-                        <p className="text-[13px] font-semibold leading-[19.5px] text-[#0F172A]">{link}</p>
+                        <div>
+                            <p className="text-[13px] font-semibold leading-[19.5px] text-[#0F172A]">아이디: {temporary.username} </p>
+                            <p className="text-[13px] font-semibold leading-[19.5px] text-[#0F172A]">비밀번호: {temporary.temporaryPassword} </p>
+                        </div>
                     </div>
                 ) : (
                     <div className="mt-5 flex w-full justify-end gap-2">
@@ -188,7 +201,7 @@ export default function CreateMemberModal({ closeModal }: { closeModal: () => vo
                 <TwoButtonModal
                     closeModal={modal.closeModal}
                     activeModal={modal.activeModal}
-                    content={`비밀번호 저장 링크는 재조회가 불가능합니다. 저장하셨습니까?`}
+                    content={`임시비밀번호는 재조회가 불가능합니다. 저장하셨습니까?`}
                     title="계정 생성" />
             )}
 
