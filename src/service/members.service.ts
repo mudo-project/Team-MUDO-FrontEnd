@@ -6,6 +6,8 @@ import {
     CreateEmployeeAccountResponse,
     MemberListParams,
     MemberListResponse,
+    UpdateMemberRequest,
+    ChangeMemberStatusRequest,
 } from "@/feature/members/type";
 
 export const createEmployeeAccount = async (
@@ -68,4 +70,40 @@ export const getMemberList = async (
     }
 
     return response.json();
+};
+
+export const updateMember = async (
+    userId: number,
+    payload: UpdateMemberRequest,
+): Promise<void> => {
+    const response = await fetchWithAuth(`/api/users/${userId}`, {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+        const message = await getErrorMessage(
+            response,
+            "구성원 정보 수정에 실패했습니다.",
+        );
+        throw new Error(message);
+    }
+};
+
+export const changeMemberStatus = async (
+    userId: number,
+    payload: ChangeMemberStatusRequest,
+): Promise<void> => {
+    const response = await fetchWithAuth(`/api/users/${userId}/status`, {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+        const message = await getErrorMessage(
+            response,
+            "구성원 재직 상태 변경에 실패했습니다.",
+        );
+        throw new Error(message);
+    }
 };

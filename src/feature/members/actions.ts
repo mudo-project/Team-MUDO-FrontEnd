@@ -2,14 +2,18 @@
 
 import {
     changeEmployeeRole,
+    changeMemberStatus,
     createEmployeeAccount,
     getMemberList,
+    updateMember,
 } from "@/service/members.service";
 import {
     CreateEmployeeAccountData,
     CreateEmployeeAccountRequest,
     MemberListPageData,
     MemberListParams,
+    MemberAccountStatus,
+    UpdateMemberRequest,
 } from "./type";
 
 export interface MembersActionResult<T = undefined> {
@@ -95,6 +99,62 @@ export const getMemberListAction = async (
         return {
             success: false,
             message: getActionErrorMessage(error, "구성원 목록 조회에 실패했습니다."),
+        };
+    }
+};
+
+export const updateMemberAction = async (
+    userId: number,
+    payload: UpdateMemberRequest,
+): Promise<MembersActionResult> => {
+    if (!isPositiveInteger(userId)) {
+        return { success: false, message: "사용자 번호가 올바르지 않습니다." };
+    }
+
+    if (payload.name !== undefined && (!payload.name.trim() || payload.name.length > 50)) {
+        return { success: false, message: "이름은 1자 이상 50자 이하로 입력해주세요." };
+    }
+
+    if (payload.phone !== undefined && payload.phone.length > 20) {
+        return { success: false, message: "전화번호는 20자 이하로 입력해주세요." };
+    }
+
+    if (payload.email !== undefined && payload.email.length > 100) {
+        return { success: false, message: "이메일은 100자 이하로 입력해주세요." };
+    }
+
+    try {
+        await updateMember(userId, payload);
+
+        return { success: true, message: "구성원 정보를 수정했습니다." };
+    } catch (error) {
+        return {
+            success: false,
+            message: getActionErrorMessage(error, "구성원 정보 수정에 실패했습니다."),
+        };
+    }
+};
+
+export const changeMemberStatusAction = async (
+    userId: number,
+    status: MemberAccountStatus,
+): Promise<MembersActionResult> => {
+    if (!isPositiveInteger(userId)) {
+        return { success: false, message: "사용자 번호가 올바르지 않습니다." };
+    }
+
+    if (!["ACTIVE", "RESIGNED", "INACTIVE"].includes(status)) {
+        return { success: false, message: "재직 상태가 올바르지 않습니다." };
+    }
+
+    try {
+        await changeMemberStatus(userId, { status });
+
+        return { success: true, message: "구성원 재직 상태를 변경했습니다." };
+    } catch (error) {
+        return {
+            success: false,
+            message: getActionErrorMessage(error, "구성원 재직 상태 변경에 실패했습니다."),
         };
     }
 };
