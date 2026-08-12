@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
-import Header from "@/components/layout/Header";
-import Sidebar from "@/components/layout/Sidebar";
+import { Toaster } from "@/components/ui/sonner";
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-sans' });
 
@@ -21,13 +20,11 @@ export default function RootLayout({
     <html
       lang="en" className={cn("font-sans", geist.variable)}
     >
-      <body className="min-h-full flex overflow-auto scrollbar-hide">
-        <Sidebar />
-
-        <div className="flex-1">
-          <Header />
-          {children}
-        </div>
+      <body className="overflow-hidden">
+        {children}
+        <Toaster
+          position="top-center"
+        />
       </body>
     </html>
   );

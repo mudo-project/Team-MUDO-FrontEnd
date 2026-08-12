@@ -1,0 +1,70 @@
+// 메모 색상 코드
+type MemoColorCode =
+    | "ROSE"
+    | "MUSTARD"
+    | "SAGE"
+    | "BLUE"
+    | "LAVENDER"
+    | "PINK"
+    | "SLATE"
+    | "PEACH"
+    | "TEAL"
+    | "OLIVE"
+    | "CLAY"
+    | "INDIGO";
+
+// 메모 정렬 기준
+type MemoSortOrder = "NEWEST" | "OLDEST";
+
+// 메모 목록조회 응답 데이터값
+interface MemoData {
+    id: number;
+    title: string;
+    content: string | null;
+    color: MemoColorCode;
+    positionX: number | null;
+    positionY: number | null;
+    width: number | null;
+    height: number | null;
+    createdAt: string;
+    updatedAt: string;
+}
+
+// 메모 목록조회 응답값
+interface MemoListResponse {
+    status: number;
+    code: string;
+    message: string;
+    data: MemoData[];
+}
+
+// 메모 생성 요청값
+interface MemoCreateRequest {
+    title: string;
+    content?: string;
+    color: MemoColorCode;
+}
+
+// 메모 생성 응답 데이터값
+interface MemoCreateData {
+    id: number;
+}
+
+// 메모 생성 응답값
+interface MemoCreateResponse {
+    status: number;
+    code: string;
+    message: string;
+    data: MemoCreateData;
+}
+
+// 메모 수정 요청값
+interface MemoUpdateRequest {
+    title: string;
+    content?: string;
+}
+
+// 메모 색상 변경 요청값
+interface MemoColorChangeRequest {
+    color: MemoColorCode;
+}

@@ -127,6 +127,15 @@
     @apply bg-background text-foreground;
   }
 
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #D0D5DC;
+    border-radius: 6px;
+  }
+
   html {
     @apply font-sans;
   }
