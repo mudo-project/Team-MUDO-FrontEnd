@@ -22,9 +22,6 @@ export default function AttendanceEmployeesDetail({ employee, date, onBack }: At
   useEffect(() => {
     let cancelled = false;
 
-    setIsLoading(true);
-    setError(null);
-
     getEmployeeWeeklyAction(employee.userId, { date })
       .then((data) => {
         if (!cancelled) setDetail(data);

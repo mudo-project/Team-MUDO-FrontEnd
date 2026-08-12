@@ -25,23 +25,23 @@ export default function MemoContainer() {
     const [memos, setMemos] = useState<MemoData[]>([])
     const [isLoading, setIsLoading] = useState(false)
 
-    const fetchMemos = useCallback(async () => {
-        setIsLoading(true);
-
-        try {
-            const data = await getMemoListAction(SORT_ORDER_TO_API[sortOrder]);
-            setMemos(data);
-        } catch (error) {
-            const message = error instanceof Error ? error.message : "메모 목록 조회에 실패하였습니다.";
-            toast.error(message);
-        } finally {
-            setIsLoading(false);
-        }
+    const fetchMemos = useCallback(() => {
+        return Promise.resolve()
+            .then(() => {
+                setIsLoading(true);
+                return getMemoListAction(SORT_ORDER_TO_API[sortOrder]);
+            })
+            .then(setMemos)
+            .catch((error) => {
+                const message = error instanceof Error ? error.message : "메모 목록 조회에 실패하였습니다.";
+                toast.error(message);
+            })
+            .finally(() => setIsLoading(false));
     }, [sortOrder]);
 
     useEffect(() => {
         if (isOpen) {
-            fetchMemos();
+            void fetchMemos();
         }
     }, [isOpen, fetchMemos]);
 
@@ -53,7 +53,7 @@ export default function MemoContainer() {
         if (result.success) {
             toast.success(result.message);
             setIsCreating(false);
-            fetchMemos();
+            void fetchMemos();
         } else {
             toast.error(result.message);
         }

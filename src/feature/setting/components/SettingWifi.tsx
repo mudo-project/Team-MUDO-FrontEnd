@@ -19,18 +19,17 @@ export default function SettingWifi() {
   const [isChecking, setIsChecking] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  const fetchWifiIps = useCallback(async () => {
-    try {
-      const data = await getWifiIpListAction();
-      setWifiIps(data);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "와이파이 IP 목록 조회에 실패하였습니다.";
-      toast.error(message);
-    }
+  const fetchWifiIps = useCallback(() => {
+    return getWifiIpListAction()
+      .then(setWifiIps)
+      .catch((error) => {
+        const message = error instanceof Error ? error.message : "와이파이 IP 목록 조회에 실패하였습니다.";
+        toast.error(message);
+      });
   }, []);
 
   useEffect(() => {
-    fetchWifiIps();
+    void fetchWifiIps();
   }, [fetchWifiIps]);
 
   const trimmedIpInput = ipInput.trim();
@@ -65,7 +64,7 @@ export default function SettingWifi() {
 
     if (result.success) {
       toast.success(result.message);
-      fetchWifiIps();
+      void fetchWifiIps();
     } else {
       toast.error(result.message);
     }
@@ -76,7 +75,7 @@ export default function SettingWifi() {
 
     if (result.success) {
       toast.success(result.message);
-      fetchWifiIps();
+      void fetchWifiIps();
     } else {
       toast.error(result.message);
     }
