@@ -111,18 +111,6 @@ export const updateMemberAction = async (
         return { success: false, message: "사용자 번호가 올바르지 않습니다." };
     }
 
-    if (payload.name !== undefined && (!payload.name.trim() || payload.name.length > 50)) {
-        return { success: false, message: "이름은 1자 이상 50자 이하로 입력해주세요." };
-    }
-
-    if (payload.phone !== undefined && payload.phone.length > 20) {
-        return { success: false, message: "전화번호는 20자 이하로 입력해주세요." };
-    }
-
-    if (payload.email !== undefined && payload.email.length > 100) {
-        return { success: false, message: "이메일은 100자 이하로 입력해주세요." };
-    }
-
     try {
         await updateMember(userId, payload);
 
