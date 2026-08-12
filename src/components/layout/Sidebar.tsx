@@ -11,6 +11,9 @@ import { logoutAction } from "@/feature/auth/actions";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useUserStore } from "@/store/useUserStore";
+import MyMenu from "./MyMenu";
+import { decodeJWT } from "@/lib/decode";
 
 type MenuItem = {
     label: string;
@@ -26,11 +29,18 @@ export default function Sidebar() {
     const [approvalPendingCount, setApprovalPendingCount] = useState(0);
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
     const profileMenuRef = useRef<HTMLDivElement>(null);
-    const router = useRouter();
+    const user = useUserStore((state) => state.user);
+    const setUser = useUserStore((state) => state.setUser);
+    const permissions = useUserStore((state) => state.permissions);
 
     useEffect(() => {
         let cancelled = false;
-
+        const decode = async () => {
+            const user = await decodeJWT();
+            if (user) {
+                setUser(user);
+            }
+        }
         const loadApprovalPendingCount = async () => {
             const response = await getApprovalPendingCountAction();
 
@@ -39,6 +49,7 @@ export default function Sidebar() {
             }
         };
 
+        decode();
         loadApprovalPendingCount();
 
         return () => {
@@ -77,17 +88,6 @@ export default function Sidebar() {
         { label: "설정", href: "/setting", icon: 'Settings' },
     ];
 
-    const handleLogout = async () => {
-        const response = await logoutAction();
-
-        if (!response.success) {
-            toast.error(response.message);
-            return;
-        }
-
-        router.replace("/auth");
-        router.refresh();
-    };
 
 
     return (
@@ -110,28 +110,7 @@ export default function Sidebar() {
 
             <div ref={profileMenuRef} className="relative mt-auto shrink-0 border-t border-white/8">
                 {isProfileMenuOpen && (
-                    <div className="absolute right-2 bottom-[58px] w-[203px] overflow-hidden rounded-[12px] bg-white py-1 shadow-[0_8px_16px_rgba(22,34,54,0.18)]">
-                        <div className="border-b border-[#D7E8DB] px-4 py-3">
-                            <strong className="block text-[14px] font-semibold text-[#0F172A]">김지수</strong>
-                            <span className="mt-1 block text-[12px] text-[#64748B]">원장</span>
-                        </div>
-                        <Link
-                            className="flex h-11 items-center gap-3 px-4 text-[14px] text-[#0F172A] hover:bg-[#F2F8F4]"
-                            href="/mypage"
-                            onClick={() => setIsProfileMenuOpen(false)}
-                        >
-                            <Settings className="size-4" strokeWidth={1.8} />
-                            마이페이지
-                        </Link>
-                        <button
-                            className="flex h-11 w-full items-center gap-3 px-4 text-left text-[14px] text-[#0F172A] hover:bg-[#F2F8F4]"
-                            onClick={handleLogout}
-                            type="button"
-                        >
-                            <LogOut className="size-4" strokeWidth={1.8} />
-                            로그아웃
-                        </button>
-                    </div>
+                    <MyMenu setIsProfileMenuOpen={setIsProfileMenuOpen} />
                 )}
 
                 <button
@@ -141,11 +120,10 @@ export default function Sidebar() {
                     type="button"
                 >
                     <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#2C8D50] text-[8px] font-semibold text-white">
-                        김지
+                        {user.username.slice(0, 2)}
                     </span>
                     <span className="ml-2 leading-none">
-                        <strong className="block text-[10px] font-medium text-white">김지수</strong>
-                        <span className="mt-1 block text-[8px] text-[#94A3B8]">원장</span>
+                        <strong className="block text-[10px] font-medium text-white">{user.username}</strong>
                     </span>
                     <span className="ml-auto text-[11px] text-[#CBD5E1]">⌃</span>
                 </button>
