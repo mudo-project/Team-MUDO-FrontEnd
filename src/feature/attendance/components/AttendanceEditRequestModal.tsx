@@ -1,16 +1,22 @@
 "use client";
 
 import { X } from "lucide-react";
-import { EDIT_REQUEST_TYPE_LABEL, formatDateWithWeekday, type AttendanceEditRequest } from "../attendanceDemo";
+import {
+  CORRECTION_STATUS_LABEL,
+  formatCorrectionChangeSummary,
+  formatDateLabel,
+  formatDateTimeLabel,
+  getCorrectionTypeLabel,
+} from "../attendanceFormat";
 
-const STATUS_TEXT_CLASS: Record<AttendanceEditRequest["status"], string> = {
-  대기: "text-[#718096]",
-  승인: "text-[#4D9560]",
-  반려: "text-[#C65A50]",
+const STATUS_TEXT_CLASS: Record<AttendanceCorrectionStatus, string> = {
+  PENDING: "text-[#718096]",
+  APPROVED: "text-[#4D9560]",
+  REJECTED: "text-[#C65A50]",
 };
 
 type AttendanceEditRequestModalProps = {
-  request: AttendanceEditRequest;
+  request: AttendanceMyCorrectionRequestData;
   onClose: () => void;
 };
 
@@ -22,12 +28,7 @@ export default function AttendanceEditRequestModal({ request, onClose }: Attenda
       <div className="w-full max-w-[420px] rounded-2xl bg-white p-6">
         <div className="flex items-center justify-between">
           <h2 className="text-[16px] font-bold text-[#172033]">내 근태 수정 상세조회</h2>
-          <button 
-            aria-label="닫기"
-            className="text-[#94A3B8] hover:text-[#64748B]"
-            type="button"
-            onClick={onClose}
-          >
+          <button aria-label="닫기" className="text-[#94A3B8] hover:text-[#64748B]" type="button" onClick={onClose}>
             <X className="size-5" strokeWidth={1.8} />
           </button>
         </div>
@@ -35,19 +36,19 @@ export default function AttendanceEditRequestModal({ request, onClose }: Attenda
         <dl className="mt-4 space-y-2 rounded-lg bg-[#F8FAFC] px-4 py-3 text-[13px]">
           <div className="flex items-center justify-between">
             <dt className="text-[#718096]">요청 상태</dt>
-            <dd className={`font-semibold ${STATUS_TEXT_CLASS[request.status]}`}>{request.status}</dd>
+            <dd className={`font-semibold ${STATUS_TEXT_CLASS[request.status]}`}>{CORRECTION_STATUS_LABEL[request.status]}</dd>
           </div>
           <div className="flex items-center justify-between">
             <dt className="text-[#718096]">대상일자</dt>
-            <dd className="font-medium text-[#172033]">{formatDateWithWeekday(request.targetDate)}</dd>
+            <dd className="font-medium text-[#172033]">{formatDateLabel(request.date)}</dd>
           </div>
           <div className="flex items-center justify-between">
             <dt className="text-[#718096]">요청 구분</dt>
-            <dd className="font-medium text-[#172033]">{EDIT_REQUEST_TYPE_LABEL[request.type]}</dd>
+            <dd className="font-medium text-[#172033]">{getCorrectionTypeLabel(request.type)}</dd>
           </div>
           <div className="flex items-center justify-between">
             <dt className="text-[#718096]">변경 내용</dt>
-            <dd className="font-medium text-[#172033]">{request.changeSummary}</dd>
+            <dd className="font-medium text-[#172033]">{formatCorrectionChangeSummary(request)}</dd>
           </div>
         </dl>
 
@@ -56,9 +57,14 @@ export default function AttendanceEditRequestModal({ request, onClose }: Attenda
           <p className="mt-1 whitespace-pre-wrap break-words text-[13px] text-[#344054]">{request.reason}</p>
         </div>
 
-        <p className="mt-4 border-t border-[#EEF2F1] pt-4 text-[11px] text-[#94A3B8]">
-          요청일시 {formatDateWithWeekday(request.requestedAt)}
-        </p>
+        {request.status === "REJECTED" && request.rejectionReason && (
+          <div className="mt-3">
+            <p className="text-[11px] font-medium text-[#718096]">반려 사유</p>
+            <p className="mt-1 whitespace-pre-wrap break-words text-[13px] text-[#C65A50]">{request.rejectionReason}</p>
+          </div>
+        )}
+
+        <p className="mt-4 border-t border-[#EEF2F1] pt-4 text-[11px] text-[#94A3B8]">요청일시 {formatDateTimeLabel(request.requestedAt)}</p>
       </div>
     </div>
   );

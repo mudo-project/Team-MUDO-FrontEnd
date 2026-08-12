@@ -3,40 +3,35 @@
 import { useState } from "react";
 import AttendanceMyEditRequestItem from "./AttendanceMyEditRequestItem";
 import AttendanceEditRequestModal from "./AttendanceEditRequestModal";
-import type { AttendanceEditRequest } from "../attendanceDemo";
+import { CORRECTION_STATUS_LABEL } from "../attendanceFormat";
 
-type FilterTab = "전체" | "대기" | "승인" | "반려";
+type FilterTab = "전체" | "PENDING" | "APPROVED" | "REJECTED";
 
-const FILTERS: FilterTab[] = ["전체", "대기", "승인", "반려"];
+const FILTERS: FilterTab[] = ["전체", "PENDING", "APPROVED", "REJECTED"];
 
 type AttendanceMyEditRequestListProps = {
-  requests: AttendanceEditRequest[];
+  requests: AttendanceMyCorrectionRequestData[];
 };
 
 export default function AttendanceMyEditRequestList({ requests }: AttendanceMyEditRequestListProps) {
   const [filter, setFilter] = useState<FilterTab>("전체");
-  const [selectedRequest, setSelectedRequest] = useState<AttendanceEditRequest | null>(null);
+  const [selectedRequest, setSelectedRequest] = useState<AttendanceMyCorrectionRequestData | null>(null);
 
   const visibleRequests = filter === "전체" ? requests : requests.filter((request) => request.status === filter);
 
   return (
     <div>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1">
         {FILTERS.map((item) => (
           <button
-            className={`flex h-9 items-center gap-1.5 rounded-lg px-3 text-[12px] font-medium ${
+            className={`h-9 rounded-lg px-3 text-[12px] font-medium ${
               filter === item ? "bg-[#172033] text-white" : "border border-[#DCE9DF] bg-white text-[#64748B]"
             }`}
             key={item}
             type="button"
             onClick={() => setFilter(item)}
           >
-            {item}
-            {item === "대기" && (
-              <span className={`rounded-full px-1.5 py-0.5 text-[9px] ${filter === item ? "bg-white/20" : "bg-[#F1F5F2] text-[#718096]"}`}>
-                {requests.filter((request) => request.status === "대기").length}
-              </span>
-            )}
+            {item === "전체" ? item : CORRECTION_STATUS_LABEL[item]}
           </button>
         ))}
       </div>
@@ -61,24 +56,13 @@ export default function AttendanceMyEditRequestList({ requests }: AttendanceMyEd
                 </td>
               </tr>
             ) : (
-              visibleRequests.map((request) => (
-                <AttendanceMyEditRequestItem 
-                  key={request.id}
-                  request={request}
-                  onSelect={setSelectedRequest}
-                />
-              ))
+              visibleRequests.map((request) => <AttendanceMyEditRequestItem key={request.requestId} request={request} onSelect={setSelectedRequest} />)
             )}
           </tbody>
         </table>
       </div>
 
-      {selectedRequest && 
-        <AttendanceEditRequestModal 
-          request={selectedRequest}
-          onClose={() => setSelectedRequest(null)} 
-        />
-      }
+      {selectedRequest && <AttendanceEditRequestModal request={selectedRequest} onClose={() => setSelectedRequest(null)} />}
     </div>
   );
 }
