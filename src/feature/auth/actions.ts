@@ -10,9 +10,9 @@ export interface AuthActionResult<T = undefined> {
 }
 
 export const loginAction = async (
-    prevState: AuthActionResult,
+    prevState: AuthActionResult<AccessTokenData>,
     formData: FormData,
-): Promise<AuthActionResult> => {
+): Promise<AuthActionResult<AccessTokenData>> => {
     const username = String(formData.get("username") ?? "").trim();
     const password = String(formData.get("password") ?? "").trim();
 
@@ -54,6 +54,7 @@ export const loginAction = async (
         return {
             success: true,
             message: "로그인에 성공했습니다.",
+            data: responseData.data
         };
     } catch (error) {
         return {

@@ -5,6 +5,8 @@ import { useActionState, useEffect, useState } from "react";
 import { loginAction } from "../actions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { useUserStore } from "@/store/useUserStore";
+import { decodeJWT } from "@/lib/decode";
 
 export default function LoginForm() {
     const route = useRouter();
@@ -12,12 +14,33 @@ export default function LoginForm() {
     const [state, loginFormAction, ispending] = useActionState(loginAction, {
         success: false,
         message: '',
+        data: undefined
     })
+    const setPermissions = useUserStore((state) => state.setPermissions);
+    const setUser = useUserStore((state) => state.setUser);
+
 
     useEffect(() => {
+
+        const decode = async () => {
+            const user = await decodeJWT();
+            if (user) {
+                setUser(user);
+            }
+        }
+
         if (state.success) {
             toast.success(state.message);
-            route.push('/role');
+            if (state.data) {
+                decode();
+                setPermissions(state.data.permissions);
+            }
+            if (state.data?.mustChangePw) {
+                route.push('/password-setup');
+            } else {
+                route.push('/role');
+            }
+
         } else {
             toast.error(state.message)
         }
