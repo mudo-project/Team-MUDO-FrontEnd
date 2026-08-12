@@ -36,3 +36,13 @@ export const authEditSchema = z.object({
 
 export type authEditFormValues = z.infer<typeof authEditSchema>;
 
+export const myInfoUpdateSchema = z.object({
+    email: z
+        .email({ message: '올바른 이메일 형식이 아닙니다.' }),
+    phone: z
+        .string()
+        .regex(/^\d{3}-\d{4}-\d{4}$/, { message: '전화번호 형식이 맞지 않습니다. (예: 010-1234-5678)' }),
+})
+
+
+export type myInfoUpdateFormValues = z.infer<typeof myInfoUpdateSchema>;
