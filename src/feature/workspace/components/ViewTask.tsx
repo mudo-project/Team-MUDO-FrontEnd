@@ -1,15 +1,22 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import { ChevronDown, X } from "lucide-react";
-import { Dispatch, SetStateAction } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Calendar, X } from "lucide-react";
+import { Dispatch, SetStateAction, useRef } from "react";
 import {
+    changeWorkspaceTaskAction,
     getWorkspaceTaskCommentListAction,
     getWorkspaceTaskDetailAction,
 } from "../actions";
-import { WorkspaceMemberData, WorkspaceTaskStatus } from "../type";
+import {
+    ChangeWorkspaceTaskRequest,
+    WorkspaceMemberData,
+    WorkspaceTaskStatus,
+} from "../type";
 import CommentBar from "./CommentBar";
 import TaskComment from "./TaskComment";
+import TaskDeleteButton from "./TaskDeleteButton";
+import { toast } from "sonner";
 
 const statusLabel: Record<WorkspaceTaskStatus, string> = {
     WAITING: "대기",
@@ -31,6 +38,9 @@ export default function ViewTask({
     workspaceId,
     workspaceMembers,
 }: ViewTaskProps) {
+    const dateRef = useRef<HTMLInputElement>(null);
+    const queryClient = useQueryClient();
+
     const {
         data: taskData,
         isPending: taskPending,
@@ -53,6 +63,35 @@ export default function ViewTask({
             ),
     });
 
+    const changeTaskMutation = useMutation({
+        mutationFn: (payload: ChangeWorkspaceTaskRequest) =>
+            changeWorkspaceTaskAction(
+                Number(workspaceId),
+                selectedTask,
+                payload,
+            ),
+        onSuccess: (result) => {
+            if (!result.success) {
+                toast.error(result.message);
+                return;
+            }
+
+            void queryClient.invalidateQueries({
+                queryKey: ["task", workspaceId, selectedTask],
+            });
+            void queryClient.invalidateQueries({
+                queryKey: ["workspace", workspaceId],
+            });
+            void queryClient.invalidateQueries({
+                queryKey: ["my-workspace-tasks"],
+            });
+            toast.success(result.message);
+        },
+        onError: (error) => {
+            toast.error(error.message);
+        },
+    });
+
     const task = taskData?.data;
     const comments = commentData?.data?.content ?? [];
     const completedCommentCount = comments.filter(
@@ -69,7 +108,7 @@ export default function ViewTask({
     return (
         <aside className="fixed top-[52px] right-0 bottom-0 z-100 w-[44.3vw] min-w-[520px] max-w-[850px] border-l border-[#D7E8DB] bg-[#FCFCFC] shadow-[-8px_0_20px_rgba(22,34,54,0.06)]">
             <div className="flex h-full flex-col">
-                <header className="flex items-start border-b border-[#D7E8DB] px-5 py-4">
+                <header className="flex items-start border-b border-[#D7E8DB] px-5 py-4 gap-2">
                     <div>
                         <h2 className="text-[15px] leading-[22.5px] font-bold text-[#0F172A]">
                             {task?.title ?? "업무 상세"}
@@ -80,9 +119,10 @@ export default function ViewTask({
                             </p>
                         )}
                     </div>
+                    <TaskDeleteButton workspaceId={workspaceId} selectedTask={selectedTask} setSelectedTask={setSelectedTask} />
                     <button
                         aria-label="업무 상세 닫기"
-                        className="ml-auto flex size-4 items-center justify-center text-[#C0C8D0]"
+                        className=" flex size-4 items-center justify-center text-[#C0C8D0]"
                         onClick={() => setSelectedTask(undefined)}
                         type="button"
                     >
@@ -107,19 +147,60 @@ export default function ViewTask({
                             <dl className="grid grid-cols-[72px_1fr] items-center gap-y-3 text-[12px] leading-[18px]">
                                 <dt className="text-[#94A3B8]">상태</dt>
                                 <dd>
-                                    <button
-                                        className="flex h-7 items-center gap-1.5 rounded-[6px] bg-[#FFF7D6] px-2.5 text-[11px] font-medium text-[#B88A00]"
-                                        type="button"
+                                    <select
+                                        className="flex h-7 items-center gap-1.5 rounded-[6px] bg-[#F3F5F8] px-2.5 text-[11px] font-medium text-[#6B7280] focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
+                                        disabled={changeTaskMutation.isPending}
+                                        onChange={(event) =>
+                                            changeTaskMutation.mutate({
+                                                status: event.target.value as WorkspaceTaskStatus,
+                                            })
+                                        }
+                                        value={task.status}
                                     >
-                                        {statusLabel[task.status]}
-                                        <ChevronDown className="size-3" strokeWidth={1.5} />
-                                    </button>
+                                        <option value='WAITING'>
+                                            대기
+                                        </option>
+                                        <option value='IN_PROGRESS'>
+                                            진행중
+                                        </option>
+                                        <option value='COMPLETED'>
+                                            완료
+                                        </option>
+                                        <option value='DELAYED'>
+                                            지연
+                                        </option>
+                                    </select>
                                 </dd>
 
                                 <dt className="text-[#94A3B8]">기한</dt>
-                                <dd className="text-[#64748B]">
+                                <dd className="text-[#64748B] flex gap-2 items-center">
                                     {task.dueAt ?? "기한 없음"}
+
+                                    <label
+                                        htmlFor="date"
+                                        onClick={(event) => {
+                                            event.preventDefault();
+                                            dateRef.current?.showPicker();
+                                        }}
+                                        className="flex"
+                                    >
+                                        <input
+                                            className="invisible w-0.5"
+                                            disabled={changeTaskMutation.isPending}
+                                            id="date"
+                                            name="date"
+                                            onChange={(event) =>
+                                                changeTaskMutation.mutate({
+                                                    dueAt: event.target.value,
+                                                })
+                                            }
+                                            ref={dateRef}
+                                            type="date"
+                                        />
+                                        <Calendar size='15' className="text-[#64748B]" />
+                                    </label>
                                 </dd>
+
 
                                 <dt className="text-[#94A3B8]">상태 변경</dt>
                                 <dd className="text-[#64748B]">
