@@ -3,21 +3,33 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useTaskCommentEditStore } from "@/store/useTaskCommentEditStore";
 import { deleteWorkspaceTaskCommentAction } from "../actions";
 
 interface TaskCommentMenuProps {
     workspaceId: string;
     taskId: number;
     commentId: number;
+    content: string;
+    mentionedUserIds?: number[];
+    authorName: string;
+    createdAt: string;
+    closeMenu: () => void;
 }
 
 export default function TaskCommentMenu({
     workspaceId,
     taskId,
     commentId,
+    content,
+    mentionedUserIds,
+    authorName,
+    createdAt,
+    closeMenu,
 }: TaskCommentMenuProps) {
 
     const queryClient = useQueryClient();
+    const setEditingComment = useTaskCommentEditStore((state) => state.setEditingComment);
     const [error, setError] = useState("");
 
     const deleteMutation = useMutation({
@@ -49,6 +61,16 @@ export default function TaskCommentMenu({
                 onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
+                    setEditingComment({
+                        workspaceId: Number(workspaceId),
+                        taskId,
+                        commentId,
+                        content,
+                        mentionedUserIds,
+                        authorName,
+                        createdAt,
+                    });
+                    closeMenu();
                 }}
                 type="button"
             >

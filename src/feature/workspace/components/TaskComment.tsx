@@ -114,7 +114,12 @@ export default function TaskComment({
 
                 {isMenuOpen && (
                     <TaskCommentMenu
+                        authorName={comment.author.name}
                         commentId={comment.commentId}
+                        closeMenu={() => setIsMenuOpen(false)}
+                        content={comment.content}
+                        createdAt={comment.createdAt}
+                        mentionedUserIds={comment.mentionedUserIds}
                         taskId={taskId}
                         workspaceId={workspaceId}
                     />
