@@ -7,6 +7,12 @@ type TimetableSetStatus = "PLANNED" | "ACTIVE" | "ENDED";
 // 수업 슬롯 종류
 type TimetableClassType = "CLASS" | "SPECIAL" | "CLINIC" | "STANDING" | "EXAM";
 
+// 학년 (초1~고3 고정 12단계)
+type Grade =
+    | "ELEMENTARY_1" | "ELEMENTARY_2" | "ELEMENTARY_3" | "ELEMENTARY_4" | "ELEMENTARY_5" | "ELEMENTARY_6"
+    | "MIDDLE_1" | "MIDDLE_2" | "MIDDLE_3"
+    | "HIGH_1" | "HIGH_2" | "HIGH_3";
+
 // 수업 슬롯 수정·삭제 적용 범위 (현재는 ALL만 처리됨)
 type TimetableSlotUpdateScope = "THIS_OCCURRENCE" | "FROM_NOW" | "ALL";
 
@@ -99,7 +105,7 @@ interface TimetableSlotCreateRequest {
     classroomCode: string;
     startTime: string;
     endTime: string;
-    grade?: string;
+    grade: Grade;
     teacherName?: string;
     subjectName?: string;
 }
@@ -125,7 +131,7 @@ interface TimetableSlotUpdateRequest {
     classroomCode: string;
     startTime: string;
     endTime: string;
-    grade?: string;
+    grade: Grade;
     teacherName?: string;
     subjectName?: string;
 }
@@ -138,7 +144,7 @@ interface TimetableSlotData {
     classroomCode: string;
     startTime: string;
     endTime: string;
-    grade: string | null;
+    grade: Grade;
     teacherName: string | null;
     subjectName: string | null;
 }
@@ -163,7 +169,7 @@ interface TimetableSlotDetailResponse {
 type TimetableExportFormat = "EXCEL" | "PDF" | "PNG";
 
 // 시간표 세트 내보내기 배경색 기준
-type TimetableExportColorCriterion = "CLASSROOM" | "TEACHER" | "GRADE";
+type TimetableExportColorCriterion = "CLASSROOM" | "TEACHER";
 
 // 시간표 세트 내보내기 행 밀도
 type TimetableExportDensity = "COMPACT" | "NORMAL" | "SPACIOUS";
