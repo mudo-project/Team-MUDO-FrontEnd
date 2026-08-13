@@ -77,7 +77,9 @@ export default function WorkspaceSidebar() {
                         )
                     })}
                     {workspaceList.data.length === 0 && (
-                        <p> 생성된 워크스페이스가 없습니다</p>
+                        <div className="text-center mt-4 py-3 leading-6 text-[12px] text-[#AEB6C2]">
+                            생성된 워크스페이스가 없습니다
+                        </div>
                     )}
                 </div>
             </nav>

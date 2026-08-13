@@ -15,6 +15,7 @@ import ApprovalRest from "../ApprovalRest";
 import ApprovalIng from "../ApprovalIng";
 import ApprovalComp from "../ApprovalComp";
 import ApprovalReject from "../ApprovalReject";
+import ApprovalLineView from "../ApprovalLineView";
 
 const documentStatusLabel: Record<ApprovalDocumentStatus, string> = {
     IN_PROGRESS: "진행중",
@@ -76,7 +77,9 @@ export default function ReceivedApprovalModal({ closeModal, activeModal, noneAct
                             {approval ? (
                                 <>
                                     <div className="flex items-center gap-2.5">
-                                        <span className="rounded-[20px] bg-[#DCFCE7] px-[9px] py-0.5 text-[11px] font-medium leading-[16.5px] text-[#2C8D50]">{documentStatusLabel[approval.status]}</span>
+                                        <span className="bg-[#F0F2F5] text-[#8A94A3] rounded-[20px] px-[9px] py-0.5 text-[11px] font-medium leading-[16.5px]">
+                                            {documentStatusLabel[approval.status]}
+                                        </span>
                                         <span className="text-[11px] leading-[16.5px] text-[#B0B8C1]">{approval.templateName}</span>
                                     </div>
                                     <h2 className="pt-1.5 text-[18px] font-bold leading-[27px] text-[#0F172A]">{approval.title}</h2>
@@ -95,30 +98,7 @@ export default function ReceivedApprovalModal({ closeModal, activeModal, noneAct
                                 <h3 className="text-[11px] font-semibold leading-[16.5px] tracking-[0.55px] text-[#64748B]">결재 라인</h3>
                                 <div className="flex h-[107px] w-full items-start pt-5 pb-2">
                                     {[...approval.lines].sort((a, b) => a.stepOrder - b.stepOrder).map((line, i) => (
-                                        <section key={line.lineId} className="flex flex-1 last:flex-none">
-                                            <div className="flex min-w-[72px] shrink-0 flex-col items-center gap-1.5">
-                                                {lineStatusLabel[line.status] === "대기" &&
-                                                    <ApprovalRest />
-                                                }
-                                                {lineStatusLabel[line.status] === "검토중" &&
-                                                    <ApprovalIng />
-                                                }
-                                                {lineStatusLabel[line.status] === "승인" &&
-                                                    <ApprovalComp />
-                                                }
-                                                {lineStatusLabel[line.status] === "반려" &&
-                                                    <ApprovalReject />
-                                                }
-                                                <div className="text-center">
-                                                    <p className="text-[12px] font-medium leading-[18px] text-[#0F172A]">{line.stepOrder}차 · {line.approverName}</p>
-                                                    <p className="pt-px text-[10px] leading-[15px] text-[#64748B]">{lineStatusLabel[line.status]}</p>
-                                                    {line.decidedAt && <p className="pt-px text-[10px] leading-[15px] text-[#C0C8D0]">{line.decidedAt}</p>}
-                                                </div>
-                                            </div>
-                                            {[...approval.lines].length !== i + 1 &&
-                                                <div className="mt-[11px] px-10 h-[1.5px] min-w-3 flex-1 bg-[#D0D5DC]" />
-                                            }
-                                        </section>
+                                        <ApprovalLineView key={line.lineId} line={line} i={i} length={[...approval.lines].length} />
                                     ))}
                                 </div>
                             </section>
