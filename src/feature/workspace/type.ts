@@ -6,6 +6,11 @@ export type WorkspaceTaskStatus =
     | "COMPLETED"
     | "DELAYED";
 
+export type MyWorkspaceTaskStatus = Exclude<
+    WorkspaceTaskStatus,
+    "COMPLETED"
+>;
+
 export interface WorkspaceApiResponse<T> {
     status: number;
     code: string;
@@ -20,6 +25,32 @@ export interface WorkspaceListData {
 }
 
 export type WorkspaceListResponse = WorkspaceApiResponse<WorkspaceListData[]>;
+
+export interface GetMyWorkspaceTaskListRequest {
+    status?: MyWorkspaceTaskStatus;
+    workspaceId?: number;
+    page?: number;
+    size?: number;
+}
+
+export interface MyWorkspaceTaskData {
+    taskId: number;
+    workspaceId: number;
+    workspaceName: string;
+    title: string;
+    dueAt: string;
+    status: MyWorkspaceTaskStatus;
+}
+
+export interface MyWorkspaceTaskListData {
+    content: MyWorkspaceTaskData[];
+    page: number;
+    size: number;
+    hasNext: boolean;
+}
+
+export type MyWorkspaceTaskListResponse =
+    WorkspaceApiResponse<MyWorkspaceTaskListData>;
 
 export interface WorkspaceMemberData {
     userId: number;
@@ -146,6 +177,7 @@ export interface WorkspaceTaskCommentListItemData {
     content: string;
     author: WorkspaceMemberData;
     completed: boolean;
+    mentionedUserIds?: number[];
     createdAt: string;
 }
 
