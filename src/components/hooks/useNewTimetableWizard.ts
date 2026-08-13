@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { indexToDayOfWeek } from "@/feature/timetable/timetableFormat";
-import type { FloorConfig } from "@/feature/timetable/types";
+import type { FloorConfig } from "@/feature/timetable/viewModel";
 import type { NewTimetableBasicInfoFormValues } from "@/lib/newTimetableBasicInfoSchema";
 
 type UseNewTimetableWizardParams = {

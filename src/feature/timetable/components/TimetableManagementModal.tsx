@@ -1,6 +1,6 @@
 import { Plus, X } from "lucide-react";
 import { modalSurfaceClass } from "@/feature/timetable/constants";
-import type { TemplateStatus } from "@/feature/timetable/types";
+import type { TemplateStatus } from "@/feature/timetable/viewModel";
 
 type TimetableManagementModalProps = {
   classCounts: Record<number, number>;
