@@ -10,6 +10,7 @@ import {
   createTimetableSlotAction,
   deleteTimetableSetAction,
   deleteTimetableSlotAction,
+  exportTimetableSetAction,
   getTimetableSetDetailAction,
   getTimetableSetListAction,
   getTimetableSlotListAction,
@@ -27,14 +28,16 @@ import TimetableWeekNav from "@/feature/timetable/components/TimetableWeekNav";
 import WeeklyTimetableGrid from "@/feature/timetable/components/WeeklyTimetableGrid";
 import { weekDayNames } from "@/feature/timetable/constants";
 import {
+  buildDefaultClassroomColorMap,
   formatMinutesToTime,
   getClassEndTime,
   getClassStartTime,
+  indexToDayOfWeek,
   parseTimeToMinutes,
   toTimetableSlotRequestPayload,
   toTimetableTemplate,
 } from "@/feature/timetable/timetableFormat";
-import type { ClassItem, TemplateStatus, TimetableTemplate } from "@/feature/timetable/types";
+import type { ClassItem, TemplateStatus, TimetableTemplate } from "@/feature/timetable/viewModel";
 import type { ClassRegistrationFormValues } from "@/lib/classRegistrationSchema";
 
 const formatMonthDay = (date: Date) => `${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`;
@@ -57,17 +60,41 @@ const getTemplateStatus = (status: TimetableSetStatus): TemplateStatus => {
   return { label: "종료", tone: "bg-[#F1F3F5] text-[#8290A0]" };
 };
 
-const blankRegistrationDefaultValues: ClassRegistrationFormValues = { day: "월", room: "", startTime: "09:00", endTime: "11:00", grade: "고3", teacher: "", course: "" };
+const blankRegistrationDefaultValues: ClassRegistrationFormValues = { day: "월", room: "", startTime: "09:00", endTime: "11:00", grade: "HIGH_3", teacher: "", course: "" };
 
 const buildRegistrationDefaultValues = (classItem: ClassItem, activeTemplate: TimetableTemplate): ClassRegistrationFormValues => ({
   day: weekDayNames[classItem.day],
   room: activeTemplate.roomsByDay[classItem.day].rooms[classItem.room],
   startTime: getClassStartTime(activeTemplate, classItem),
   endTime: getClassEndTime(activeTemplate, classItem),
-  grade: classItem.grade ?? "고3",
+  grade: classItem.grade ?? "HIGH_3",
   teacher: classItem.teacher,
   course: classItem.course,
 });
+
+const EXPORT_EXTENSIONS: Record<TimetableExportFormat, string> = {
+  EXCEL: "xlsx",
+  PDF: "pdf",
+  PNG: "png",
+};
+
+// 서버가 base64로 내려준 파일을 브라우저에서 바로 다운로드시킨다.
+const downloadBase64File = (base64: string, mimeType: string, filename: string) => {
+  const byteString = atob(base64);
+  const bytes = new Uint8Array(byteString.length);
+
+  for (let index = 0; index < byteString.length; index += 1) {
+    bytes[index] = byteString.charCodeAt(index);
+  }
+
+  const url = URL.createObjectURL(new Blob([bytes], { type: mimeType }));
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+};
 
 export default function TimetableContainer() {
   const [isTemplateMenuOpen, setIsTemplateMenuOpen] = useState(false);
@@ -189,10 +216,13 @@ export default function TimetableContainer() {
       }
 
       toast.success(result.message);
-      queryClient.invalidateQueries({ queryKey: ["timetable-sets"] });
 
       const savedId = variables.editingTimetableSetId ?? (result as { timetableSetId?: number }).timetableSetId;
+
+      queryClient.invalidateQueries({ queryKey: ["timetable-sets"] });
       if (savedId !== undefined) {
+        queryClient.invalidateQueries({ queryKey: ["timetable-set-detail", savedId] });
+        queryClient.invalidateQueries({ queryKey: ["timetable-slots", savedId] });
         setSelectedTemplateId(savedId);
         setWeekOffsetWeeks(0);
         setSelectedDayFilter("전체");
@@ -217,6 +247,36 @@ export default function TimetableContainer() {
       queryClient.invalidateQueries({ queryKey: ["timetable-sets"] });
     },
     onError: () => toast.error("시간표 세트 삭제에 실패하였습니다."),
+  });
+
+  const exportMutation = useMutation({
+    mutationFn: (format: TimetableExportFormat) => {
+      if (activeTemplateId === null || !activeTemplate) {
+        throw new Error("내보낼 시간표가 없습니다.");
+      }
+
+      const dayIndex = weekDayNames.indexOf(selectedDayFilter);
+      const params: TimetableExportParams = {
+        format,
+        colorCriterion: "CLASSROOM",
+        colorMap: buildDefaultClassroomColorMap(activeTemplate.classroomGroups),
+        density: "NORMAL",
+        ...(dayIndex >= 0 ? { dayOfWeek: indexToDayOfWeek[dayIndex] } : {}),
+        ...(selectedFloorFilter !== "전체" ? { floor: selectedFloorFilter } : {}),
+      };
+
+      return exportTimetableSetAction(activeTemplateId, params);
+    },
+    onSuccess: (result, format) => {
+      if (!result.success || !result.file || !result.mimeType) {
+        toast.error(result.message);
+        return;
+      }
+
+      downloadBase64File(result.file, result.mimeType, `${activeTemplate?.title ?? "timetable"}.${EXPORT_EXTENSIONS[format]}`);
+      setIsExportMenuOpen(false);
+    },
+    onError: () => toast.error("시간표 내보내기에 실패하였습니다."),
   });
 
   const wizard = useNewTimetableWizard({
@@ -377,7 +437,9 @@ export default function TimetableContainer() {
                 수업 등록
               </button>
               <TimetableExportMenu
+                isExporting={exportMutation.isPending}
                 isOpen={isExportMenuOpen}
+                onExport={(format) => exportMutation.mutate(format)}
                 onToggle={() => setIsExportMenuOpen((isOpen) => !isOpen)}
               />
               <button
