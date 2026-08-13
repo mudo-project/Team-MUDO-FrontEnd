@@ -3,13 +3,19 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { createWorkspaceTaskCommentAction } from "../actions";
+import { changeWorkspaceTaskCommentAction, createWorkspaceTaskCommentAction } from "../actions";
 import { getUserListAction } from "@/feature/auth/actions";
 import { WorkspaceMemberData } from "../type";
+import { useTaskCommentEditStore } from "@/store/useTaskCommentEditStore";
+import { X } from "lucide-react";
 
 export default function CommentBar({ selectedTask, workspaceId, workspaceMembers }: { selectedTask: number, workspaceId: string, workspaceMembers: WorkspaceMemberData[] }) {
 
     const queryClient = useQueryClient();
+    const editingComment = useTaskCommentEditStore((state) => state.editingComment);
+    const setEditingContent = useTaskCommentEditStore((state) => state.setEditingContent);
+    const setEditingMentionedUserIds = useTaskCommentEditStore((state) => state.setEditingMentionedUserIds);
+    const clearEditingComment = useTaskCommentEditStore((state) => state.clearEditingComment);
     const [comment, setComment] = useState("");
     const [error, setError] = useState("");
     const [searchError, setSearchError] = useState("");
@@ -20,6 +26,7 @@ export default function CommentBar({ selectedTask, workspaceId, workspaceMembers
     const [mentionStart, setMentionStart] = useState<number>();
     const memberListRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+    const editingCommentId = editingComment?.commentId;
 
     const createMutation = useMutation({
         mutationFn: ((formData: FormData) => (
@@ -46,6 +53,56 @@ export default function CommentBar({ selectedTask, workspaceId, workspaceMembers
             toast.success(result.message)
         },
     });
+
+    const editMutation = useMutation({
+        mutationFn: ({
+            commentId,
+            content,
+            mentionedUserIds,
+        }: {
+            commentId: number;
+            content: string;
+            mentionedUserIds: number[];
+        }) => changeWorkspaceTaskCommentAction(
+            Number(workspaceId),
+            selectedTask,
+            commentId,
+            { content, mentionedUserIds },
+        ),
+        onSuccess: (result) => {
+            if (!result.success) {
+                setError(result.message);
+                return;
+            }
+
+            void queryClient.invalidateQueries({
+                queryKey: ["workspace", workspaceId],
+            });
+            void queryClient.invalidateQueries({
+                queryKey: ["task", workspaceId, selectedTask],
+            });
+
+            setComment("");
+            setSelectedMembers([]);
+            setMentionStart(undefined);
+            setError("");
+            clearEditingComment();
+            toast.success(result.message);
+        },
+        onError: (error) => {
+            setError(error.message);
+        },
+    });
+
+    useEffect(() => {
+        if (editingCommentId === undefined) return;
+        requestAnimationFrame(() => inputRef.current?.focus());
+    }, [editingCommentId]);
+
+    useEffect(
+        () => () => clearEditingComment(),
+        [clearEditingComment, selectedTask, workspaceId],
+    );
 
     useEffect(() => {
         if (mentionStart === undefined) return;
@@ -116,15 +173,23 @@ export default function CommentBar({ selectedTask, workspaceId, workspaceMembers
     const selectMember = (member: UserListResponse) => {
         if (mentionStart === undefined) return;
 
-        const cursor = inputRef.current?.selectionStart ?? comment.length;
-        const nextComment = `${comment.slice(0, mentionStart)}@${member.name} ${comment.slice(cursor)}`;
+        const currentComment = editingComment?.content ?? comment;
+        const cursor = inputRef.current?.selectionStart ?? currentComment.length;
+        const nextComment = `${currentComment.slice(0, mentionStart)}@${member.name} ${currentComment.slice(cursor)}`;
 
-        setComment(nextComment);
-        setSelectedMembers((current) =>
-            current.some(({ userId }) => userId === member.userId)
-                ? current
-                : [...current, member],
-        );
+        if (editingComment) {
+            setEditingContent(nextComment);
+            setEditingMentionedUserIds(
+                Array.from(new Set([...(editingComment.mentionedUserIds ?? []), member.userId])),
+            );
+        } else {
+            setComment(nextComment);
+            setSelectedMembers((current) =>
+                current.some(({ userId }) => userId === member.userId)
+                    ? current
+                    : [...current, member],
+            );
+        }
         setMentionStart(undefined);
         setMentionQuery("");
 
@@ -139,24 +204,53 @@ export default function CommentBar({ selectedTask, workspaceId, workspaceMembers
         event.preventDefault();
         setError("");
 
+        const mentionedUserIds = editingComment
+            ? (editingComment.mentionedUserIds ?? [])
+            : selectedMembers.map(({ userId }) => userId);
+
+        if (editingComment) {
+            editMutation.mutate({
+                commentId: editingComment.commentId,
+                content: editingComment.content,
+                mentionedUserIds,
+            });
+            return;
+        }
+
         const formData = new FormData(event.currentTarget);
-        selectedMembers.forEach(({ userId }) => {
+        mentionedUserIds.forEach((userId) => {
             formData.append("mentionedUserIds", String(userId));
         });
         createMutation.mutate(formData);
     };
 
-    const isSearching =
-        mentionStart !== undefined &&
-        resolvedSearchKey !== `${mentionStart}:${mentionQuery}`;
+    const isSearching = mentionStart !== undefined && resolvedSearchKey !== `${mentionStart}:${mentionQuery}`;
 
 
     return (
         <form
-            className="relative flex gap-2 border-t border-[#D7E8DB] bg-[#FCFCFC] px-5 py-3"
+            className="relative flex flex-wrap gap-2 border-t border-[#D7E8DB] bg-[#FCFCFC] px-5 py-3"
             onSubmit={submitComment}
         >
-            <div ref={memberListRef} className="relative w-full">
+            {editingComment && (
+                <div className="flex w-full items-center text-[10px] leading-[15px] text-[#C0C8D0]">
+                    <span>{editingComment.authorName} · {editingComment.createdAt}</span>
+                    <button
+                        aria-label="댓글 수정 취소"
+                        className="ml-auto"
+                        onClick={() => {
+                            clearEditingComment();
+                            setComment("");
+                            setSelectedMembers([]);
+                            setError("");
+                        }}
+                        type="button"
+                    >
+                        <X className="size-3.5" strokeWidth={1.5} />
+                    </button>
+                </div>
+            )}
+            <div ref={memberListRef} className="relative min-w-0 flex-1">
                 {mentionStart !== undefined && (
                     <div className="absolute bottom-full left-0 z-10 mb-1 max-h-48 w-full overflow-y-auto rounded-[8px] border border-[#D7E8DB] bg-white py-1 shadow-[0_8px_16px_rgba(22,34,54,0.16)]">
                         {searchError && (
@@ -192,10 +286,20 @@ export default function CommentBar({ selectedTask, workspaceId, workspaceMembers
                     name="comment"
                     onChange={(event) => {
                         const value = event.target.value;
-                        setComment(value);
-                        setSelectedMembers((current) =>
-                            current.filter(({ name }) => value.includes(`@${name}`)),
-                        );
+                        if (editingComment) {
+                            setEditingContent(value);
+                            setEditingMentionedUserIds(
+                                (editingComment.mentionedUserIds ?? []).filter((userId) => {
+                                    const member = workspaceMembers.find((item) => item.userId === userId);
+                                    return member ? value.includes(`@${member.name}`) : false;
+                                }),
+                            );
+                        } else {
+                            setComment(value);
+                            setSelectedMembers((current) =>
+                                current.filter(({ name }) => value.includes(`@${name}`)),
+                            );
+                        }
                         updateMentionSearch(value, event.target.selectionStart ?? value.length);
                     }}
                     onKeyDown={(event) => {
@@ -203,16 +307,18 @@ export default function CommentBar({ selectedTask, workspaceId, workspaceMembers
                     }}
                     placeholder="코멘트 추가 · @ 로 멘션"
                     ref={inputRef}
-                    value={comment}
+                    value={editingComment?.content ?? comment}
                 />
                 {error && <p className="mt-1 text-[11px] text-red-500">{error}</p>}
             </div>
             <button
                 className="h-9 shrink-0 rounded-[7px] bg-[#0F172A] px-3 text-[12px] font-medium text-white disabled:bg-[#0F172A]/40"
-                disabled={createMutation.isPending || !comment.trim()}
+                disabled={createMutation.isPending || editMutation.isPending || !(editingComment?.content ?? comment).trim()}
                 type="submit"
             >
-                {createMutation.isPending ? "추가 중..." : "추가"}
+                {editingComment
+                    ? (editMutation.isPending ? "수정 중..." : "수정")
+                    : (createMutation.isPending ? "추가 중..." : "추가")}
             </button>
         </form>
     )
