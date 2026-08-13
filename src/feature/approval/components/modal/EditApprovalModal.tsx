@@ -149,11 +149,11 @@ export default function EditApprovalModal({
 
     return (
         <div
-            className="fixed top-0 left-0 z-999 h-screen w-screen bg-[#162236]/35"
+            className="fixed top-0 left-0 z-1001 h-screen w-screen bg-[#162236]/35"
             onClick={closeModal}
         >
             <form
-                className="fixed top-1/2 left-1/2 z-1000 max-h-[85vh] h-[85vh] w-5/6 max-w-[560px] -translate-x-1/2 -translate-y-1/2 rounded-[14px] bg-white shadow-[0_8px_40px_rgba(22,34,54,0.18)] md:w-3/5 lg:w-[560px] p-5"
+                className="fixed top-1/2 left-1/2 z-1002 max-h-[85vh]  w-5/6 max-w-[560px] -translate-x-1/2 -translate-y-1/2 rounded-[14px] bg-white shadow-[0_8px_40px_rgba(22,34,54,0.18)] md:w-3/5 lg:w-[560px] p-5"
                 onClick={(event) => event.stopPropagation()}
                 onSubmit={handleSubmit}
             >

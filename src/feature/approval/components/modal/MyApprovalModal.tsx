@@ -11,7 +11,9 @@ import { X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import ApprovalLineEditButton from "../ApprovalLineEditButton";
+import useModal from "@/components/hooks/useModal";
+import EditApprovalModal from "./EditApprovalModal";
+import ApprovalLineView from "../ApprovalLineView";
 
 const documentStatusLabel: Record<ApprovalDocumentStatus, string> = {
     IN_PROGRESS: "진행중",
@@ -27,6 +29,7 @@ const lineStatusLabel: Record<ApprovalLineStatus, string> = {
     REJECTED: "반려",
 };
 
+
 interface MyApprovalModalProps {
     closeModal: () => void;
     id: number;
@@ -37,6 +40,8 @@ export default function MyApprovalModal({ closeModal, id }: MyApprovalModalProps
     const [approval, setApproval] = useState<ApprovalDetailData>();
     const [error, setError] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const modal = useModal();
+
 
     useEffect(() => {
         let cancelled = false;
@@ -120,7 +125,7 @@ export default function MyApprovalModal({ closeModal, id }: MyApprovalModalProps
                         {approval ? (
                             <>
                                 <div className="flex items-center gap-2.5">
-                                    <span className="rounded-[20px] bg-[#DCFCE7] px-[9px] py-0.5 text-[11px] font-medium leading-[16.5px] text-[#2C8D50]">
+                                    <span className="bg-[#F0F2F5] text-[#8A94A3] rounded-[20px] px-[9px] py-0.5 text-[11px] font-medium leading-[16.5px]">
                                         {documentStatusLabel[approval.status]}
                                     </span>
                                     <span className="text-[11px] font-normal leading-[16.5px] text-[#B0B8C1]">{approval.templateName}</span>
@@ -143,17 +148,7 @@ export default function MyApprovalModal({ closeModal, id }: MyApprovalModalProps
                             <h3 className="text-[11px] font-semibold leading-[16.5px] tracking-[0.55px] text-[#64748B]">결재 라인</h3>
                             <div className="flex h-[92px] w-full items-start pt-5 pb-2">
                                 {[...approval.lines].sort((a, b) => a.stepOrder - b.stepOrder).map((line, i) => (
-                                    <section className="flex flex-1 last:flex-none" key={line.lineId}>
-                                        <div className="flex min-w-[72px] flex-col items-center gap-1.5" >
-                                            <div className="flex size-6 items-center justify-center rounded-full border-[1.5px] border-[#2C8D50] bg-[#DCFCE7]">
-                                                <span className="size-2 rounded-full bg-[#2C8D50]" />
-                                            </div>
-                                            <p className="text-[12px] font-medium leading-[18px] text-[#0F172A]">{line.stepOrder}차 · {line.approverName}</p>
-                                            <p className="pt-px text-[10px] leading-[15px] text-[#64748B]">{lineStatusLabel[line.status]}</p>
-                                        </div>
-                                        {[...approval.lines].length !== i + 1 &&
-                                            <div className="mt-[11px] h-[1.5px] min-w-3 flex-1 bg-[#D7E8DB]" />}
-                                    </section>
+                                    <ApprovalLineView key={line.lineId} line={line} i={i} length={[...approval.lines].length} />
                                 ))}
                             </div>
                         </section>
@@ -185,7 +180,14 @@ export default function MyApprovalModal({ closeModal, id }: MyApprovalModalProps
                     }
                     {approval && [...approval.lines].every((line) => lineStatusLabel[line.status] === '검토중' || lineStatusLabel[line.status] === '대기') && (
                         <>
-                            <ApprovalLineEditButton id={id} approval={approval} />
+                            <button
+                                className="h-[41px] rounded-[8px] border border-[#D7E8DB] bg-white px-4 text-[13px] font-normal leading-[19.5px] text-[#0F172A]"
+                                type="button"
+                                onClick={modal.openModal}
+                            >
+                                결재라인 수정
+                            </button>
+
                             <button
                                 className="h-[41px] rounded-[8px] border border-[#D7E8DB] bg-white px-4 text-[13px] font-normal leading-[19.5px] text-[#0F172A] disabled:cursor-not-allowed disabled:opacity-50"
                                 disabled={isSubmitting}
@@ -208,6 +210,13 @@ export default function MyApprovalModal({ closeModal, id }: MyApprovalModalProps
                     )}
                 </div>
             </div>
+            {modal.isModal && approval &&
+                <EditApprovalModal
+                    closeModal={modal.closeModal}
+                    documentId={id}
+                    approval={approval}
+                />
+            }
         </div>
     );
 }

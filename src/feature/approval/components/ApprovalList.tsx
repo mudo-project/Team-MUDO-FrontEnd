@@ -16,10 +16,11 @@ export default function ApprovalList({ approvals, type = 'other' }: ApprovalList
                 <p className="col-span-2">현재 결재자</p>
                 <p className="col-span-1">상태</p>
             </div>
-
-            {approvals.map((approval) => (
-                <ApprovalItem approval={approval} type={type} key={approval.id} />
-            ))}
+            <div className="h-[calc(100dvh-200px)] overflow-auto">
+                {approvals.map((approval) => (
+                    <ApprovalItem approval={approval} type={type} key={approval.id} />
+                ))}
+            </div>
         </section>
     )
 }
