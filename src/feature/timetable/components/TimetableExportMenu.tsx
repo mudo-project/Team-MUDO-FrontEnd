@@ -1,10 +1,14 @@
 type TimetableExportMenuProps = {
+  isExporting?: boolean;
   isOpen: boolean;
+  onExport: (format: TimetableExportFormat) => void;
   onToggle: () => void;
 };
 
 export default function TimetableExportMenu({
+  isExporting = false,
   isOpen,
+  onExport,
   onToggle,
 }: TimetableExportMenuProps) {
   return (
@@ -12,35 +16,42 @@ export default function TimetableExportMenu({
       <button
         aria-controls="timetable-export-menu"
         aria-expanded={isOpen}
-        className="h-10 rounded-lg border border-[#DCE9DF] bg-white px-4 text-[13px] font-medium text-[#526071]"
+        className="h-10 rounded-lg border border-[#DCE9DF] bg-white px-4 text-[13px] font-medium text-[#526071] disabled:cursor-not-allowed disabled:opacity-60"
+        disabled={isExporting}
         onClick={onToggle}
         type="button"
       >
-        내보내기
+        {isExporting ? "내보내는 중..." : "내보내기"}
       </button>
       {isOpen && (
-        <div 
+        <div
           id="timetable-export-menu"
           aria-label="시간표 내보내기 옵션"
           className="absolute right-0 top-12 z-30 w-[284px] overflow-hidden rounded-xl border border-[#DCE9DF] bg-white shadow-[0_12px_24px_rgba(28,42,34,0.12)]"
         >
           <div className="divide-y divide-[#E5EEE7]">
-            <button 
-              className="flex w-full items-center justify-between px-4 py-3 text-left text-[13px] font-medium text-[#526071]" 
+            <button
+              className="flex w-full items-center justify-between px-4 py-3 text-left text-[13px] font-medium text-[#526071] disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={isExporting}
+              onClick={() => onExport("EXCEL")}
               type="button"
             >
               <span>엑셀(.xlsx)</span>
               <span className="text-[11px] text-[#94A3B8]">필터 적용 상태</span>
             </button>
-            <button 
-              className="flex w-full items-center justify-between px-4 py-3 text-left text-[13px] font-medium text-[#526071]" 
+            <button
+              className="flex w-full items-center justify-between px-4 py-3 text-left text-[13px] font-medium text-[#526071] disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={isExporting}
+              onClick={() => onExport("PDF")}
               type="button"
             >
               <span>PDF(A3 가로)</span>
               <span className="text-[11px] text-[#94A3B8]">인쇄용</span>
             </button>
-            <button 
-              className="flex w-full items-center justify-between px-4 py-3 text-left text-[13px] font-medium text-[#526071]" 
+            <button
+              className="flex w-full items-center justify-between px-4 py-3 text-left text-[13px] font-medium text-[#526071] disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={isExporting}
+              onClick={() => onExport("PNG")}
               type="button"
             >
               <span>이미지(PNG)</span>

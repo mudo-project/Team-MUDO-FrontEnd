@@ -196,11 +196,11 @@ export const createTimetableSlotAction = async (
 
         return {
             success: true,
-            message: "수업 슬롯이 등록되었습니다.",
+            message: "수업 정보가 등록되었습니다.",
             timetableSlotId,
         };
     } catch (error) {
-        let errorMessage = "수업 슬롯 등록에 실패하였습니다.";
+        let errorMessage = "수업 등록에 실패하였습니다.";
         if (error instanceof Error) {
             errorMessage = error.message;
         }
@@ -253,10 +253,10 @@ export const updateTimetableSlotAction = async (
 
         return {
             success: true,
-            message: "수업 슬롯이 수정되었습니다.",
+            message: "수업 정보가 수정되었습니다.",
         };
     } catch (error) {
-        let errorMessage = "수업 슬롯 수정에 실패하였습니다.";
+        let errorMessage = "수업 등록 수정에 실패하였습니다.";
         if (error instanceof Error) {
             errorMessage = error.message;
         }
@@ -286,10 +286,10 @@ export const deleteTimetableSlotAction = async (
 
         return {
             success: true,
-            message: "수업 슬롯이 삭제되었습니다.",
+            message: "수업 정보가 삭제되었습니다.",
         };
     } catch (error) {
-        let errorMessage = "수업 슬롯 삭제에 실패하였습니다.";
+        let errorMessage = "수업 등록 삭제에 실패하였습니다.";
         if (error instanceof Error) {
             errorMessage = error.message;
         }
