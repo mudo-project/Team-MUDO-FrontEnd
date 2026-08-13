@@ -1,6 +1,6 @@
 import { X } from "lucide-react";
 import { modalSurfaceClass } from "@/feature/timetable/constants";
-import type { FloorConfig } from "@/feature/timetable/types";
+import type { FloorConfig } from "@/feature/timetable/viewModel";
 import type { NewTimetableBasicInfoFormValues } from "@/lib/newTimetableBasicInfoSchema";
 import NewTimetableBasicInfoStep from "./NewTimetableBasicInfoStep";
 import NewTimetableRoomSetupStep from "./NewTimetableRoomSetupStep";

@@ -1,6 +1,6 @@
 import { ChevronDown, Plus } from "lucide-react";
 
-import type { TemplateStatus } from "../types";
+import type { TemplateStatus } from "../viewModel";
 
 type TimetableTemplateSelectorProps = {
   activeTemplate: TimetableSetListData;

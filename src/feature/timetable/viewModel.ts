@@ -7,7 +7,7 @@ export type ClassItem = {
   duration: number;
   course: string;
   teacher: string;
-  grade?: string;
+  grade?: Grade;
   tone: "blue" | "green" | "stone" | "sky";
 };
 

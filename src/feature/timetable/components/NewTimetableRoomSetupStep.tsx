@@ -1,4 +1,4 @@
-import type { FloorConfig } from "@/feature/timetable/types";
+import type { FloorConfig } from "@/feature/timetable/viewModel";
 
 type NewTimetableRoomSetupStepProps = {
   floors: FloorConfig[];
