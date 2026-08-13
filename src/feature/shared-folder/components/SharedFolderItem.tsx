@@ -1,7 +1,16 @@
 import { EllipsisVertical, FileSpreadsheet, FileText, Folder, Presentation } from "lucide-react";
 
+import SharedFolderItemMenu from "./SharedFolderItemMenu";
+
 type SharedFolderItemProps = {
+  isMenuOpen: boolean;
   item: SharedFolderItemData;
+  onDelete: () => void;
+  onFolderOpen: () => void;
+  onMenuSelect: () => void;
+  onMenuToggle: () => void;
+  onMove: () => void;
+  onRename: () => void;
 };
 
 export const FILE_TYPE_LABEL: Record<SharedFolderFileType, string> = {
@@ -48,23 +57,46 @@ function ItemIcon({ item }: { item: SharedFolderItemData }) {
   }
 }
 
-export default function SharedFolderItem({ item }: SharedFolderItemProps) {
+export default function SharedFolderItem({ isMenuOpen, item, onDelete, onFolderOpen, onMenuSelect, onMenuToggle, onMove, onRename }: SharedFolderItemProps) {
   const typeLabel = item.kind === "FOLDER" ? "폴더" : FILE_TYPE_LABEL[item.fileType ?? "UPLOADED"];
 
   return (
     <div className="grid grid-cols-[minmax(0,1fr)_140px_110px_150px_90px_36px] items-center gap-3 border-b border-[#F1F5F1] px-4 py-2.5 last:border-b-0 hover:bg-[#F8FAFC]">
       <div className="flex min-w-0 items-center gap-2.5">
         <ItemIcon item={item} />
-        <span className="min-w-0 truncate text-[12px] font-medium text-[#0F172A]">{item.name}</span>
+        {item.kind === "FOLDER" ? (
+          <button className="min-w-0 truncate text-left text-[12px] font-medium text-[#0F172A]" type="button" onClick={onFolderOpen}>
+            {item.name}
+          </button>
+        ) : (
+          <span className="min-w-0 truncate text-[12px] font-medium text-[#0F172A]">{item.name}</span>
+        )}
       </div>
       <span className="truncate text-[11px] text-[#64748B]">{typeLabel}</span>
       <span className="truncate text-[11px] text-[#64748B]">{item.modifierName}</span>
       <span className="truncate text-[11px] text-[#64748B]">{item.modifiedAt}</span>
       <span className="truncate text-[11px] text-[#64748B]">{item.size}</span>
-      <div className="flex justify-end">
-        <span aria-label={`${item.name} 더보기`} className="flex size-7 items-center justify-center rounded-md text-[#94A3B8]">
+      <div data-shared-folder-item-menu-control className="relative flex justify-end">
+        <button
+          aria-expanded={isMenuOpen}
+          aria-label={`${item.name} 더보기`}
+          className="flex size-7 items-center justify-center rounded-md text-[#94A3B8]"
+          type="button"
+          onClick={onMenuToggle}
+        >
           <EllipsisVertical className="size-3.5" strokeWidth={1.8} />
-        </span>
+        </button>
+        {isMenuOpen && (
+          <SharedFolderItemMenu
+            kind={item.kind}
+            onDelete={onDelete}
+            onDownload={onMenuSelect}
+            onMove={onMove}
+            onOpenPreview={onMenuSelect}
+            onRename={onRename}
+            onViewDetail={onMenuSelect}
+          />
+        )}
       </div>
     </div>
   );

@@ -7,6 +7,7 @@ type SharedFolderFileType = "GOOGLE_DOCS" | "GOOGLE_SHEETS" | "GOOGLE_SLIDES" | 
 // 공유폴더 목록 항목(폴더/파일 공통)
 interface SharedFolderItemData {
     id: number;
+    parentId: number | null;
     kind: SharedFolderItemKind;
     name: string;
     fileType?: SharedFolderFileType;
