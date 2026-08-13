@@ -1,8 +1,45 @@
 import { ChevronDown, Search } from "lucide-react";
 
-const FILTER_LABELS = ["전체", "폴더", "파일"];
+import SharedFolderCreateMenu from "./SharedFolderCreateMenu";
+import type { SharedFolderCreateOption } from "./SharedFolderCreateMenu";
 
-export default function SharedFolderToolbar() {
+type SharedFolderFilter = "ALL" | "FOLDER" | "FILE";
+
+type SharedFolderToolbarProps = {
+  filter: SharedFolderFilter;
+  isCreateMenuOpen: boolean;
+  searchQuery: string;
+  onCreateMenuSelect: (option: SharedFolderCreateOption) => void;
+  onFileUploadRequest: () => void;
+  onCreateMenuToggle: () => void;
+  onFilterChange: (filter: SharedFolderFilter) => void;
+  onSearchQueryChange: (searchQuery: string) => void;
+};
+
+const FILTER_OPTIONS: { label: string; value: SharedFolderFilter }[] = [
+  { label: "전체", value: "ALL" },
+  { label: "폴더", value: "FOLDER" },
+  { label: "파일", value: "FILE" },
+];
+
+export default function SharedFolderToolbar({
+  filter,
+  isCreateMenuOpen,
+  searchQuery,
+  onCreateMenuSelect,
+  onCreateMenuToggle,
+  onFileUploadRequest,
+  onFilterChange,
+  onSearchQueryChange,
+}: SharedFolderToolbarProps) {
+  const handleCreateMenuSelect = (option: SharedFolderCreateOption) => {
+    onCreateMenuSelect(option);
+
+    if (option === "UPLOAD") {
+      onFileUploadRequest();
+    }
+  };
+
   return (
     <div className="flex items-center justify-between gap-3">
       <div className="flex items-center gap-3">
@@ -13,29 +50,46 @@ export default function SharedFolderToolbar() {
             className="min-w-0 flex-1 border-0 bg-transparent pl-2 text-[12px] outline-none placeholder:text-[#94A3B8]"
             placeholder="파일명 검색"
             type="search"
+            value={searchQuery}
+            onChange={(event) => onSearchQueryChange(event.target.value)}
           />
         </label>
 
         <div className="flex overflow-hidden rounded-md border border-[#E0E6E1] text-[11px]">
-          {FILTER_LABELS.map((label, index) => (
-            <span
-              key={label}
-              className={
-                index === 0
-                  ? "bg-[#172033] px-3 py-1.5 font-medium text-white"
-                  : "border-l border-[#E0E6E1] px-3 py-1.5 text-[#718096]"
-              }
-            >
-              {label}
-            </span>
-          ))}
+          {FILTER_OPTIONS.map(({ label, value }, index) => {
+            const isSelected = filter === value;
+
+            return (
+              <button
+                key={value}
+                aria-pressed={isSelected}
+                className={
+                  isSelected
+                    ? "bg-[#172033] px-3 py-1.5 font-medium text-white"
+                    : `${index > 0 ? "border-l border-[#E0E6E1] " : ""}px-3 py-1.5 text-[#718096]`
+                }
+                type="button"
+                onClick={() => onFilterChange(value)}
+              >
+                {label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      <span className="flex h-8 items-center gap-1.5 rounded-md bg-[#12182B] px-3.5 text-[11px] font-semibold text-white">
-        새로 만들기
-        <ChevronDown className="size-3.5" strokeWidth={2} />
-      </span>
+      <div data-shared-folder-create-control className="relative">
+        <button
+          aria-expanded={isCreateMenuOpen}
+          className="flex h-8 items-center gap-1.5 rounded-md bg-[#12182B] px-3.5 text-[11px] font-semibold text-white"
+          type="button"
+          onClick={onCreateMenuToggle}
+        >
+          새로 만들기
+          <ChevronDown className="size-3.5" strokeWidth={2} />
+        </button>
+        {isCreateMenuOpen && <SharedFolderCreateMenu onSelect={handleCreateMenuSelect} />}
+      </div>
     </div>
   );
 }

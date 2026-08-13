@@ -1,10 +1,17 @@
+"use client";
+
+import { useState } from "react";
+
 type SharedFolderCreateNewFolderModalProps = {
   currentPath: string;
   onClose: () => void;
-  onCreate: () => void;
+  onCreate: (folderName: string) => void;
 };
 
 export default function SharedFolderCreateNewFolderModal({ currentPath, onClose, onCreate }: SharedFolderCreateNewFolderModalProps) {
+  const [folderName, setFolderName] = useState("");
+  const trimmedFolderName = folderName.trim();
+
   return (
     <div 
       className="fixed inset-0 z-[1000] flex items-center justify-center bg-[#162236]/35" 
@@ -24,6 +31,8 @@ export default function SharedFolderCreateNewFolderModal({ currentPath, onClose,
             id="shared-folder-new-folder-name"
             placeholder="폴더 이름"
             type="text"
+            value={folderName}
+            onChange={(event) => setFolderName(event.target.value)}
           />
         </label>
 
@@ -36,9 +45,10 @@ export default function SharedFolderCreateNewFolderModal({ currentPath, onClose,
             취소
           </button>
           <button 
-            className="h-9 rounded-lg bg-[#12182B] px-4 text-[12px] font-semibold text-white" 
+            className="h-9 rounded-lg bg-[#12182B] px-4 text-[12px] font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={!trimmedFolderName}
             type="button" 
-            onClick={onCreate}
+            onClick={() => onCreate(trimmedFolderName)}
           >
             만들기
           </button>
