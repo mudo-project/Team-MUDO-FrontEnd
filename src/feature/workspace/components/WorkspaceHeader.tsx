@@ -19,11 +19,9 @@ export default function WorkspaceHeader({ workspaceId }: { workspaceId: string }
         queryFn: () => getWorkspaceDetailAction(Number(workspaceId))
     })
 
-    if (workspacePending) {
-        return <p>워크스페이스를 불러오는 중입니다.</p>
-    }
 
-    if (!workspaceData?.success || workspaceError) {
+
+    if (!workspaceData?.success && workspaceData?.message || workspaceError) {
         return (
             <div>{workspaceData?.message || workspaceError}다시 시도해주세요.</div>
         )
@@ -34,20 +32,20 @@ export default function WorkspaceHeader({ workspaceId }: { workspaceId: string }
             <div className="flex items-start">
                 <div>
                     <div className="flex gap-1 items-center">
-                        <h2 className="text-[12px] font-bold tracking-[-0.02em] md:text-[14px] lg:text-[15px]">{workspaceData.data?.name}</h2>
+                        <h2 className="h-5 text-[12px] font-bold tracking-[-0.02em] md:text-[14px] lg:text-[15px]">{workspaceData?.data?.name}</h2>
                         <WorkspaceEditButton workspaceId={workspaceId} />
                     </div>
                     <p className="mt-0.5 text-[10px] text-[#B0B7C2] lg:mt-1 lg:text-[11px]">
-                        참여자: {workspaceData.data?.members.
+                        참여자: {workspaceData?.data?.members.
                             map((member, i) => (
                                 <span key={member.userId}>
                                     {member.name}{i + 1 !== workspaceData.data?.members.length ? ', ' : ' '}
                                 </span>
-                            ))}({workspaceData.data?.memberCount}명)
+                            ))}({workspaceData?.data?.memberCount}명)
                     </p>
                 </div>
                 <div className="ml-auto flex items-center gap-1 ">
-                    <WorkspaceAttendAddButton workspaceId={workspaceId} />
+                    <WorkspaceAttendAddButton workspaceId={workspaceId} members={workspaceData?.data?.members} />
                     <WorkspaceDeleteButton workspaceId={workspaceId} />
                     <TaskCreateButton workspaceId={workspaceId} />
                     <TaskTemplateCreateButton workspaceId={workspaceId} />
