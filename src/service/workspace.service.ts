@@ -24,6 +24,8 @@ import {
     WorkspaceTaskCommentResponse,
     WorkspaceTaskDetailResponse,
     DeleteWorkspaceRecurringTemplateResponse,
+    GetMyWorkspaceTaskListRequest,
+    MyWorkspaceTaskListResponse,
 } from "@/feature/workspace/type";
 
 export const getWorkspaceList = async (scope: WorkspaceListScope = "MINE"): Promise<WorkspaceListResponse> => {
@@ -35,6 +37,39 @@ export const getWorkspaceList = async (scope: WorkspaceListScope = "MINE"): Prom
         const message = await getErrorMessage(
             response,
             "워크스페이스 목록 조회에 실패했습니다.",
+        );
+
+        throw new Error(message);
+    }
+
+    return response.json();
+};
+
+export const getMyWorkspaceTaskList = async ({
+    status,
+    workspaceId,
+    page = 0,
+    size = 20,
+}: GetMyWorkspaceTaskListRequest): Promise<MyWorkspaceTaskListResponse> => {
+    const searchParams = new URLSearchParams({
+        page: String(page),
+        size: String(size),
+    });
+
+    if (status) {
+        searchParams.set("status", status);
+    }
+
+    if (workspaceId) {
+        searchParams.set("workspaceId", String(workspaceId));
+    }
+
+    const response = await fetchWithAuth(`/api/tasks/me?${searchParams}`);
+
+    if (!response.ok) {
+        const message = await getErrorMessage(
+            response,
+            "내 업무 목록 조회에 실패했습니다.",
         );
 
         throw new Error(message);
