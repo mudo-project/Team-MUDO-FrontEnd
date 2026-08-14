@@ -104,21 +104,13 @@ export default function AttendanceBoard({ initialNow }: AttendanceBoardProps) {
   }, []);
 
   useEffect(() => {
-    if (!canViewTeam) {
-      setIsTeamLoading(false);
-      return;
-    }
-
+    if (!canViewTeam) return;
     loadTeam();
   }, [canViewTeam, loadTeam]);
 
-  useEffect(() => {
-    // 지금 보고 있는 탭에 대한 권한이 사라지면(권한 store가 나중에 채워지는 등) 안전하게 내 근태로 되돌린다.
-    if (!visibleTabs.some((item) => item.key === tab)) {
-      setTab("mine");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [canViewTeam, canViewCorrections]);
+  // 지금 보고 있는 탭에 대한 권한이 사라지면(권한 store가 나중에 채워지는 등) 안전하게 내 근태로 되돌린다.
+  const activeTab = visibleTabs.some((item) => item.key === tab) ? tab : "mine";
+  const teamLoading = canViewTeam && isTeamLoading;
 
   const loadMyRequests = useCallback(() => {
     getMyCorrectionRequestListAction()
@@ -183,7 +175,7 @@ export default function AttendanceBoard({ initialNow }: AttendanceBoardProps) {
     );
   }
 
-  if (isDashboardLoading || isTeamLoading || !dashboard || (canViewTeam && !team)) {
+  if (isDashboardLoading || teamLoading || !dashboard || (canViewTeam && !team)) {
     return <main className="flex h-[calc(100dvh-3.25rem)] items-center justify-center bg-[#FCFCFC] text-[13px] text-[#718096]">근태 정보를 불러오는 중입니다...</main>;
   }
 
@@ -294,7 +286,7 @@ export default function AttendanceBoard({ initialNow }: AttendanceBoardProps) {
               <nav aria-label="근태 메뉴" className="flex gap-7 border-b border-[#DCE9DF] text-[12px]">
                 {visibleTabs.map((item) => (
                   <button
-                    className={tab === item.key ? "border-b-2 border-[#4D9560] px-1 pb-3 font-semibold" : "pb-3 text-[#718096]"}
+                    className={activeTab === item.key ? "border-b-2 border-[#4D9560] px-1 pb-3 font-semibold" : "pb-3 text-[#718096]"}
                     key={item.key}
                     type="button"
                     onClick={() => setTab(item.key)}
@@ -304,7 +296,7 @@ export default function AttendanceBoard({ initialNow }: AttendanceBoardProps) {
                 ))}
               </nav>
 
-              {tab === "mine" && (
+              {activeTab === "mine" && (
                 <div className="mt-5 grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_250px]">
                   <AttendanceCalendar
                     days={dashboard.calendar.days}
@@ -333,19 +325,19 @@ export default function AttendanceBoard({ initialNow }: AttendanceBoardProps) {
                 </div>
               )}
 
-              {tab === "all" && canViewTeam && (
+              {activeTab === "all" && canViewTeam && (
                 <div className="mt-5">
                   <AttendanceAllEmployees />
                 </div>
               )}
 
-              {tab === "manage" && canViewCorrections && (
+              {activeTab === "manage" && canViewCorrections && (
                 <div className="mt-5">
                   <AttendanceEditRequestManage canProcess={canProcessCorrections} />
                 </div>
               )}
 
-              {tab === "myEdits" && (
+              {activeTab === "myEdits" && (
                 <div className="mt-5">
                   <AttendanceMyEditRequestList requests={myRequests} />
                 </div>
