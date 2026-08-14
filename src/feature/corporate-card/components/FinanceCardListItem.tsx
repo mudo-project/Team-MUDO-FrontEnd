@@ -1,12 +1,11 @@
 import { ChevronRight } from "lucide-react";
-import type { FinanceCardItem } from "../mockData";
 import { FINANCE_CARD_STATUS_BADGE_CLASS, FINANCE_CARD_STATUS_LABEL } from "../statusStyles";
 
 interface FinanceCardListItemProps {
     isSelected: boolean;
-    item: FinanceCardItem;
-    onSelect: (item: FinanceCardItem) => void;
-    onToggleSelect: (itemId: number) => void;
+    item: CorporateCardTransactionListItemData;
+    onSelect: (transactionId: number) => void;
+    onToggleSelect: (transactionId: number) => void;
 }
 
 export default function FinanceCardListItem({ isSelected, item, onSelect, onToggleSelect }: FinanceCardListItemProps) {
@@ -19,25 +18,23 @@ export default function FinanceCardListItem({ isSelected, item, onSelect, onTogg
                     aria-label={`${item.merchantName} 선택`}
                     checked={isSelected}
                     className="size-4 accent-[#172033]"
-                    onChange={() => onToggleSelect(item.id)}
+                    onChange={() => onToggleSelect(item.transactionId)}
                     type="checkbox"
                 />
             </td>
             <td className="px-3 text-[12px] text-[#334155]">{item.approvedAt}</td>
             <td className="px-3 text-[12px]">
                 <strong className="block font-semibold">{item.merchantName}</strong>
-                <small className="block text-[10px] text-[#94A3B8]">{item.merchantType}</small>
             </td>
             <td className="px-3 text-[12px]">
                 <div>{item.cardName}</div>
-                <small className="block text-[10px] text-[#94A3B8]">···· {item.cardLast4}</small>
             </td>
             <td className="px-3 text-left text-[12px]">
                 <strong className="font-semibold">{item.amount.toLocaleString()}</strong>
-                {item.purpose
+                {item.expenseCategory
                     ?
                     <span className="ml-1 inline-flex rounded-full bg-[#F1F3F6] px-2 py-0.5 text-[10px] text-[#64748B]">
-                        {item.purpose}
+                        {item.expenseCategory}
                     </span>
                     :
                     <span className="ml-1 text-[10px] text-[#B78236]">● 작성 필요</span>
@@ -54,7 +51,7 @@ export default function FinanceCardListItem({ isSelected, item, onSelect, onTogg
                         ? "border-[#E4C58B] bg-[#FFF9EE] text-[#A66F1F] hover:bg-[#FAF1DF]"
                         : "border-[#DCE9DF] bg-white text-[#4D9560] hover:bg-[#F4F8F5]"
                     }`}
-                    onClick={() => onSelect(item)}
+                    onClick={() => onSelect(item.transactionId)}
                     type="button"
                 >
                     {isUnwritten ? "작성하기" : "상세보기"}

@@ -1,16 +1,15 @@
-import type { FinanceCardItem } from "../mockData";
 import FinanceCardListItem from "./FinanceCardListItem";
 
 interface FinanceCardListProps {
-    items: FinanceCardItem[];
+    items: CorporateCardTransactionListItemData[];
     selectedItemIds: number[];
-    onSelectItem: (item: FinanceCardItem) => void;
+    onSelectItem: (transactionId: number) => void;
     onToggleAll: () => void;
-    onToggleItem: (itemId: number) => void;
+    onToggleItem: (transactionId: number) => void;
 }
 
 export default function FinanceCardList({ items, selectedItemIds, onSelectItem, onToggleAll, onToggleItem }: FinanceCardListProps) {
-    const isAllSelected = items.length > 0 && items.every((item) => selectedItemIds.includes(item.id));
+    const isAllSelected = items.length > 0 && items.every((item) => selectedItemIds.includes(item.transactionId));
 
     return (
         <div className="mt-4 overflow-hidden rounded-xl border border-[#DCE9DF] bg-white">
@@ -48,9 +47,9 @@ export default function FinanceCardList({ items, selectedItemIds, onSelectItem, 
                 <tbody>
                     {items.map((item) => (
                         <FinanceCardListItem
-                            isSelected={selectedItemIds.includes(item.id)}
+                            isSelected={selectedItemIds.includes(item.transactionId)}
                             item={item}
-                            key={item.id}
+                            key={item.transactionId}
                             onSelect={onSelectItem}
                             onToggleSelect={onToggleItem}
                         />
