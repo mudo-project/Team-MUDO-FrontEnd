@@ -94,11 +94,11 @@ export default function AuthoritySelectGroup({ group, role }: AuthoritySelectGro
                         </p>
                     </div>
                     <div
-                        className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#EDF0F4] text-[#64748B] has-checked:bg-[#2C8D50] has-checked:text-white"
+                        className="relative flex size-10 shrink-0 items-center justify-center rounded-full bg-[#EDF0F4] text-[#64748B] has-checked:bg-[#2C8D50] has-checked:text-white"
                     >
                         <input
                             checked={selectedCodes.has(permission.code)}
-                            className="peer sr-only"
+                            className="peer absolute inset-0 size-full cursor-pointer opacity-0"
                             id={permission.code}
                             name="permissionCodes"
                             onChange={(event) =>

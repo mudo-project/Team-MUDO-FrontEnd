@@ -250,7 +250,7 @@ export const getApprovalAttachmentDownloadUrl = async (
     fileId: number,
 ): Promise<ApprovalAttachmentDownloadUrlResponse> => {
     const response = await fetchWithAuth(
-        `/api/approvals/${documentId}/files/${fileId}/download-url`,
+        `/api/approvals/${documentId}/attachments/${fileId}/download-url`,
     );
     if (!response.ok) {
         const message = await getErrorMessage(
