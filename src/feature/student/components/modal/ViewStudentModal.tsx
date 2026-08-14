@@ -4,16 +4,17 @@ import useModal from "@/components/hooks/useModal";
 import TwoButtonModal from "@/components/ui/TwoButtonModal";
 import AddStudentLectureModal from "./AddStudentLectureModal";
 import UpdateStudentModal from "./UpdateStudentModal";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getStudentDetailAction } from "../../actions";
 import { StudentDetailData } from "../../type";
 import { STUDENT_GRADE_LABEL } from "../../constants";
+import StudentDeleteButton from "../StudentDeleteButton";
+import StudentUpdateButton from "../StudentUpdateButton";
+
 
 export default function ViewStudentModal({ closeModal, studentId }: { closeModal: () => void; studentId: number }) {
-    const updateStudentModal = useModal();
     const addLectureModal = useModal();
-    const deleteStudentModal = useModal(closeModal);
     const endLectureModal = useModal();
     const [studentState, setStudentState] = useState<{
         student?: StudentDetailData;
@@ -26,6 +27,22 @@ export default function ViewStudentModal({ closeModal, studentId }: { closeModal
     });
 
     const { student, error, isLoading } = studentState;
+
+    const refreshStudent = async () => {
+        const response = await getStudentDetailAction(studentId);
+
+        if (response.success) {
+            setStudentState({ student: response.data, error: "", isLoading: false });
+            return;
+        }
+
+        setStudentState((current) => ({
+            ...current,
+            error: response.message,
+            isLoading: false,
+        }));
+    };
+
 
     useEffect(() => {
         let isActive = true;
@@ -43,7 +60,7 @@ export default function ViewStudentModal({ closeModal, studentId }: { closeModal
             }
         };
 
-        void loadStudent();
+        loadStudent();
 
         return () => {
             isActive = false;
@@ -81,12 +98,8 @@ export default function ViewStudentModal({ closeModal, studentId }: { closeModal
                     </div>
 
                     <div className="ml-auto flex items-center gap-1.5">
-                        <button className="rounded-[7px] border border-[#3D7A6A] px-3 py-[5px] text-[12px] leading-[18px] font-medium text-[#3D7A6A]" onClick={updateStudentModal.openModal} type="button">
-                            <Pencil />
-                        </button>
-                        <button className="rounded-[7px] border border-[#C0483F] px-3 py-[5px] text-[12px] leading-[18px] font-medium text-[#C0483F]" onClick={deleteStudentModal.openModal} type="button">
-                            <Trash2 />
-                        </button>
+                        <StudentUpdateButton refreshStudent={refreshStudent} student={student} studentId={studentId} />
+                        <StudentDeleteButton studentId={studentId} closeModal={closeModal} />
                         <button aria-label="학생 상세 모달 닫기" className="px-1.5 py-0.5 text-[20px] leading-5 text-[#94A3B8]" onClick={closeModal} type="button">
                             ×
                         </button>
@@ -148,19 +161,9 @@ export default function ViewStudentModal({ closeModal, studentId }: { closeModal
                 </section>
             </section>
 
-            {updateStudentModal.isModal && (
-                <UpdateStudentModal closeModal={updateStudentModal.closeModal} />
-            )}
+
             {addLectureModal.isModal && (
                 <AddStudentLectureModal closeModal={addLectureModal.closeModal} />
-            )}
-            {deleteStudentModal.isModal && (
-                <TwoButtonModal
-                    activeModal={deleteStudentModal.activeModal}
-                    closeModal={deleteStudentModal.closeModal}
-                    content="해당 원생을 삭제하시겠습니까?"
-                    title="원생 삭제"
-                />
             )}
             {endLectureModal.isModal && (
                 <TwoButtonModal
