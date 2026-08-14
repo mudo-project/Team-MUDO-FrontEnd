@@ -1,9 +1,13 @@
 import { fetchWithAuth, fetchWithoutAuth } from "@/lib/fetch";
 import { getErrorMessage } from "@/lib/stateError";
+import { buildSignedClientIpHeaders } from "@/lib/clientIpHeaders";
 
 // 현재 접속 IP 조회 API
 export const getCurrentIp = async (): Promise<string> => {
-    const response = await fetchWithoutAuth("/api/attendance/wifi-ips/current");
+    const signedHeaders = await buildSignedClientIpHeaders("GET", "/api/attendance/wifi-ips/current");
+    const response = await fetchWithoutAuth("/api/attendance/wifi-ips/current", {
+        headers: signedHeaders,
+    });
 
     if (!response.ok) {
         const message = await getErrorMessage(
@@ -21,8 +25,10 @@ export const getCurrentIp = async (): Promise<string> => {
 
 // 와이파이 IP 등록 API
 export const createWifiIp = async (payload: WifiIpCreateRequest): Promise<WifiIpCreateData> => {
+    const signedHeaders = await buildSignedClientIpHeaders("POST", "/api/attendance/wifi-ips");
     const response = await fetchWithAuth("/api/attendance/wifi-ips", {
         method: "POST",
+        headers: signedHeaders,
         body: JSON.stringify(payload),
     });
 
