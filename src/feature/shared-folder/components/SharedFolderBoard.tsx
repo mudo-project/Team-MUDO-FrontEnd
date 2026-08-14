@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import { getSharedFolderRootStatusAction, recreateSharedFolderRootAction } from "../actions";
 import SharedFolderCreateGoogleModal from "./SharedFolderCreateGoogleModal";
 import SharedFolderCreateNewFolderModal from "./SharedFolderCreateNewFolderModal";
 import SharedFolderDeleteCheckModal from "./SharedFolderDeleteCheckModal";
@@ -35,6 +36,10 @@ function getDescendantIds(folderId: number, items: SharedFolderItemData[]): numb
 }
 
 export default function SharedFolderBoard() {
+  const [rootStatus, setRootStatus] = useState<"loading" | "ready" | "not-ready">("loading");
+  const [isRecreatingRoot, setIsRecreatingRoot] = useState(false);
+  const [recreateRootError, setRecreateRootError] = useState<string | null>(null);
+
   const [items, setItems] = useState(SHARED_FOLDER_ITEMS);
   const [filter, setFilter] = useState<SharedFolderFilter>("ALL");
   const [searchQuery, setSearchQuery] = useState("");
@@ -49,6 +54,39 @@ export default function SharedFolderBoard() {
   const [currentFolderId, setCurrentFolderId] = useState<number | null>(null);
   const nextItemId = useRef(Math.max(...SHARED_FOLDER_ITEMS.map((item) => item.id)) + 1);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    let ignore = false;
+
+    getSharedFolderRootStatusAction()
+      .then((data) => {
+        if (!ignore) setRootStatus(data.ready ? "ready" : "not-ready");
+      })
+      .catch(() => {
+        if (!ignore) setRootStatus("not-ready");
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
+  const handleRecreateRoot = async () => {
+    setIsRecreatingRoot(true);
+    setRecreateRootError(null);
+
+    try {
+      const result = await recreateSharedFolderRootAction();
+
+      if (result.success) {
+        setRootStatus("ready");
+      } else {
+        setRecreateRootError(result.message);
+      }
+    } finally {
+      setIsRecreatingRoot(false);
+    }
+  };
 
   useEffect(() => {
     const handlePointerDown = (event: PointerEvent) => {
@@ -247,6 +285,32 @@ export default function SharedFolderBoard() {
     (item) => item.kind === "FOLDER" && item.id !== movingItemId && !movingItemDescendantIds.includes(item.id),
   );
   const deletingItemDescendantCount = deletingItem?.kind === "FOLDER" ? getDescendantIds(deletingItem.id, items).length : 0;
+
+  if (rootStatus === "loading") {
+    return (
+      <main className="mx-auto flex h-[calc(100dvh-3.25rem)] w-full max-w-[1200px] items-center justify-center px-5 py-6">
+        <p className="text-[13px] text-[#94A3B8]">공유폴더를 불러오는 중...</p>
+      </main>
+    );
+  }
+
+  if (rootStatus === "not-ready") {
+    return (
+      <main className="mx-auto flex h-[calc(100dvh-3.25rem)] w-full max-w-[1200px] flex-col items-center justify-center gap-3 px-5 py-6 text-center">
+        <p className="text-[13px] font-medium text-[#0F172A]">공유폴더를 사용할 수 없습니다.</p>
+        <p className="text-[12px] text-[#94A3B8]">공유파일 시스템 루트가 아직 생성되지 않았거나 사용할 수 없는 상태입니다.</p>
+        {recreateRootError && <p className="text-[12px] text-[#C65A50]">{recreateRootError}</p>}
+        <button
+          className="h-9 rounded-lg bg-[#12182B] px-4 text-[12px] font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+          disabled={isRecreatingRoot}
+          type="button"
+          onClick={handleRecreateRoot}
+        >
+          {isRecreatingRoot ? "다시 만드는 중..." : "다시 만들기"}
+        </button>
+      </main>
+    );
+  }
 
   return (
     <main className="mx-auto flex h-[calc(100dvh-3.25rem)] min-h-0 w-full max-w-[1200px] flex-col overflow-hidden px-5 py-6">
