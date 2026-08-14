@@ -77,6 +77,7 @@ docker run -d \
   --name "$CURRENT_CONTAINER" \
   --restart unless-stopped \
   -p 127.0.0.1:3000:3000 \
+  --env-file /etc/mudo/frontend.env \
   -e HOSTNAME=0.0.0.0 \
   -e PORT=3000 \
   "$IMAGE_NAME"
