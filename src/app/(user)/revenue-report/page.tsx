@@ -1,12 +1,15 @@
 import RevenueReportList from "@/feature/revenue-report/components/RevenueReportList";
+import { getRevenueReportListAction } from "@/feature/revenue-report/actions";
 
-const MOCK_REPORTS = [
-    { reportId: 3, targetMonth: "2026-08-01", read: false },
-    { reportId: 2, targetMonth: "2026-07-01", read: true },
-    { reportId: 1, targetMonth: "2026-06-01", read: true },
-];
+export default async function RevenueReportPage() {
+    let reports: RevenueReportListItemData[] = [];
+    let loadError = false;
+    try {
+        reports = await getRevenueReportListAction();
+    } catch {
+        loadError = true;
+    }
 
-export default function RevenueReportPage() {
     return (
         <main className="h-[calc(100dvh-52px)] overflow-y-auto">
             <div className="mx-auto w-full max-w-[930px] px-5 py-6">
@@ -18,7 +21,13 @@ export default function RevenueReportPage() {
                 </header>
 
                 <section aria-label="매출 리포트 목록" className="mt-5">
-                    <RevenueReportList reports={MOCK_REPORTS} />
+                    {loadError ? (
+                        <div className="flex h-[200px] items-center justify-center rounded-xl border border-[#DCE9DF] bg-white text-[13px] text-[#64748B]">
+                            매출 리포트 목록을 불러오지 못했습니다.
+                        </div>
+                    ) : (
+                        <RevenueReportList reports={reports} />
+                    )}
                 </section>
             </div>
         </main>
