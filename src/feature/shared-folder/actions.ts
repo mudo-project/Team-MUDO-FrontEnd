@@ -150,13 +150,6 @@ export const uploadSharedFolderFileAction = async (
 export const createSharedFolderGoogleFileAction = async (
     payload: SharedFolderGoogleFileCreateRequest
 ): Promise<SharedFolderActionState & { data?: SharedFolderDriveItemData }> => {
-    if (!payload.parentId.trim()) {
-        return {
-            success: false,
-            message: "상위 폴더를 확인할 수 없습니다.",
-        };
-    }
-
     if (!payload.name.trim()) {
         return {
             success: false,
