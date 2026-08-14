@@ -10,19 +10,19 @@ export default function FinanceTabs() {
     return (
         <nav
             aria-label="재무 메뉴"
-            className="mt-7 flex gap-8 border-b border-[#E1EBE3] text-[15px] font-semibold"
+            className="mt-7 flex gap-2 border-b border-[#E1EBE3] text-[15px] font-semibold"
         >
             <Link
                 className={
                     isCorporateCardActive
-                        ? "border-b-2 border-[#4D9560] pb-3 text-[#172033]"
-                        : "pb-3 text-[#94A3B8]"
+                        ? "border-b-2 border-[#4D9560] px-5 pb-3 text-[#172033]"
+                        : "px-5 pb-3 text-[#94A3B8]"
                 }
                 href="/finance/corporate-card"
             >
                 법인카드
             </Link>
-            <span className="cursor-not-allowed pb-3 text-[#94A3B8]">
+            <span className="cursor-not-allowed px-3 pb-3 text-[#94A3B8]">
                 급여명세서
             </span>
         </nav>

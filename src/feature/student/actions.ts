@@ -57,9 +57,6 @@ const isValidStudentRequest = (payload: CreateStudentRequest) => {
 export const createStudentAction = async (
     payload: CreateStudentRequest,
 ): Promise<StudentActionResult<CreateStudentData>> => {
-    const validationMessage = isValidStudentRequest(payload);
-    if (validationMessage) return { success: false, message: validationMessage };
-
     try {
         const response = await createStudent(payload);
         return { success: true, message: response.message, data: response.data };

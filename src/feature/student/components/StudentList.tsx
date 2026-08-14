@@ -1,8 +1,8 @@
-import { StudentListData } from "../type";
+import { StudentListItemData } from "../type";
 import StudentItem from "./StudentItem";
 
 interface StudentListProps {
-    students: StudentListData[];
+    students: StudentListItemData[];
 }
 
 export default function StudentList({ students }: StudentListProps) {
@@ -21,9 +21,13 @@ export default function StudentList({ students }: StudentListProps) {
                 <p className="col-span-2">학교</p>
             </div>
             <div className="h-[calc(100dvh-197px)] min-h-0 overflow-y-auto">
-                {students.map((student) => (
-                    <StudentItem key={student.id} student={student} />
-                ))}
+                {students.length === 0 ? (
+                    <p className="py-10 text-center text-sm text-[#94A3B8]">등록된 원생이 없습니다.</p>
+                ) : (
+                    students.map((student) => (
+                        <StudentItem key={student.studentId} student={student} />
+                    ))
+                )}
             </div>
         </section>
     );

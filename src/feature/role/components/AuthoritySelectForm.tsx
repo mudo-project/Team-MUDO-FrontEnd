@@ -73,17 +73,6 @@ export default function AuthoritySelectForm({
                 )}
             </header>
 
-            <div className="border-b border-[#D7E8DB] py-3 md:px-6">
-                <div className="flex h-9 w-full items-center gap-2 rounded-[8px] bg-[#FCFCFC] px-3">
-                    <Search className="size-3.5 text-[#B0B8C1]" strokeWidth={1.5} />
-                    <input
-                        className="w-full bg-transparent text-[13px] text-[#0F172A] placeholder:text-[#0F172A]/50 focus:outline-none"
-                        placeholder="권한 검색"
-                        type="search"
-                    />
-                </div>
-            </div>
-
             {children}
         </form>
     );

@@ -1,6 +1,6 @@
 // 임시로 사용할 더미데이터입니다. 추후 API 연동을 진행하면서 삭제할 예정입니다.
 
-export type FinanceCardStatus = "UNWRITTEN" | "PENDING" | "IN_PROGRESS" | "APPROVED" | "REJECTED";
+export type FinanceCardStatus = "UNWRITTEN" | "IN_PROGRESS" | "APPROVED" | "REJECTED";
 
 export interface FinanceCardApprover {
     name: string;
@@ -165,7 +165,7 @@ export const financeCardListMock: FinanceCardItem[] = [
         amount: 245000,
         purpose: "교재·비품",
         reason: "교구 및 소모품 구매",
-        status: "PENDING",
+        status: "IN_PROGRESS",
         approvalNumber: "30280850",
         installment: "3개월",
         approvers: [
@@ -196,13 +196,12 @@ export const financeCardMonthSummary = {
     monthlyTotalCount: 8,
     approvedCount: 2,
     unwrittenCount: 3,
-    inProgressCount: 1,
+    inProgressCount: 2,
     monthlyTotalAmount: 1842300,
     usageCount: 37,
     unwrittenPurposeCount: 3,
     approvalProgress: {
-        pending: 1,
-        inProgress: 1,
+        inProgress: 2,
         approved: 2,
         rejected: 1,
     },
