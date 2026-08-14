@@ -18,6 +18,7 @@ import SharedFolderCreateNewFolderModal from "./SharedFolderCreateNewFolderModal
 import SharedFolderEditNameModal from "./SharedFolderEditNameModal";
 import SharedFolderList from "./SharedFolderList";
 import SharedFolderListHeader from "./SharedFolderListHeader";
+import SharedFolderMoveModal from "./SharedFolderMoveModal";
 import SharedFolderOpenNewTabModal from "./SharedFolderOpenNewTabModal";
 import SharedFolderPath from "./SharedFolderPath";
 import SharedFolderToolbar from "./SharedFolderToolbar";
@@ -56,6 +57,7 @@ export default function SharedFolderBoard() {
   const [googleCreateOption, setGoogleCreateOption] = useState<SharedFolderGoogleCreateOption | null>(null);
   const [newTabFile, setNewTabFile] = useState<{ name: string; viewUrl: string } | null>(null);
   const [renamingItem, setRenamingItem] = useState<SharedFolderDriveItemData | null>(null);
+  const [movingItem, setMovingItem] = useState<SharedFolderDriveItemData | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -289,6 +291,31 @@ export default function SharedFolderBoard() {
     }
   };
 
+  const handleMoveRequest = (item: SharedFolderDriveItemData) => {
+    setOpenItemMenuId(null);
+    setMovingItem(item);
+  };
+
+  const handleMove = async (destinationFolderId: string) => {
+    if (!movingItem) return;
+
+    setIsSubmitting(true);
+
+    try {
+      const result = await updateSharedFolderContentAction(movingItem.id, { parentId: destinationFolderId });
+
+      if (result.success) {
+        toast.success(result.message);
+        setMovingItem(null);
+        await refreshItems();
+      } else {
+        toast.error(result.message);
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleFolderOpen = (item: SharedFolderDriveItemData) => {
     setPath((current) => [...current, { id: item.id, name: item.name }]);
     setFilter("ALL");
@@ -389,7 +416,7 @@ export default function SharedFolderBoard() {
             onFolderOpen={handleFolderOpen}
             onItemMenuSelect={() => setOpenItemMenuId(null)}
             onItemMenuToggle={handleItemMenuToggle}
-            onItemMove={() => setOpenItemMenuId(null)}
+            onItemMove={handleMoveRequest}
             onItemRename={handleRenameRequest}
             onLoadMore={handleLoadMore}
           />
@@ -443,6 +470,15 @@ export default function SharedFolderBoard() {
           isSubmitting={isSubmitting}
           onClose={() => setRenamingItem(null)}
           onRename={handleRename}
+        />
+      )}
+
+      {movingItem && (
+        <SharedFolderMoveModal
+          isSubmitting={isSubmitting}
+          item={movingItem}
+          onClose={() => setMovingItem(null)}
+          onMove={handleMove}
         />
       )}
     </main>

@@ -1,32 +1,65 @@
 "use client";
 
-import { useState } from "react";
-import { Folder, House } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ChevronRight, Folder } from "lucide-react";
+import { getSharedFolderContentListAction } from "../actions";
+import { getSharedFolderItemKind } from "../sharedFolderFormat";
 
 type SharedFolderMoveModalProps = {
-  folders: SharedFolderItemData[];
-  item: SharedFolderItemData;
+  isSubmitting: boolean;
+  item: SharedFolderDriveItemData;
   onClose: () => void;
-  onMove: (destinationFolderId: number | null) => void;
+  onMove: (destinationFolderId: string) => void;
 };
 
-type FolderRow = {
-  depth: number;
-  folder: SharedFolderItemData;
+type BrowsePathEntry = {
+  id: string;
+  name: string;
 };
 
-function flattenFolders(folders: SharedFolderItemData[], parentId: number | null, depth = 0): FolderRow[] {
-  return folders
-    .filter((folder) => folder.parentId === parentId)
-    .flatMap((folder) => [
-      { depth, folder },
-      ...flattenFolders(folders, folder.id, depth + 1),
-    ]);
-}
+export default function SharedFolderMoveModal({ isSubmitting, item, onClose, onMove }: SharedFolderMoveModalProps) {
+  const [browsePath, setBrowsePath] = useState<BrowsePathEntry[]>([]);
+  const [folders, setFolders] = useState<SharedFolderDriveItemData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-export default function SharedFolderMoveModal({ folders, item, onClose, onMove }: SharedFolderMoveModalProps) {
-  const [destinationFolderId, setDestinationFolderId] = useState<number | null>(item.parentId);
-  const folderRows = flattenFolders(folders, null);
+  const browsingFolderId = browsePath.at(-1)?.id;
+
+  useEffect(() => {
+    let ignore = false;
+
+    async function load() {
+      setIsLoading(true);
+      setLoadError(null);
+
+      try {
+        const data = await getSharedFolderContentListAction({ parentId: browsingFolderId, size: 100 });
+
+        if (!ignore) {
+          setFolders(
+            data.items.filter((candidate) => candidate.id !== item.id && getSharedFolderItemKind(candidate) === "FOLDER"),
+          );
+        }
+      } catch (error) {
+        if (!ignore) {
+          setLoadError(error instanceof Error ? error.message : "폴더 목록을 불러오지 못했습니다.");
+        }
+      } finally {
+        if (!ignore) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    load();
+
+    return () => {
+      ignore = true;
+    };
+  }, [browsingFolderId, item.id]);
+
+  const destinationName = browsePath.at(-1)?.name ?? "공유파일 루트";
+  const canMoveHere = browsingFolderId !== undefined;
 
   return (
     <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-[#162236]/35" onClick={onClose}>
@@ -37,50 +70,62 @@ export default function SharedFolderMoveModal({ folders, item, onClose, onMove }
       >
         <h2 id="shared-folder-move-title" className="text-[16px] font-bold text-[#0F172A]">이동</h2>
         <p className="mt-1 text-[12px] text-[#94A3B8]">
-          &quot;{item.name}&quot;을(를) 이동할 위치를 선택하세요.
+          &quot;{item.name}&quot;을(를) 이동할 폴더로 들어가서 선택하세요.
         </p>
 
-        <div className="mt-4 max-h-[220px] overflow-y-auto rounded-lg border border-[#DCE9DF] p-1 text-[12px]">
-          <button
-            aria-pressed={destinationFolderId === null}
-            className={`flex h-9 w-full items-center gap-2 rounded-md px-3 text-left ${destinationFolderId === null ? "bg-[#E8F2EA] text-[#245B35]" : "text-[#64748B] hover:bg-[#F8FAFC]"}`}
-            type="button"
-            onClick={() => setDestinationFolderId(null)}
-          >
-            <House className="size-3.5" strokeWidth={1.8} />
+        <nav aria-label="이동 위치 탐색" className="mt-3 flex items-center gap-1 overflow-x-auto text-[11px] text-[#64748B]">
+          <button className="shrink-0" type="button" onClick={() => setBrowsePath([])}>
             공유파일 루트
-            {item.parentId === null && <span className="text-[10px] text-[#94A3B8]">(현재 위치)</span>}
           </button>
+          {browsePath.map((entry, index) => (
+            <span key={entry.id} className="flex shrink-0 items-center gap-1">
+              <ChevronRight className="size-3" strokeWidth={1.8} />
+              <button type="button" onClick={() => setBrowsePath(browsePath.slice(0, index + 1))}>
+                {entry.name}
+              </button>
+            </span>
+          ))}
+        </nav>
 
-          {folderRows.map(({ depth, folder }) => (
+        <div className="mt-3 max-h-[220px] overflow-y-auto rounded-lg border border-[#DCE9DF] p-1 text-[12px]">
+          {isLoading && <p className="px-3 py-4 text-center text-[#94A3B8]">불러오는 중...</p>}
+          {!isLoading && loadError && <p className="px-3 py-4 text-center text-[#C65A50]">{loadError}</p>}
+          {!isLoading && !loadError && folders.length === 0 && (
+            <p className="px-3 py-4 text-center text-[#94A3B8]">하위 폴더가 없습니다.</p>
+          )}
+          {!isLoading && !loadError && folders.map((folder) => (
             <button
               key={folder.id}
-              aria-pressed={destinationFolderId === folder.id}
-              className={`flex h-9 w-full items-center gap-2 rounded-md pr-3 text-left ${destinationFolderId === folder.id ? "bg-[#E8F2EA] text-[#245B35]" : "text-[#64748B] hover:bg-[#F8FAFC]"}`}
-              style={{ paddingLeft: `${12 + depth * 16}px` }}
+              className="flex h-9 w-full items-center gap-2 rounded-md px-3 text-left text-[#64748B] hover:bg-[#F8FAFC]"
               type="button"
-              onClick={() => setDestinationFolderId(folder.id)}
+              onClick={() => setBrowsePath([...browsePath, { id: folder.id, name: folder.name }])}
             >
               <Folder className="size-3.5" strokeWidth={1.8} />
-              <span className="truncate">{folder.name}</span>
-              {item.parentId === folder.id && <span className="text-[10px] text-[#94A3B8]">(현재 위치)</span>}
+              <span className="min-w-0 flex-1 truncate">{folder.name}</span>
+              <ChevronRight className="size-3.5 shrink-0" strokeWidth={1.8} />
             </button>
           ))}
         </div>
 
-        <div className="mt-4 flex justify-end gap-2">
-          <button className="h-9 rounded-lg border border-[#D7E8DB] bg-white px-4 text-[12px] text-[#6B7280]" type="button" onClick={onClose}>
-            취소
-          </button>
-          <button
-            className="h-9 rounded-lg bg-[#12182B] px-4 text-[12px] font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
-            disabled={destinationFolderId === item.parentId}
-            type="button"
-            onClick={() => onMove(destinationFolderId)}
-          >
-            이동
-          </button>
+        <div className="mt-4 flex items-center justify-between gap-3">
+          <p className="min-w-0 truncate text-[11px] text-[#94A3B8]">이동 위치: {destinationName}</p>
+          <div className="flex shrink-0 gap-2">
+            <button className="h-9 rounded-lg border border-[#D7E8DB] bg-white px-4 text-[12px] text-[#6B7280]" type="button" onClick={onClose}>
+              취소
+            </button>
+            <button
+              className="h-9 rounded-lg bg-[#12182B] px-4 text-[12px] font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={!canMoveHere || isSubmitting}
+              type="button"
+              onClick={() => browsingFolderId && onMove(browsingFolderId)}
+            >
+              {isSubmitting ? "이동 중..." : "이동"}
+            </button>
+          </div>
         </div>
+        {!canMoveHere && (
+          <p className="mt-1.5 text-[11px] text-[#94A3B8]">이동할 하위 폴더로 들어간 뒤 이동할 수 있습니다.</p>
+        )}
       </section>
     </div>
   );
