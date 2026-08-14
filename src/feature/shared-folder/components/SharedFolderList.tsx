@@ -1,22 +1,27 @@
 import SharedFolderItem from "./SharedFolderItem";
 
 type SharedFolderListProps = {
-  items: SharedFolderItemData[];
+  items: SharedFolderDriveItemData[];
   isFolderEmpty: boolean;
-  openItemMenuId: number | null;
-  onDelete: (itemId: number) => void;
+  hasNext: boolean;
+  isLoadingMore: boolean;
+  openItemMenuId: string | null;
+  onDelete: (item: SharedFolderDriveItemData) => void;
   onFileUploadRequest: () => void;
   onFolderCreateRequest: () => void;
-  onFolderOpen: (folderId: number) => void;
-  onItemMove: (itemId: number) => void;
-  onItemRename: (itemId: number) => void;
+  onFolderOpen: (item: SharedFolderDriveItemData) => void;
+  onItemMove: (item: SharedFolderDriveItemData) => void;
+  onItemRename: (item: SharedFolderDriveItemData) => void;
   onItemMenuSelect: () => void;
-  onItemMenuToggle: (itemId: number) => void;
+  onItemMenuToggle: (itemId: string) => void;
+  onLoadMore: () => void;
 };
 
 export default function SharedFolderList({
   items,
   isFolderEmpty,
+  hasNext,
+  isLoadingMore,
   openItemMenuId,
   onDelete,
   onFileUploadRequest,
@@ -26,6 +31,7 @@ export default function SharedFolderList({
   onItemRename,
   onItemMenuSelect,
   onItemMenuToggle,
+  onLoadMore,
 }: SharedFolderListProps) {
   if (items.length === 0) {
     if (!isFolderEmpty) {
@@ -56,14 +62,26 @@ export default function SharedFolderList({
           key={item.id}
           isMenuOpen={openItemMenuId === item.id}
           item={item}
-          onDelete={() => onDelete(item.id)}
-          onFolderOpen={() => onFolderOpen(item.id)}
-          onMove={() => onItemMove(item.id)}
-          onRename={() => onItemRename(item.id)}
+          onDelete={() => onDelete(item)}
+          onFolderOpen={() => onFolderOpen(item)}
           onMenuSelect={onItemMenuSelect}
           onMenuToggle={() => onItemMenuToggle(item.id)}
+          onMove={() => onItemMove(item)}
+          onRename={() => onItemRename(item)}
         />
       ))}
+      {hasNext && (
+        <div className="flex justify-center border-t border-[#F1F5F1] p-3">
+          <button
+            className="h-8 rounded-md border border-[#D7E8DB] bg-white px-4 text-[11px] text-[#425466] disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={isLoadingMore}
+            type="button"
+            onClick={onLoadMore}
+          >
+            {isLoadingMore ? "불러오는 중..." : "더 보기"}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
