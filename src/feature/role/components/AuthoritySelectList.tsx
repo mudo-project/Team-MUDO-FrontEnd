@@ -39,7 +39,7 @@ export default async function AuthoritySelectList({ role }: { role: RoleDetailDa
     );
 
     return (
-        <div className="md:h-[calc(100%-153px)] w-full md:overflow-y-auto py-2 scrollbar-hide">
+        <div className="md:h-[calc(100%-123px)] w-full md:overflow-y-auto py-2 scrollbar-hide">
             {!response.success && (
                 <p className="text-center text-[13px] leading-[19.5px] text-[#64748B]" role="alert">
                     {response.message}

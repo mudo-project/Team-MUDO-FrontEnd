@@ -27,7 +27,7 @@ export default async function Page({ searchParams }: RolePageProps) {
                         <RoleCreateButton />
                     </div>
 
-                    <nav className="mt-1 w-full overflow-auto scrollbar-hide">
+                    <nav className="mt-1 w-full overflow-auto scrollbar-hide h-full">
                         {!response.success && (
                             <p className="mt-10 text-center text-[14px] font-normal leading-[21px] text-[#64748B]" role="alert">
                                 {response.message}

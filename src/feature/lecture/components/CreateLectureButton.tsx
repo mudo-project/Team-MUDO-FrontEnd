@@ -4,8 +4,16 @@ import { Plus } from "lucide-react";
 
 import useModal from "@/components/hooks/useModal";
 import CreateLectureModal from "./modal/CreateLectureModal";
+import { LectureTermData } from "../type";
 
-export default function CreateLectureButton() {
+interface CreateLectureButtonProps {
+    classrooms?: string[];
+    subjects?: string[];
+    teachers?: string[];
+    terms?: LectureTermData[];
+}
+
+export default function CreateLectureButton({ classrooms = [], subjects = [], teachers = [], terms = [] }: CreateLectureButtonProps) {
     const modal = useModal();
 
     return (
@@ -19,7 +27,15 @@ export default function CreateLectureButton() {
                 강의 등록
             </button>
 
-            {modal.isModal && <CreateLectureModal closeModal={modal.closeModal} />}
+            {modal.isModal && (
+                <CreateLectureModal
+                    classrooms={classrooms}
+                    closeModal={modal.closeModal}
+                    subjects={subjects}
+                    teachers={teachers}
+                    terms={terms}
+                />
+            )}
         </>
     );
 }
