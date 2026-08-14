@@ -6,6 +6,7 @@ import {
     CalendarDays,
     Clock3,
     FileCheck2,
+    Folder,
     GraduationCap,
     Grid2X2,
     Home,
@@ -13,6 +14,7 @@ import {
     PanelTop,
     Settings,
     Shield,
+    TrendingUp,
     Users,
     WalletCards,
     type LucideIcon,
@@ -23,11 +25,11 @@ import { usePathname } from "next/navigation";
 interface NavLinkProps {
     href: string,
     children: string,
-    icon: 'Home' | "PanelTop" | "MessageSquare" | "Bell" | "FileCheck2" | "Grid2X2" | "Clock3" | "WalletCards" | "GraduationCap" | "CalendarDays" | "Users" | "Shield" | "Settings" | "Book",
+    icon: 'Home' | "PanelTop" | "MessageSquare" | "Bell" | "FileCheck2" | "Grid2X2" | "Clock3" | "WalletCards" | "GraduationCap" | "CalendarDays" | "Users" | "Shield" | "Settings" | "Book" | "Folder" | "TrendingUp",
     count?: number
 }
 
-const Icon = { Home: Home, PanelTop: PanelTop, MessageSquare: MessageSquare, Bell: Bell, FileCheck2: FileCheck2, Grid2X2: Grid2X2, Clock3: Clock3, WalletCards: WalletCards, GraduationCap: GraduationCap, CalendarDays: CalendarDays, Users: Users, Shield: Shield, Settings: Settings, Book: Book }
+const Icon = { Home: Home, PanelTop: PanelTop, MessageSquare: MessageSquare, Bell: Bell, FileCheck2: FileCheck2, Grid2X2: Grid2X2, Clock3: Clock3, WalletCards: WalletCards, GraduationCap: GraduationCap, CalendarDays: CalendarDays, Users: Users, Shield: Shield, Settings: Settings, Book: Book, Folder: Folder, TrendingUp: TrendingUp }
 
 export default function NavLink({ href, children, icon, count }: NavLinkProps) {
     const SidebarIcon = Icon[icon]
