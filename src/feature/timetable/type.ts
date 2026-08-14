@@ -108,6 +108,7 @@ interface TimetableSlotCreateRequest {
     grade: Grade;
     teacherName?: string;
     subjectName?: string;
+    color: string;
 }
 
 // 수업 슬롯 등록 응답 데이터
@@ -134,6 +135,7 @@ interface TimetableSlotUpdateRequest {
     grade: Grade;
     teacherName?: string;
     subjectName?: string;
+    color: string;
 }
 
 // 수업 슬롯 목록조회·상세조회 공용 데이터값
@@ -147,6 +149,7 @@ interface TimetableSlotData {
     grade: Grade;
     teacherName: string | null;
     subjectName: string | null;
+    color: string;
 }
 
 // 수업 슬롯 목록조회 응답값
@@ -168,17 +171,12 @@ interface TimetableSlotDetailResponse {
 // 시간표 세트 내보내기 포맷
 type TimetableExportFormat = "EXCEL" | "PDF" | "PNG";
 
-// 시간표 세트 내보내기 배경색 기준
-type TimetableExportColorCriterion = "CLASSROOM" | "TEACHER";
-
 // 시간표 세트 내보내기 행 밀도
 type TimetableExportDensity = "COMPACT" | "NORMAL" | "SPACIOUS";
 
-// 시간표 세트 내보내기 요청 파라미터
+// 시간표 세트 내보내기 요청 파라미터 (배경색은 각 수업 슬롯에 저장된 color를 그대로 쓰므로 파라미터로 받지 않는다)
 interface TimetableExportParams {
     format: TimetableExportFormat;
-    colorCriterion: TimetableExportColorCriterion;
-    colorMap: Record<string, string>;
     density?: TimetableExportDensity;
     dayOfWeek?: DayOfWeek;
     floor?: string;
