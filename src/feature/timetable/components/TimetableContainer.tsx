@@ -28,7 +28,6 @@ import TimetableWeekNav from "@/feature/timetable/components/TimetableWeekNav";
 import WeeklyTimetableGrid from "@/feature/timetable/components/WeeklyTimetableGrid";
 import { weekDayNames } from "@/feature/timetable/constants";
 import {
-  buildDefaultClassroomColorMap,
   formatMinutesToTime,
   getClassEndTime,
   getClassStartTime,
@@ -60,7 +59,7 @@ const getTemplateStatus = (status: TimetableSetStatus): TemplateStatus => {
   return { label: "종료", tone: "bg-[#F1F3F5] text-[#8290A0]" };
 };
 
-const blankRegistrationDefaultValues: ClassRegistrationFormValues = { day: "월", room: "", startTime: "09:00", endTime: "11:00", grade: "HIGH_3", teacher: "", course: "" };
+const blankRegistrationDefaultValues: ClassRegistrationFormValues = { day: "월", room: "", startTime: "09:00", endTime: "11:00", grade: "HIGH_3", teacher: "", course: "", color: "90A9C6" };
 
 const buildRegistrationDefaultValues = (classItem: ClassItem, activeTemplate: TimetableTemplate): ClassRegistrationFormValues => ({
   day: weekDayNames[classItem.day],
@@ -70,6 +69,7 @@ const buildRegistrationDefaultValues = (classItem: ClassItem, activeTemplate: Ti
   grade: classItem.grade ?? "HIGH_3",
   teacher: classItem.teacher,
   course: classItem.course,
+  color: classItem.color,
 });
 
 const EXPORT_EXTENSIONS: Record<TimetableExportFormat, string> = {
@@ -258,8 +258,6 @@ export default function TimetableContainer() {
       const dayIndex = weekDayNames.indexOf(selectedDayFilter);
       const params: TimetableExportParams = {
         format,
-        colorCriterion: "CLASSROOM",
-        colorMap: buildDefaultClassroomColorMap(activeTemplate.classroomGroups),
         density: "NORMAL",
         ...(dayIndex >= 0 ? { dayOfWeek: indexToDayOfWeek[dayIndex] } : {}),
         ...(selectedFloorFilter !== "전체" ? { floor: selectedFloorFilter } : {}),

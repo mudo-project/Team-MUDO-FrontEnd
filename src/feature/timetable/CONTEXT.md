@@ -1,7 +1,7 @@
 # Timetable(시간표) Domain — CONTEXT
 > 배치 경로: `src/feature/timetable/CONTEXT.md`
 > 목적: 이 문서를 읽은 사람 또는 AI 에이전트가 시간표 도메인이 **무엇을 하는 도메인이고, 어떤 기능이 있으며, 어떤 조각으로 이루어져 있는지** 파악할 수 있게 한다.
-> 구현 상태: 템플릿 선택·주간 이동·필터/검색·수업 등록/상세·시간표 관리·새 시간표 생성 마법사·주간 그리드는 모두 `TimetableContainer`의 더미 데이터 기준으로 실제 동작한다(백엔드 API 연동은 아직 없음). 수업 등록 모달과 새 시간표 마법사 1단계는 `react-hook-form` + `zod`(`src/lib/`)로 입력을 검증한다. 내보내기(엑셀/PDF/이미지)는 버튼과 옵션 목록만 있는 정적 UI이고 실제 다운로드 로직은 없다. 새 시간표 마법사 1단계의 운영 시작/종료 시각 select와 운영 요일 버튼도 마크업만 있고 상태에 연결되어 있지 않다.
+> 구현 상태: 백엔드 API(`.docs/api/timetable/apiIntegration.md`)와 실제로 연동되어 있다. 템플릿(세트) CRUD, 수업 슬롯 CRUD, 내보내기(엑셀/PDF/PNG 실제 다운로드) 전부 `@tanstack/react-query`(`useQuery`/`useMutation`) + `src/feature/timetable/actions.ts` + `src/service/timetable.service.ts`를 통해 동작한다. 수업 등록 모달과 새 시간표 마법사 1단계는 `react-hook-form` + `zod`(`src/lib/`)로 입력을 검증한다. 새 시간표 마법사 1단계의 운영 시작/종료 시각 select와 운영 요일 버튼은 아직 마크업만 있고 상태에 연결되어 있지 않다(항상 기본값으로 저장됨).
 
 ---
 
@@ -16,9 +16,11 @@
 - 화면에 보이는 주간 날짜는 **선택된 템플릿을 만들 때 지정한 시작일을 기준**으로 이동한다. `<`/`>` 버튼은 이 기준일에서 1주 단위로 앞뒤로 이동하며, 템플릿의 시작 주/종료 주에서는 각각 이전/다음 버튼이 비활성화된다.
 - 템플릿 상태(진행 중 / 예정 / 종료)는 템플릿의 시작일·종료일과 기준 날짜(`2026-08-11`로 고정)를 비교해 결정되는 파생 값이다.
 - 수업 등록 시 종료 시각은 시작 시각보다 빠를 수 없고, 새 시간표 생성 1단계에서도 종료일은 시작일보다 빠를 수 없다. 둘 다 zod 스키마의 교차 필드 검증(`.refine`)으로 강제되며, 위반 시 다음/등록 버튼이 눌려도 진행되지 않고 필드 아래 에러 메시지가 뜬다.
+- 학년은 자유 문자열이 아니라 `Grade` enum(초1~고3 고정 12단계) 중 하나만 저장할 수 있다. 색상도 자유 문자열이 아니라 6자리 hex(`RRGGBB`)만 허용된다.
 - 새 시간표 생성은 **기본정보 → 템플릿 설정 → 강의실 설정** 3단계 마법사이며, 각 단계를 통과해야 다음 단계로 진행할 수 있다.
 - 강의실 설정의 기본값은 1층~5층까지 각 층에 1개씩(`1층 101호` … `5층 501호`)이며, "이전 템플릿 불러오기"를 선택하면 현재 보고 있는 템플릿의 강의실 구성이 대신 채워진다.
-- 수업 등록·삭제는 화면(클라이언트) 상태에만 반영되고 새로고침하면 초기 더미 데이터로 되돌아간다.
+- 시간표 세트를 수정하면 목록 쿼리뿐 아니라 그 세트의 상세·수업 슬롯 쿼리도 함께 무효화된다(`["timetable-set-detail", id]`, `["timetable-slots", id]`) — 그래야 강의실 구성을 바꾼 결과가 그리드에 바로 반영된다.
+- 내보내기는 각 수업 슬롯에 저장된 `color`를 그대로 사용해서 파일을 만든다. 내보내기 시점에 색상을 따로 지정하는 UI/파라미터는 없다.
 
 ### 진입점
 
@@ -26,7 +28,10 @@ Sidebar의 시간표 메뉴(라우트 `src/app/(user)/timetable/page.tsx`).
 
 ### 데이터 연동 계층
 
-미구현. `TimetableContainer`(`src/feature/timetable/components/TimetableContainer.tsx`) 안에 임시 타입 없는 더미 데이터(`days`, `classItems`, `timetableTemplates`)가 직접 선언되어 있으며, 추후 API 연동 시 삭제될 예정으로 주석이 달려 있다. `src/feature/timetable/type.ts` / `actions.ts` / `src/service/timetable.service.ts`는 아직 없다.
+- `src/feature/timetable/type.ts` — API 요청/응답 타입(전역 ambient, import 없이 참조).
+- `src/service/timetable.service.ts` — `fetchWithAuth` 기반 API 호출.
+- `src/feature/timetable/actions.ts` — 위 service를 감싼 Server Action. 세트/슬롯 생성·수정 액션은 service 호출 전에 자체 검증(이름 공백, 날짜 순서, 강의실 코드 중복, 색상 형식 등)을 한 번 더 한다.
+- `src/feature/timetable/timetableFormat.ts` — API 응답(요일 enum, `HH:mm:ss` 시각 등)을 그리드가 쓰는 좌표(요일 인덱스, 슬롯 행 번호)로 변환하는 순수 함수 모음(`toTimetableTemplate`, `toTimetableSlotRequestPayload` 등).
 
 ---
 
@@ -95,7 +100,7 @@ Sidebar의 시간표 메뉴(라우트 `src/app/(user)/timetable/page.tsx`).
 
 ## 4. 기능 목록
 
-### 4.1 시간표 템플릿 선택 — 구현 완료(더미 데이터 기준)
+### 4.1 시간표 템플릿 선택 — 구현 완료
 
 | 기능 | 트리거 | 동작 |
 |---|---|---|
@@ -111,35 +116,36 @@ Sidebar의 시간표 메뉴(라우트 `src/app/(user)/timetable/page.tsx`).
 | 이전 주 이동 | `<` 버튼 클릭 | 조회 중인 주간을 1주 이전으로 이동. 템플릿 시작 주에서는 버튼이 비활성화됨 |
 | 다음 주 이동 | `>` 버튼 클릭 | 조회 중인 주간을 1주 다음으로 이동. 이동 결과가 템플릿 종료일을 넘어가면 이동하지 않고, 종료 주에서는 버튼이 비활성화됨 |
 
-### 4.3 수업 등록 — 구현 완료(더미 데이터 기준)
+### 4.3 수업 등록 — 구현 완료
 
 | 기능 | 트리거 | 동작 |
 |---|---|---|
-| 수업 등록 모달 열기 | 상단 `수업 등록` 클릭 | 요일·강의실·시작 시각·종료 시각·학년·강사·과목 입력 모달 노출 |
+| 수업 등록 모달 열기 | 상단 `수업 등록` 클릭 | 요일·강의실·시작 시각·종료 시각·학년·색상·강사·과목 입력 모달 노출 |
 | 요일 선택 | 모달의 요일 select | 월요일~일요일 중 선택. 요일을 바꾸면 강의실 선택은 초기화됨 |
 | 강의실 선택 | 모달의 강의실 select | 선택한 요일에 현재 템플릿이 갖고 있는 강의실 목록에서 선택 |
 | 시작/종료 시각 선택 | 모달의 시작/종료 시각 select | 08:00~21:00(시작) / 09:00~22:00(종료) 중 선택 |
-| 학년 선택 | 모달의 학년 select | 초1~고3 중 선택 |
+| 학년 선택 | 모달의 학년 select | 초1~고3(내부적으로는 `ELEMENTARY_1`~`HIGH_3` enum 값) 중 선택 |
+| 색상 선택 | 모달의 색상 picker(`<input type="color">`) | 선택한 색이 6자리 hex로 저장되고, 그리드 카드·내보내기 파일의 배경색으로 그대로 쓰임 |
 | 강사/과목 입력 | 모달의 입력란 | 직접 입력 |
-| 입력 검증 | 모달의 `등록` 클릭 | `react-hook-form` + `zod`(`src/lib/classRegistrationSchema.ts`)로 검증. 요일·강의실·시작/종료 시각·학년은 필수, 강사·과목은 trim 후 필수, 종료 시각이 시작 시각보다 늦지 않으면 종료 시각 필드에 에러 메시지 표시 |
-| 등록/수정 저장 | 검증 통과 후 | 신규 등록은 목록에 추가되고, 수업 상세에서 넘어온 수정은 기존 항목을 대체함 |
+| 입력 검증 | 모달의 `등록` 클릭 | `react-hook-form` + `zod`(`src/lib/classRegistrationSchema.ts`)로 검증. 요일·강의실·시작/종료 시각·학년·색상은 필수, 강사·과목은 trim 후 필수, 종료 시각이 시작 시각보다 늦지 않으면 종료 시각 필드에 에러 메시지 표시 |
+| 등록/수정 저장 | 검증 통과 후 | `createTimetableSlotAction`/`updateTimetableSlotAction` 호출. 성공 시 토스트 + 해당 세트의 수업 슬롯 쿼리 무효화로 그리드 갱신 |
 
-### 4.4 수업 상세 — 구현 완료(더미 데이터 기준)
+### 4.4 수업 상세 — 구현 완료
 
 | 기능 | 트리거 | 동작 |
 |---|---|---|
-| 상세 모달 열기 | 그리드의 수업 카드 클릭 | 학년·과목·강사·요일·강의실·시작 시각을 보여주는 모달 노출 |
+| 상세 모달 열기 | 그리드의 수업 카드 클릭 | "수업" 라벨 + 과목명 제목, 강의실·강사·학년·시간(요일+시작~종료) 4행을 회색 박스에 보여주는 컴팩트 모달 노출(닫기는 헤더의 X 아이콘만) |
 | 수정 진입 | 상세 모달 `수정` 클릭 | 수업 등록 모달이 해당 수업 값으로 채워진 채 열림(수정 모드) |
-| 삭제 | 상세 모달 `삭제` 클릭 | 확인 없이 바로 삭제되고 모달이 닫힘 |
+| 삭제 | 상세 모달 `삭제` 클릭 | 확인 없이 `deleteTimetableSlotAction` 호출, 성공 시 모달이 닫히고 그리드가 갱신됨 |
 
-### 4.5 내보내기 — 미구현(정적 UI만 존재)
+### 4.5 내보내기 — 구현 완료
 
 | 기능 | 트리거 | 동작 |
 |---|---|---|
 | 내보내기 옵션 열기/닫기 | 상단 `내보내기` 클릭 | 버튼 아래에 엑셀(.xlsx)/PDF(A3 가로)/이미지(PNG) 옵션 목록 노출 |
-| 옵션 클릭 | 각 옵션 클릭 | 동작 없음(다운로드 로직 없음) |
+| 파일 다운로드 | 옵션 클릭 | `exportTimetableSetAction` 호출(현재 요일/층 필터를 `dayOfWeek`/`floor`로 그대로 전달, `density`는 항상 `NORMAL`). 응답으로 받은 base64를 Blob으로 변환해 브라우저에서 바로 다운로드시킴. 배경색은 각 수업 슬롯에 저장된 `color`를 그대로 사용하므로 이 화면에서 색을 따로 지정하지 않음 |
 
-### 4.6 시간표 관리 — 구현 완료(더미 데이터 기준)
+### 4.6 시간표 관리 — 구현 완료
 
 | 기능 | 트리거 | 동작 |
 |---|---|---|
@@ -149,7 +155,7 @@ Sidebar의 시간표 메뉴(라우트 `src/app/(user)/timetable/page.tsx`).
 | 삭제 | `…` 메뉴에서 `삭제` 클릭 | 확인 없이 해당 템플릿이 목록에서 삭제됨 |
 | 새 시간표 생성 진입 | 모달 최하단 `새 시간표` 클릭 | 새 시간표 생성 마법사(1 기본정보)로 이동 |
 
-### 4.7 새 시간표 생성 — 부분 구현(더미 데이터 기준)
+### 4.7 새 시간표 생성 — 부분 구현
 
 3단계 마법사로 진행되며 상단에 `1 기본정보 / 2 템플릿 선택 / 3 강의실 설정`이 표시되고 현재 단계에 맞는 숫자가 활성화된다.
 
@@ -172,67 +178,51 @@ Sidebar의 시간표 메뉴(라우트 `src/app/(user)/timetable/page.tsx`).
 | 층 필터 | 전체 층 select에서 선택 | 선택한 층의 강의실만 표시(현재 템플릿의 강의실 호수 앞자리 기준으로 옵션 생성), 기본값은 전체 |
 | 강의 검색 | 검색 입력란에 입력 | 입력한 문자열이 과목명에 포함된 수업만 표시(대소문자 무시) |
 
-### 4.9 주간 시간표 그리드 — 구현 완료(더미 데이터 기준)
+### 4.9 주간 시간표 그리드 — 구현 완료
 
 | 기능 | 트리거 | 동작 |
 |---|---|---|
 | 요일/날짜 헤더 표시 | 페이지 진입 | 조회 중인 주간의 요일·날짜를 그리드 최상단에 표시 |
 | 강의실 헤더 표시 | 페이지 진입 | 필터를 통과한 강의실 호수를 요일 헤더 바로 아래에 표시 |
 | 시간축 표시 | 페이지 진입 | 08:00부터 템플릿의 슬롯 단위(10/30/60분)에 맞춰 나눈 시간을 좌측에 표시 |
-| 수업 카드 배치·클릭 | 필터·검색을 통과한 수업 | 요일·강의실·시작 시각·소요 시간에 맞춰 카드(학년+과목·강사)가 배치되고, `tone`(blue/green/stone/sky)에 따라 색상이 달라짐. 클릭하면 수업 상세 모달이 열림 |
+| 수업 카드 배치·클릭 | 필터·검색을 통과한 수업 | 요일·강의실·시작 시각·소요 시간에 맞춰 카드(학년+과목·강사)가 배치되고, 그 수업 슬롯에 저장된 `color`(hex)를 카드 좌측 테두리·옅은 배경색으로 그대로 씀(고정 팔레트 없음). 클릭하면 수업 상세 모달이 열림 |
+| 스크롤 | 그리드 영역 | 가로 스크롤바만 보이고(얇은 스크롤바), 세로는 스크롤은 되지만 스크롤바를 숨김(`scrollbar-hide`). 세로 방향 높이 제한(`max-h`)은 그리드 안쪽 스크롤 컨테이너에만 걸려 있음 |
 
 ---
 
 ## 5. 데이터
 
-`src/feature/timetable/types.ts`에 정의된 타입과 `src/feature/timetable/constants.ts`의 상수를 쓴다. 실 데이터는 아직 `TimetableContainer.tsx`에 선언된 더미 데이터다(추후 API 연동 시 대체될 예정).
+API 요청/응답 타입은 `src/feature/timetable/type.ts`(전역 ambient, import 없이 참조), 화면이 실제로 쓰는 가공된 모양은 `src/feature/timetable/viewModel.ts`(명시적 export, import해서 씀)에 나눠져 있다 — 이 둘이 이름이 비슷해서 헷갈리기 쉬운데, `type.ts`는 API 계약 그대로, `viewModel.ts`는 `timetableFormat.ts`의 변환 함수가 만들어내는 화면용 결과 타입이라는 점이 다르다.
 
-### 요일/강의실 (`days`, 더미)
+### API 타입 (`type.ts`)
 
-| 항목 | 설명 |
+| 타입 | 설명 |
 |---|---|
-| `name` | 요일 이름(일~토) |
-| `rooms` | 그 요일에 표시되는 강의실 호수 목록 |
+| `Grade` | 학년 enum. `ELEMENTARY_1`~`ELEMENTARY_6`/`MIDDLE_1`~`MIDDLE_3`/`HIGH_1`~`HIGH_3` 12단계 |
+| `TimetableSlotCreateRequest`/`TimetableSlotUpdateRequest` | 수업 슬롯 등록/수정 요청. `classType`/`dayOfWeek`/`classroomCode`/`startTime`/`endTime`/`grade`/`color`는 필수, `teacherName`/`subjectName`은 선택 |
+| `TimetableSlotData` | 수업 슬롯 조회 응답. 위 요청 필드에 `timetableSlotId`가 더해진 형태(`color`도 항상 포함) |
+| `TimetableExportParams` | 내보내기 쿼리 파라미터. `format`(필수), `density`/`dayOfWeek`/`floor`/`classType`(선택). 색상 관련 파라미터는 없음(슬롯의 `color`를 그대로 씀) |
 
-### 수업 (`ClassItem`)
+### 화면용 타입 (`viewModel.ts`)
 
-| 항목 | 설명 |
+| 타입 | 설명 |
 |---|---|
-| `day` | 요일 인덱스(0=일 ~ 6=토) |
-| `room` | 그 요일 강의실 목록 인덱스 |
-| `start` | 시간표 그리드에서의 시작 행(슬롯 단위 기준, 1부터 시작) |
-| `duration` | 소요 슬롯 수 |
-| `grade` | 학년(선택) |
-| `course` | 과목 |
-| `teacher` | 강사 이름 |
-| `tone` | 카드 색상(`blue`/`green`/`stone`/`sky`) |
-
-### 시간표 템플릿 (`TimetableTemplate`)
-
-| 항목 | 설명 |
-|---|---|
-| `id` | 템플릿 식별자 |
-| `title` | 템플릿 이름 |
-| `startDate` / `endDate` | 템플릿 기간 |
-| `roomsByDay` | 요일별 강의실 배치(`{ name, rooms }[]`) |
-| `classes` | 이 템플릿에 등록된 수업 목록 |
-| `slotMinutes` | 그리드 시간 분할 단위(10/30/60분) |
-
-### 강의실 층 설정 (`FloorConfig`)
-
-새 시간표 생성 3단계에서 쓰는 `{ floor, rooms }` 형태. 완료 시 `roomsByDay`로 변환된다(모든 요일에 동일한 강의실 구성이 적용됨).
+| `ClassItem` | 그리드가 그리는 수업 1건. `day`/`room`은 요일 인덱스·강의실 목록 인덱스로 변환된 값, `start`/`duration`은 슬롯 단위 기준 그리드 좌표, `grade`는 `Grade` enum(선택), `color`는 6자리 hex(그리드 카드 색상에 그대로 사용) |
+| `TimetableTemplate` | 시간표 세트 상세 + 수업 슬롯 목록을 합쳐 그리드가 쓰기 좋게 가공한 형태(`roomsByDay`, `classroomGroups`, `classes`, `slotMinutes` 등) |
+| `FloorConfig` | 층별 강의실 구성(`{ floor, rooms }`). 새 시간표 생성 3단계에서 쓰고, 완료 시 API의 `classrooms` 형태로 변환됨 |
+| `TemplateStatus` | 템플릿 상태 뱃지 표시용(`label`, `tone`) |
 
 ### 상수 (`constants.ts`)
 
-`weekDayNames`, `times`(08:00~22:00), `startTimeOptions`/`endTimeOptions`, `gradeOptions`, 모달 공용 스타일 클래스(`modalSurfaceClass`).
+`weekDayNames`, `times`(08:00~22:00), `startTimeOptions`/`endTimeOptions`, `gradeValues`(zod enum에 쓰는 12개 리터럴 튜플), `gradeLabels`(enum → 한글 라벨 매핑), `gradeOptions`(select용 `{value, label}[]`), 모달 공용 스타일 클래스(`modalSurfaceClass`).
 
 ### 폼 검증 스키마 (`src/lib/`)
 
-수업 등록 모달과 새 시간표 마법사 1단계의 입력값 타입은 `src/feature/timetable/types.ts`가 아니라 각자의 zod 스키마에서 추론한다.
+수업 등록 모달과 새 시간표 마법사 1단계의 입력값 타입은 이 zod 스키마들에서 추론한다.
 
 | 스키마 | 위치 | 필드 |
 |---|---|---|
-| `classRegistrationSchema` → `ClassRegistrationFormValues` | `src/lib/classRegistrationSchema.ts` | `day`, `room`, `startTime`, `endTime`, `grade`, `teacher`, `course` |
+| `classRegistrationSchema` → `ClassRegistrationFormValues` | `src/lib/classRegistrationSchema.ts` | `day`, `room`, `startTime`, `endTime`, `grade`(`gradeValues` enum), `teacher`, `course`, `color`(6자리 hex 정규식 검증) |
 | `newTimetableBasicInfoSchema` → `NewTimetableBasicInfoFormValues` | `src/lib/newTimetableBasicInfoSchema.ts` | `name`, `startDate`, `endDate` |
 
 ---
@@ -243,14 +233,14 @@ Sidebar의 시간표 메뉴(라우트 `src/app/(user)/timetable/page.tsx`).
 
 | 컴포넌트/훅 | 책임 |
 |---|---|
-| **TimetableContainer** | 화면 셸(client). 더미 데이터, 템플릿/주간/필터/선택·수정 대상 수업 상태를 소유하고, 아래 컴포넌트들에 값과 콜백을 내려준다. 새 시간표 마법사 상태는 커스텀 훅으로 분리해 호출만 하고, 수업 등록 폼의 실제 입력 상태는 `ClassRegistrationModal`이 자체적으로 갖는다(Container는 초깃값 계산과 저장 콜백만 담당) |
+| **TimetableContainer** | 화면 셸(client). `@tanstack/react-query`의 `useQuery`(세트 목록/상세, 슬롯 목록)와 `useMutation`(세트 저장/삭제, 슬롯 저장/삭제, 내보내기)으로 서버 상태를 관리하고, 그 위에 주간/필터/선택·수정 대상 수업 같은 화면 전용 상태를 얹어 아래 컴포넌트들에 값과 콜백을 내려준다. 세트를 수정하면 목록뿐 아니라 그 세트의 상세·슬롯 쿼리도 함께 무효화한다. 새 시간표 마법사 상태는 커스텀 훅으로 분리해 호출만 하고, 수업 등록 폼의 실제 입력 상태는 `ClassRegistrationModal`이 자체적으로 갖는다(Container는 초깃값 계산과 저장 콜백만 담당) |
 | **TimetableTemplateSelector** | 템플릿 선택 select + 목록 드롭다운 |
 | **TimetableWeekNav** | `<`/`>` 주간 이동 버튼 |
-| **TimetableExportMenu** | 내보내기 버튼 + 옵션 목록(정적 UI) |
+| **TimetableExportMenu** | 내보내기 버튼 + 옵션 목록. 옵션 클릭 시 Container의 내보내기 `useMutation`이 `exportTimetableSetAction`을 호출해 실제 파일을 다운로드한다 |
 | **TimetableFilterBar** | 요일/층 select + 강의 검색 입력 |
-| **WeeklyTimetableGrid** | 주간 시간표 그리드(요일·강의실 헤더, 시간축, 수업 카드) 렌더링 |
-| **ClassRegistrationModal** | 수업 등록/수정 모달. `react-hook-form` + `classRegistrationSchema`로 폼 상태·검증을 자체적으로 갖고, `defaultValues`(신규/수정 초깃값)와 `onSubmit`(검증 통과한 값)만 Container와 주고받는다 |
-| **ClassDetailModal** | 수업 상세 모달 UI(수정/삭제 버튼) |
+| **WeeklyTimetableGrid** | 주간 시간표 그리드(요일·강의실 헤더, 시간축, 수업 카드) 렌더링. 카드 배경·좌측 테두리 색은 각 수업 슬롯의 `color`(hex)를 그대로 사용한다 |
+| **ClassRegistrationModal** | 수업 등록/수정 모달. `react-hook-form` + `classRegistrationSchema`로 폼 상태·검증(색상 포함)을 자체적으로 갖고, `defaultValues`(신규/수정 초깃값)와 `onSubmit`(검증 통과한 값)만 Container와 주고받는다 |
+| **ClassDetailModal** | 수업 상세 모달 UI. 헤더 오른쪽 X 아이콘으로만 닫히고(별도 닫기 버튼 없음), 하단에 수정/삭제 버튼만 있다 |
 | **TimetableManagementModal** | 시간표 관리 모달(템플릿 목록, `…` 옵션, 새 시간표 버튼) |
 | **NewTimetableStepModal** | 새 시간표 생성 마법사 셸(스텝퍼 헤더 + 이전/취소/다음/완료 푸터). `step`에 따라 아래 3개 컴포넌트 중 하나를 렌더링 |
 | **NewTimetableBasicInfoStep** | 마법사 1단계(이름/기간/운영 시각·요일/슬롯 단위). `react-hook-form` + `newTimetableBasicInfoSchema`로 이름·시작일·종료일을 자체 검증하고, 검증 결과(`isValid`)를 `onValidityChange` 콜백으로, 값 변경은 `onChangeForm` 콜백으로 각각 부모에 올려준다(이 단계는 자체 제출 버튼이 없고 "다음" 버튼이 `NewTimetableStepModal`의 공용 푸터에 있어서, 값과 유효성을 별도로 올려야 한다) |
@@ -284,8 +274,6 @@ Sidebar의 시간표 메뉴(라우트 `src/app/(user)/timetable/page.tsx`).
 
 | 조각 | 역할 | 상태 |
 |---|---|---|
-| 시간표 데이터 연동 | 템플릿·수업 조회 및 CRUD API 연동(`type.ts`/`actions.ts`/`timetable.service.ts`) | 미구현 — 전부 `TimetableContainer`의 더미 데이터로 동작 |
-| 내보내기 로직 | 엑셀/PDF/이미지 생성 및 다운로드 | 미구현 — UI만 존재 |
 | 마법사 1단계 운영 시각/요일 연동 | select·버튼 값을 실제 상태에 반영 | 미구현 |
 
 ---
@@ -299,7 +287,7 @@ Sidebar의 시간표 메뉴(라우트 `src/app/(user)/timetable/page.tsx`).
 | 주간 이동 | 이전/다음 버튼 각각 템플릿 시작 주·종료 주에서 비활성화 |
 | 수업 등록 모달 | 열림(신규) / 열림(수정) / 닫힘 |
 | 수업 상세 모달 | 열림 / 닫힘(그리드에서 선택된 수업이 있을 때만 열림) |
-| 내보내기 옵션 | 닫힘 / 열림(정적) |
+| 내보내기 옵션 | 닫힘 / 열림 / 내보내는 중(`useMutation`의 `isPending`) |
 | 시간표 관리 모달 | 열림 / 닫힘 |
 | 관리 모달의 `…` 메뉴 | 닫힘 / 열림(항목당 하나만) |
 | 새 시간표 생성 마법사 단계 | 닫힘(`null`) / 1 기본정보 / 2 템플릿 선택 / 3 강의실 설정 |

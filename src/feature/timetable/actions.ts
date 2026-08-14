@@ -73,6 +73,10 @@ function validateTimetableSlotPayload(
         return "시작 시각은 종료 시각보다 빨라야 합니다.";
     }
 
+    if (!/^[0-9A-Fa-f]{6}$/.test(payload.color)) {
+        return "올바른 색상 코드를 선택해주세요.";
+    }
+
     return null;
 }
 
