@@ -1,4 +1,4 @@
-export default function ScheduleItem({ schedule }: { schedule: any }) {
+export default function ScheduleItem({ schedule }: { schedule: string }) {
     const [day, time] = schedule.split(" ");
     return (
         <span className="block text-[12px] leading-[18px]" key={schedule}>
