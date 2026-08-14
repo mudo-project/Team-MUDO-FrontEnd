@@ -9,6 +9,7 @@ export const classRegistrationSchema = z.object({
   grade: z.enum(gradeValues, { message: "학년을 선택해주세요." }),
   teacher: z.string().trim().min(1, "강사를 입력해주세요."),
   course: z.string().trim().min(1, "과목을 입력해주세요."),
+  color: z.string().regex(/^[0-9A-Fa-f]{6}$/, "올바른 색상 코드를 선택해주세요."),
 }).refine((values) => Number(values.endTime.slice(0, 2)) > Number(values.startTime.slice(0, 2)), {
   message: "종료 시각은 시작 시각보다 늦어야 해요.",
   path: ["endTime"],

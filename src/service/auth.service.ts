@@ -71,3 +71,17 @@ export const getUserList = async (
 
     return response.json();
 };
+
+export const getMyPermissionList = async (): Promise<MyPermissionListResponse> => {
+    const response = await fetchWithAuth("/api/users/me/permissions");
+
+    if (!response.ok) {
+        const message = await getErrorMessage(
+            response,
+            "내 권한 목록 조회에 실패했습니다."
+        );
+        throw new Error(message);
+    }
+
+    return response.json();
+};

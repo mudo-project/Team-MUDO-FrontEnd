@@ -30,6 +30,7 @@ export default function ClassRegistrationModal({
     defaultValues,
   });
   const [selectedDay, setSelectedDay] = useState(defaultValues.day);
+  const [selectedColor, setSelectedColor] = useState(defaultValues.color);
 
   const dayField = register("day");
   const availableRooms = getAvailableRooms(selectedDay);
@@ -108,6 +109,22 @@ export default function ClassRegistrationModal({
             >
               {gradeOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
             </select>
+          </label>
+          <label className="flex items-center gap-2 text-[11px] font-medium text-[#718096]">색상
+            <input
+              aria-label="색상"
+              className="h-8 w-10 cursor-pointer rounded-md border border-[#DCE9DF] bg-white p-0.5"
+              onChange={(event) => {
+                const hex = event.target.value.replace("#", "").toUpperCase();
+
+                setSelectedColor(hex);
+                setValue("color", hex, { shouldValidate: true });
+              }}
+              type="color"
+              value={`#${selectedColor}`}
+            />
+            <span className="text-[12px] font-normal text-[#526071]">#{selectedColor}</span>
+            {errors.color && <span className="text-[10px] text-[#C65A50]">{errors.color.message}</span>}
           </label>
           <div className="grid grid-cols-2 gap-2">
             <label className="space-y-1.5 text-[11px] font-medium text-[#718096]">강사

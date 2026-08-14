@@ -6,21 +6,24 @@ import type { FinanceCardApprover } from "../mockData";
 import { FINANCE_CARD_PURPOSE_OPTIONS } from "../mockData";
 
 interface FinanceCardApprovalFormProps {
-    purpose: string | null;
-    reason: string | null;
+    expenseCategory: string;
+    onChangeExpenseCategory: (value: string) => void;
+    purpose: string;
+    onChangePurpose: (value: string) => void;
     approvers: FinanceCardApprover[];
     isResubmission?: boolean;
     submitLabel?: string;
 }
 
 export default function FinanceCardApprovalForm({
+    expenseCategory,
+    onChangeExpenseCategory,
     purpose,
-    reason,
+    onChangePurpose,
     approvers,
     isResubmission = false,
     submitLabel,
 }: FinanceCardApprovalFormProps) {
-    const [selectedPurpose, setSelectedPurpose] = useState(purpose);
     const [assignedApprovers, setAssignedApprovers] = useState(approvers);
     const [selectedApproverName, setSelectedApproverName] = useState("");
     const approverCandidates = [
@@ -61,13 +64,13 @@ export default function FinanceCardApprovalForm({
             {isResubmission && <h3 className="text-[17px] font-bold text-[#172033]">사용목적 작성</h3>}
             <label className="mt-4 block text-[13px] font-semibold text-[#394257]">
                 사용 목적
-                <select 
-                    className="mt-2 h-12 w-full rounded-lg border border-[#DCE9DF] bg-white px-3 text-[14px] text-[#394257] outline-none" 
-                    onChange={(event) => setSelectedPurpose(event.target.value)} 
-                    value={selectedPurpose ?? ""}
+                <select
+                    className="mt-2 h-12 w-full rounded-lg border border-[#DCE9DF] bg-white px-3 text-[14px] text-[#394257] outline-none"
+                    onChange={(event) => onChangeExpenseCategory(event.target.value)}
+                    value={expenseCategory}
                 >
                     <option disabled value="">사용 목적 선택</option>
-                    {FINANCE_CARD_PURPOSE_OPTIONS.map((option) => 
+                    {FINANCE_CARD_PURPOSE_OPTIONS.map((option) =>
                         <option key={option} value={option}>{option}</option>
                     )}
                 </select>
@@ -76,8 +79,9 @@ export default function FinanceCardApprovalForm({
             <label className="mt-4 block text-[13px] font-semibold text-[#394257]">사용 사유
             <textarea
                 className="mt-2 min-h-32 w-full resize-none rounded-lg border border-[#DCE9DF] p-3 text-[14px] outline-none placeholder:text-[#94A3B8] focus:border-[#4D9560]"
-                defaultValue={reason ?? ""}
+                onChange={(event) => onChangePurpose(event.target.value)}
                 placeholder="사용 사유를 입력하세요"
+                value={purpose}
             />
             </label>
 

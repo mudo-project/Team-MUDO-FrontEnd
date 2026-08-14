@@ -20,13 +20,6 @@ type WeeklyTimetableGridProps = {
   visibleRooms: string[];
 };
 
-const classTone = {
-  blue: "border-l-[#90A9C6] bg-[#EEF4FA] text-[#405268]",
-  green: "border-l-[#6F9278] bg-[#F0F5F0] text-[#4D6654]",
-  stone: "border-l-[#B7A18C] bg-[#F7F4F0] text-[#685D53]",
-  sky: "border-l-[#77A4B0] bg-[#EEF6F7] text-[#49646B]",
-};
-
 export default function WeeklyTimetableGrid({
   classes,
   days,
@@ -102,9 +95,14 @@ export default function WeeklyTimetableGrid({
                     return roomIndex >= 0 &&
                     <button
                       aria-label={`${item.course} 수업 상세`}
-                      className={`z-10 m-1 border-l-[3px] p-1 text-left text-[10px] font-semibold ${classTone[item.tone]}`}
+                      className="z-10 m-1 border-l-[3px] p-1 text-left text-[10px] font-semibold text-[#172033]"
                       key={item.slotId} onClick={() => onSelectClass(item)}
-                      style={{ gridColumn: roomIndex + 1, gridRow: `${item.start} / span ${item.duration}` }} 
+                      style={{
+                        backgroundColor: `#${item.color}1A`,
+                        borderLeftColor: `#${item.color}`,
+                        gridColumn: roomIndex + 1,
+                        gridRow: `${item.start} / span ${item.duration}`,
+                      }}
                       type="button"
                     >
                       <strong className="block">{item.grade ? `${gradeLabels[item.grade]} ${item.course}` : item.course}</strong>

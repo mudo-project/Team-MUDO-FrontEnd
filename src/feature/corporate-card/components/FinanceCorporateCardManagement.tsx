@@ -1,67 +1,109 @@
 'use client'
 
-import { format } from "date-fns";
+import { isSameDay } from "date-fns";
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import type { FinanceCardItem, FinanceCardStatus } from "../mockData";
-import { financeCardListMock, financeCardMonthSummary } from "../mockData";
+import { toast } from "sonner";
+import {
+    batchSubmitCorporateCardExpensesAction,
+    getCorporateCardTransactionAction,
+} from "../actions";
 import FinanceCardCalendar from "./FinanceCardCalendar";
 import FinanceCardDetail from "./FinanceCardDetail";
 import FinanceCardList from "./FinanceCardList";
 import FinanceCardListFilter, { type FinanceCardFilter } from "./FinanceCardListFilter";
 import FinanceCardMonthOverview from "./FinanceCardMonthOverview";
 
-const FILTER_STATUS: Record<Exclude<FinanceCardFilter, "전체">, FinanceCardStatus> = {
+interface FinanceCorporateCardSummary {
+    totalCount: number;
+    approvedCount: number;
+    unwrittenCount: number;
+    inProgressCount: number;
+    rejectedCount: number;
+    totalAmount: number;
+}
+
+interface FinanceCorporateCardManagementProps {
+    transactions: CorporateCardTransactionListItemData[];
+    summary: FinanceCorporateCardSummary;
+}
+
+const FILTER_STATUS: Record<Exclude<FinanceCardFilter, "전체">, CorporateCardTransactionStatus> = {
     미작성: "UNWRITTEN",
     진행중: "IN_PROGRESS",
     승인됨: "APPROVED",
     반려됨: "REJECTED",
 };
 
-export default function FinanceCorporateCardManagement() {
-    const [selectedItem, setSelectedItem] = useState<FinanceCardItem | null>(null);
+export default function FinanceCorporateCardManagement({ transactions, summary }: FinanceCorporateCardManagementProps) {
+    const router = useRouter();
+    const [selectedDetail, setSelectedDetail] = useState<CorporateCardTransactionData | null>(null);
+    const [isDetailLoading, setIsDetailLoading] = useState(false);
     const [selectedItemIds, setSelectedItemIds] = useState<number[]>([]);
-    const [calendarMonth, setCalendarMonth] = useState(new Date(2026, 7, 1));
+    const [isBatchSubmitting, setIsBatchSubmitting] = useState(false);
+    const [calendarMonth, setCalendarMonth] = useState(new Date());
     const [selectedDate, setSelectedDate] = useState<Date | undefined>();
     const [activeFilter, setActiveFilter] = useState<FinanceCardFilter>("전체");
     const [searchQuery, setSearchQuery] = useState("");
 
     const visibleItems = useMemo(() => {
-        const selectedDateKey = selectedDate ? format(selectedDate, "MM.dd") : null;
         const normalizedSearchQuery = searchQuery.trim().toLowerCase();
 
-        return financeCardListMock.filter((item) => {
-            const matchesDate = !selectedDateKey || item.approvedAt.startsWith(selectedDateKey);
+        return transactions.filter((item) => {
+            const matchesDate = !selectedDate || isSameDay(new Date(item.approvedAt), selectedDate);
             const matchesFilter = activeFilter === "전체" || item.status === FILTER_STATUS[activeFilter];
             const matchesSearch = !normalizedSearchQuery || [
                 item.merchantName,
-                item.merchantType,
                 item.cardName,
-                item.cardLast4,
-                item.purpose ?? "",
+                item.expenseCategory ?? "",
             ].some((value) => value.toLowerCase().includes(normalizedSearchQuery));
 
             return matchesDate && matchesFilter && matchesSearch;
         });
-    }, [activeFilter, searchQuery, selectedDate]);
+    }, [transactions, activeFilter, searchQuery, selectedDate]);
 
-    const handleClickWrite = () => {
-        const firstUnwritten = financeCardListMock.find((item) => item.status === "UNWRITTEN");
+    const handleSelectItem = async (transactionId: number) => {
+        if (isDetailLoading) return;
 
-        if (firstUnwritten) {
-            setSelectedItem(firstUnwritten);
+        setIsDetailLoading(true);
+        try {
+            const detail = await getCorporateCardTransactionAction(transactionId);
+            setSelectedDetail(detail);
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : "법인카드 사용내역 상세 조회에 실패하였습니다.");
+        } finally {
+            setIsDetailLoading(false);
         }
     };
 
-    const handleToggleItem = (itemId: number) => {
+    const handleClickWrite = () => {
+        const firstUnwritten = transactions.find((item) => item.status === "UNWRITTEN");
+
+        if (firstUnwritten) {
+            handleSelectItem(firstUnwritten.transactionId);
+        }
+    };
+
+    const handleDetailSaved = (data: CorporateCardTransactionData) => {
+        setSelectedDetail(data);
+        router.refresh();
+    };
+
+    const handleDetailSubmitted = () => {
+        setSelectedDetail(null);
+        router.refresh();
+    };
+
+    const handleToggleItem = (transactionId: number) => {
         setSelectedItemIds((itemIds) => (
-            itemIds.includes(itemId)
-                ? itemIds.filter((id) => id !== itemId)
-                : [...itemIds, itemId]
+            itemIds.includes(transactionId)
+                ? itemIds.filter((id) => id !== transactionId)
+                : [...itemIds, transactionId]
         ));
     };
 
     const handleToggleAll = () => {
-        const visibleItemIds = visibleItems.map((item) => item.id);
+        const visibleItemIds = visibleItems.map((item) => item.transactionId);
         const isAllVisibleItemsSelected = visibleItemIds.length > 0 && visibleItemIds.every((itemId) => selectedItemIds.includes(itemId));
 
         setSelectedItemIds((itemIds) => (
@@ -69,6 +111,23 @@ export default function FinanceCorporateCardManagement() {
                 ? itemIds.filter((itemId) => !visibleItemIds.includes(itemId))
                 : Array.from(new Set([...itemIds, ...visibleItemIds]))
         ));
+    };
+
+    const handleBatchSubmit = async () => {
+        if (selectedItemIds.length === 0 || isBatchSubmitting) return;
+
+        setIsBatchSubmitting(true);
+        const result = await batchSubmitCorporateCardExpensesAction(selectedItemIds);
+        setIsBatchSubmitting(false);
+
+        if (!result.success) {
+            toast.error(result.message);
+            return;
+        }
+
+        toast.success(result.message);
+        setSelectedItemIds([]);
+        router.refresh();
     };
 
     return (
@@ -88,23 +147,28 @@ export default function FinanceCorporateCardManagement() {
                     </button>
                 </div>
                 <button
-                    className={`h-9 rounded-lg px-5 text-[12px] font-semibold text-white ${selectedItemIds.length > 0
+                    className={`h-9 rounded-lg px-5 text-[12px] font-semibold text-white disabled:cursor-not-allowed ${selectedItemIds.length > 0
                         ? "bg-[#172033] hover:bg-[#2B344B]"
                         : "cursor-not-allowed bg-[#CBD2DC]"
                     }`}
-                    disabled={selectedItemIds.length === 0}
+                    disabled={selectedItemIds.length === 0 || isBatchSubmitting}
+                    onClick={handleBatchSubmit}
                     type="button"
                 >
-                    결재 상신
+                    {isBatchSubmitting ? "상신 중..." : "결재 상신"}
                 </button>
             </div>
 
             <FinanceCardMonthOverview
-                approvalProgress={financeCardMonthSummary.approvalProgress}
+                approvalProgress={{
+                    inProgress: summary.inProgressCount,
+                    approved: summary.approvedCount,
+                    rejected: summary.rejectedCount,
+                }}
                 onClickWrite={handleClickWrite}
-                totalAmount={financeCardMonthSummary.monthlyTotalAmount}
-                unwrittenCount={financeCardMonthSummary.unwrittenPurposeCount}
-                usageCount={financeCardMonthSummary.usageCount}
+                totalAmount={summary.totalAmount}
+                unwrittenCount={summary.unwrittenCount}
+                usageCount={summary.totalCount}
             />
 
             <FinanceCardListFilter
@@ -116,13 +180,19 @@ export default function FinanceCorporateCardManagement() {
 
             <FinanceCardList
                 items={visibleItems}
-                onSelectItem={setSelectedItem}
+                onSelectItem={handleSelectItem}
                 onToggleAll={handleToggleAll}
                 onToggleItem={handleToggleItem}
                 selectedItemIds={selectedItemIds}
             />
 
-            <FinanceCardDetail item={selectedItem} onClose={() => setSelectedItem(null)} />
+            <FinanceCardDetail
+                item={selectedDetail}
+                key={selectedDetail?.transactionId}
+                onClose={() => setSelectedDetail(null)}
+                onSaved={handleDetailSaved}
+                onSubmitted={handleDetailSubmitted}
+            />
         </>
     );
 }

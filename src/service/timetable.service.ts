@@ -217,11 +217,7 @@ export const exportTimetableSet = async (
     timetableSetId: number,
     params: TimetableExportParams
 ): Promise<Blob> => {
-    const query = new URLSearchParams({
-        format: params.format,
-        colorCriterion: params.colorCriterion,
-        colorMap: JSON.stringify(params.colorMap),
-    });
+    const query = new URLSearchParams({ format: params.format });
     if (params.density) query.set("density", params.density);
     if (params.dayOfWeek) query.set("dayOfWeek", params.dayOfWeek);
     if (params.floor) query.set("floor", params.floor);

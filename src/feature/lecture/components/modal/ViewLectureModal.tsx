@@ -2,12 +2,11 @@
 
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
-import useModal from "@/components/hooks/useModal";
-import TwoButtonModal from "@/components/ui/TwoButtonModal";
 import { getLectureDetailAction } from "../../actions";
 import { LECTURE_CLASS_TYPE_LABEL, LECTURE_DAY_LABEL, LECTURE_FEE_TYPE_LABEL, LECTURE_GRADE_LABEL } from "../../constants";
 import { LectureDetailData } from "../../type";
-import EditLectureModal from "./EditLectureModal";
+import LectureDeleteButton from "../LectureDeleteButton";
+import LectureUpdateButton from "../LectureUpdateButton";
 
 interface ViewLectureModalProps {
     closeModal: () => void;
@@ -15,10 +14,19 @@ interface ViewLectureModalProps {
 }
 
 export default function ViewLectureModal({ closeModal, lectureId }: ViewLectureModalProps) {
-    const editModal = useModal();
-    const deleteModal = useModal();
     const [detail, setDetail] = useState<LectureDetailData>();
     const [error, setError] = useState("");
+
+    const refreshLecture = async () => {
+        const response = await getLectureDetailAction(lectureId);
+        if (response.success) {
+            setDetail(response.data);
+            setError("");
+            return;
+        }
+
+        setError(response.message);
+    };
 
     useEffect(() => {
         let isActive = true;
@@ -36,8 +44,8 @@ export default function ViewLectureModal({ closeModal, lectureId }: ViewLectureM
     }, [lectureId]);
 
     return (
-        <div className="fixed top-0 left-0 z-999 h-screen w-screen bg-[#162236]/40" onClick={closeModal}>
-            <article aria-labelledby="lecture-detail-title" aria-modal="true" className="fixed top-1/2 left-1/2 z-1000 max-h-[calc(100dvh-48px)] w-[560px] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-[12px] bg-white shadow-[0_12px_32px_rgba(22,34,54,0.18)]" onClick={(event) => event.stopPropagation()} role="dialog">
+        <div className="fixed top-0 left-0 z-999 flex h-screen w-screen items-center justify-center bg-[#162236]/40 p-6" onClick={closeModal}>
+            <article aria-labelledby="lecture-detail-title" aria-modal="true" className="relative z-1000 max-h-[calc(100dvh-48px)] w-[560px] overflow-y-auto rounded-[12px] bg-white shadow-[0_12px_32px_rgba(22,34,54,0.18)]" onClick={(event) => event.stopPropagation()} role="dialog">
                 {!detail && !error && <p className="px-6 py-12 text-center text-[13px] text-[#94A3B8]">강의 정보를 불러오는 중입니다.</p>}
                 {error && <p className="px-6 py-12 text-center text-[13px] text-[#C0483F]">{error}</p>}
                 {detail && (
@@ -51,8 +59,8 @@ export default function ViewLectureModal({ closeModal, lectureId }: ViewLectureM
                                 <h2 className="pt-1 text-[18px] leading-[27px] font-bold text-[#0F172A]" id="lecture-detail-title">{detail.name}</h2>
                             </div>
                             <div className="ml-auto flex items-center gap-1.5">
-                                <button className="h-[26px] rounded-[7px] border border-[#3E7D62] px-3 text-[12px] font-medium text-[#3E7D62]" onClick={editModal.openModal} type="button">수정</button>
-                                <button className="h-[26px] rounded-[7px] border border-[#C0483F] px-3 text-[12px] font-medium text-[#C0483F]" onClick={deleteModal.openModal} type="button">삭제</button>
+                                <LectureUpdateButton lecture={detail} lectureId={lectureId} onUpdated={refreshLecture} />
+                                <LectureDeleteButton closeModal={closeModal} lectureId={lectureId} />
                                 <button aria-label="강의 상세 모달 닫기" className="flex size-[18px] items-center justify-center text-[#94A3B8]" onClick={closeModal} type="button"><X className="size-[18px]" strokeWidth={1.5} /></button>
                             </div>
                         </header>
@@ -94,9 +102,6 @@ export default function ViewLectureModal({ closeModal, lectureId }: ViewLectureM
                     </>
                 )}
             </article>
-
-            {editModal.isModal && <EditLectureModal closeModal={editModal.closeModal} />}
-            {deleteModal.isModal && <div onClick={(event) => event.stopPropagation()}><TwoButtonModal activeModal={deleteModal.activeModal} closeModal={deleteModal.closeModal} content="해당 강의를 삭제하시겠습니까?" title="강의 삭제" /></div>}
         </div>
     );
 }

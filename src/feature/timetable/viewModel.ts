@@ -8,7 +8,7 @@ export type ClassItem = {
   course: string;
   teacher: string;
   grade?: Grade;
-  tone: "blue" | "green" | "stone" | "sky";
+  color: string;
 };
 
 export type TimetableTemplate = {
