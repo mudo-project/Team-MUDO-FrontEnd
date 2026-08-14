@@ -1,10 +1,11 @@
 import { EllipsisVertical, FileSpreadsheet, FileText, Folder, Presentation } from "lucide-react";
 
 import SharedFolderItemMenu from "./SharedFolderItemMenu";
+import { formatSharedFolderModifiedAt, getSharedFolderFileType, getSharedFolderItemKind } from "../sharedFolderFormat";
 
 type SharedFolderItemProps = {
   isMenuOpen: boolean;
-  item: SharedFolderItemData;
+  item: SharedFolderDriveItemData;
   onDelete: () => void;
   onFolderOpen: () => void;
   onMenuSelect: () => void;
@@ -20,8 +21,8 @@ export const FILE_TYPE_LABEL: Record<SharedFolderFileType, string> = {
   UPLOADED: "파일",
 };
 
-function ItemIcon({ item }: { item: SharedFolderItemData }) {
-  if (item.kind === "FOLDER") {
+function ItemIcon({ kind, fileType }: { kind: SharedFolderItemKind; fileType: SharedFolderFileType }) {
+  if (kind === "FOLDER") {
     return (
       <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-[#FDF1D8] text-[#C9971C]">
         <Folder className="size-4" strokeWidth={1.8} />
@@ -29,7 +30,7 @@ function ItemIcon({ item }: { item: SharedFolderItemData }) {
     );
   }
 
-  switch (item.fileType) {
+  switch (fileType) {
     case "GOOGLE_DOCS":
       return (
         <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-[#E3EDFF] text-[#3B6FE0]">
@@ -58,13 +59,15 @@ function ItemIcon({ item }: { item: SharedFolderItemData }) {
 }
 
 export default function SharedFolderItem({ isMenuOpen, item, onDelete, onFolderOpen, onMenuSelect, onMenuToggle, onMove, onRename }: SharedFolderItemProps) {
-  const typeLabel = item.kind === "FOLDER" ? "폴더" : FILE_TYPE_LABEL[item.fileType ?? "UPLOADED"];
+  const kind = getSharedFolderItemKind(item);
+  const fileType = getSharedFolderFileType(item);
+  const typeLabel = kind === "FOLDER" ? "폴더" : FILE_TYPE_LABEL[fileType];
 
   return (
     <div className="grid grid-cols-[minmax(0,1fr)_140px_110px_150px_90px_36px] items-center gap-3 border-b border-[#F1F5F1] px-4 py-2.5 last:border-b-0 hover:bg-[#F8FAFC]">
       <div className="flex min-w-0 items-center gap-2.5">
-        <ItemIcon item={item} />
-        {item.kind === "FOLDER" ? (
+        <ItemIcon fileType={fileType} kind={kind} />
+        {kind === "FOLDER" ? (
           <button className="min-w-0 truncate text-left text-[12px] font-medium text-[#0F172A]" type="button" onClick={onFolderOpen}>
             {item.name}
           </button>
@@ -73,9 +76,9 @@ export default function SharedFolderItem({ isMenuOpen, item, onDelete, onFolderO
         )}
       </div>
       <span className="truncate text-[11px] text-[#64748B]">{typeLabel}</span>
-      <span className="truncate text-[11px] text-[#64748B]">{item.modifierName}</span>
-      <span className="truncate text-[11px] text-[#64748B]">{item.modifiedAt}</span>
-      <span className="truncate text-[11px] text-[#64748B]">{item.size}</span>
+      <span className="truncate text-[11px] text-[#64748B]">-</span>
+      <span className="truncate text-[11px] text-[#64748B]">{formatSharedFolderModifiedAt(item.modifiedAt)}</span>
+      <span className="truncate text-[11px] text-[#64748B]">-</span>
       <div data-shared-folder-item-menu-control className="relative flex justify-end">
         <button
           aria-expanded={isMenuOpen}
@@ -88,7 +91,7 @@ export default function SharedFolderItem({ isMenuOpen, item, onDelete, onFolderO
         </button>
         {isMenuOpen && (
           <SharedFolderItemMenu
-            kind={item.kind}
+            kind={kind}
             onDelete={onDelete}
             onDownload={onMenuSelect}
             onMove={onMove}
