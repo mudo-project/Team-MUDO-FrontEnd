@@ -29,3 +29,9 @@ interface UserListResponse {
 }
 
 type UserListApiResponse<T> = AuthApiResponse<T>;
+
+interface MyPermissionListData {
+    permissions: string[];
+}
+
+type MyPermissionListResponse = AuthApiResponse<MyPermissionListData>;

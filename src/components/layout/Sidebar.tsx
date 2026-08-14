@@ -10,6 +10,7 @@ import { getApprovalPendingCountAction } from "@/feature/approval/actions";;
 import { useUserStore } from "@/store/useUserStore";
 import MyMenu from "./MyMenu";
 import { decodeJWT } from "@/lib/decode";
+import { getMyPermissionListAction } from "@/feature/auth/actions";
 
 type MenuItem = {
     label: string;
@@ -28,6 +29,7 @@ export default function Sidebar() {
     const user = useUserStore((state) => state.user);
     const setUser = useUserStore((state) => state.setUser);
     const permissions = useUserStore((state) => state.permissions);
+    const setPermissions = useUserStore((state) => state.setPermissions);
 
     useEffect(() => {
         let cancelled = false;
@@ -37,6 +39,15 @@ export default function Sidebar() {
                 setUser(user);
             }
         }
+
+        const loadPermission = async () => {
+            const response = await getMyPermissionListAction();
+
+            if (response.data?.permissions) {
+                setPermissions(response.data.permissions);
+            }
+        }
+
         const loadApprovalPendingCount = async () => {
             const response = await getApprovalPendingCountAction();
 
@@ -46,6 +57,7 @@ export default function Sidebar() {
         };
 
         decode();
+        loadPermission();
         loadApprovalPendingCount();
 
         return () => {
