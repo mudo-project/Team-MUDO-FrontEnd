@@ -1,13 +1,21 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 
-import { getSharedFolderContentListAction, getSharedFolderRootStatusAction, recreateSharedFolderRootAction } from "../actions";
+import {
+  createSharedFolderFolderAction,
+  getSharedFolderContentListAction,
+  getSharedFolderRootStatusAction,
+  recreateSharedFolderRootAction,
+} from "../actions";
 import { getSharedFolderItemKind } from "../sharedFolderFormat";
+import SharedFolderCreateNewFolderModal from "./SharedFolderCreateNewFolderModal";
 import SharedFolderList from "./SharedFolderList";
 import SharedFolderListHeader from "./SharedFolderListHeader";
 import SharedFolderPath from "./SharedFolderPath";
 import SharedFolderToolbar from "./SharedFolderToolbar";
+import type { SharedFolderCreateOption } from "./SharedFolderCreateMenu";
 
 type SharedFolderFilter = "ALL" | "FOLDER" | "FILE";
 type SharedFolderPathEntry = { id: string; name: string };
@@ -29,6 +37,9 @@ export default function SharedFolderBoard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isCreateMenuOpen, setIsCreateMenuOpen] = useState(false);
   const [openItemMenuId, setOpenItemMenuId] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [isNewFolderModalOpen, setIsNewFolderModalOpen] = useState(false);
 
   const currentParentId = path.at(-1)?.id;
 
@@ -142,6 +153,36 @@ export default function SharedFolderBoard() {
     setOpenItemMenuId(null);
   };
 
+  const handleCreateMenuSelect = (option: SharedFolderCreateOption) => {
+    setIsCreateMenuOpen(false);
+
+    if (option === "FOLDER") {
+      setIsNewFolderModalOpen(true);
+    }
+  };
+
+  const handleNewFolderCreate = async (folderName: string) => {
+    setIsSubmitting(true);
+
+    try {
+      const result = await createSharedFolderFolderAction({ parentId: currentParentId, name: folderName });
+
+      if (result.success && result.data) {
+        toast.success(result.message);
+        setIsNewFolderModalOpen(false);
+        setPath((current) => [...current, { id: result.data!.id, name: result.data!.name }]);
+        setFilter("ALL");
+        setSearchQuery("");
+        setIsLoading(true);
+        setItems([]);
+      } else {
+        toast.error(result.message);
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleItemMenuToggle = (itemId: string) => {
     setOpenItemMenuId((current) => (current === itemId ? null : itemId));
     setIsCreateMenuOpen(false);
@@ -215,7 +256,7 @@ export default function SharedFolderBoard() {
         filter={filter}
         isCreateMenuOpen={isCreateMenuOpen}
         searchQuery={searchQuery}
-        onCreateMenuSelect={() => setIsCreateMenuOpen(false)}
+        onCreateMenuSelect={handleCreateMenuSelect}
         onCreateMenuToggle={handleCreateMenuToggle}
         onFileUploadRequest={() => {}}
         onFilterChange={handleFilterChange}
@@ -243,7 +284,7 @@ export default function SharedFolderBoard() {
             openItemMenuId={openItemMenuId}
             onDelete={() => setOpenItemMenuId(null)}
             onFileUploadRequest={() => {}}
-            onFolderCreateRequest={() => {}}
+            onFolderCreateRequest={() => setIsNewFolderModalOpen(true)}
             onFolderOpen={handleFolderOpen}
             onItemMenuSelect={() => setOpenItemMenuId(null)}
             onItemMenuToggle={handleItemMenuToggle}
@@ -253,6 +294,15 @@ export default function SharedFolderBoard() {
           />
         )}
       </section>
+
+      {isNewFolderModalOpen && (
+        <SharedFolderCreateNewFolderModal
+          currentPath={["공유파일 루트", ...path.map((folder) => folder.name)].join(" / ")}
+          isSubmitting={isSubmitting}
+          onClose={() => setIsNewFolderModalOpen(false)}
+          onCreate={handleNewFolderCreate}
+        />
+      )}
     </main>
   );
 }
