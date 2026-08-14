@@ -1,11 +1,11 @@
-import { fetchWithAuth, fetchWithoutAuth } from "@/lib/fetch";
+import { fetchWithAuth } from "@/lib/fetch";
 import { getErrorMessage } from "@/lib/stateError";
 import { buildSignedClientIpHeaders } from "@/lib/clientIpHeaders";
 
 // 현재 접속 IP 조회 API
 export const getCurrentIp = async (): Promise<string> => {
     const signedHeaders = await buildSignedClientIpHeaders("GET", "/api/attendance/wifi-ips/current");
-    const response = await fetchWithoutAuth("/api/attendance/wifi-ips/current", {
+    const response = await fetchWithAuth("/api/attendance/wifi-ips/current", {
         headers: signedHeaders,
     });
 
