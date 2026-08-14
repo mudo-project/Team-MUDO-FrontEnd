@@ -108,16 +108,9 @@ export const createSharedFolderFolderAction = async (
 
 // 로컬 파일 업로드 액션
 export const uploadSharedFolderFileAction = async (
-    parentId: string,
+    parentId: string | undefined,
     file: File
 ): Promise<SharedFolderActionState & { data?: SharedFolderDriveItemData }> => {
-    if (!parentId.trim()) {
-        return {
-            success: false,
-            message: "상위 폴더를 확인할 수 없습니다.",
-        };
-    }
-
     if (file.size > MAX_UPLOAD_FILE_SIZE) {
         return {
             success: false,

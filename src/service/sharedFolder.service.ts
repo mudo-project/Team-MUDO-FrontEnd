@@ -132,16 +132,17 @@ export const createSharedFolderFolder = async (
     return resData.data;
 }
 
-// 로컬 파일 업로드 API
+// 로컬 파일 업로드 API(parentId를 생략하면 공유파일 루트 바로 아래에 업로드한다)
 export const uploadSharedFolderFile = async (
-    parentId: string,
+    parentId: string | undefined,
     file: File
 ): Promise<SharedFolderDriveItemData> => {
     const formData = new FormData();
     formData.append("file", file);
 
+    const query = parentId ? `?parentId=${encodeURIComponent(parentId)}` : "";
     const response = await fetchWithAuth(
-        `/api/shared-files/items/upload?parentId=${encodeURIComponent(parentId)}`,
+        `/api/shared-files/items/upload${query}`,
         {
             method: "POST",
             body: formData,
