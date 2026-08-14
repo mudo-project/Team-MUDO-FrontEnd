@@ -1,19 +1,43 @@
 import StudentList from "@/feature/student/components/StudentList";
-import { STUDENTS } from "@/feature/student/data";
 import CreateStudentButton from "@/feature/student/components/CreateStudentButton";
 import SearchBar from "@/components/ui/SearchBar";
+import { getStudentListAction } from "@/feature/student/actions";
 
-export default function Page() {
+interface paramsProps {
+    searchParams: Promise<{
+        page: string;
+        keyword: string;
+    }>
+}
+
+export default async function Page({ searchParams }: paramsProps) {
+    const { page = 0, keyword } = await searchParams;
+    let response;
+    try {
+        response = await getStudentListAction(keyword, Number(page));
+    } catch (error) {
+        return (
+            <div>
+                네트워크 오류가 발생하였습니다.
+                잠시후 다시 시도해주세요
+            </div>
+        )
+    }
+
     return (
         <main className="h-[calc(100dvh-52px)] overflow-hidden bg-[#FCFCFC] px-8 py-7">
             <div className="flex w-full items-center gap-2.5">
-                <SearchBar />
-                <p className="pl-1 text-xs text-[#64748B]">총 {STUDENTS.length}명</p>
+                <SearchBar page={true} />
+                <p className="pl-1 text-xs text-[#64748B]">총 {response.data?.content.length ?? 0}명</p>
                 <CreateStudentButton />
             </div>
 
             <div className="w-full overflow-x-auto">
-                <StudentList students={STUDENTS} />
+                {!response.success ? (
+                    <p className="mt-4 text-sm text-red-500">{response.message}</p>
+                ) : (
+                    <StudentList students={response.data?.content ?? []} />
+                )}
             </div>
         </main>
     );
