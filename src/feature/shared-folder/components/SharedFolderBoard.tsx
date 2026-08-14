@@ -9,11 +9,13 @@ import {
   getSharedFolderContentListAction,
   getSharedFolderRootStatusAction,
   recreateSharedFolderRootAction,
+  updateSharedFolderContentAction,
   uploadSharedFolderFileAction,
 } from "../actions";
 import { getSharedFolderItemKind } from "../sharedFolderFormat";
 import SharedFolderCreateGoogleModal from "./SharedFolderCreateGoogleModal";
 import SharedFolderCreateNewFolderModal from "./SharedFolderCreateNewFolderModal";
+import SharedFolderEditNameModal from "./SharedFolderEditNameModal";
 import SharedFolderList from "./SharedFolderList";
 import SharedFolderListHeader from "./SharedFolderListHeader";
 import SharedFolderOpenNewTabModal from "./SharedFolderOpenNewTabModal";
@@ -53,6 +55,7 @@ export default function SharedFolderBoard() {
   const [isNewFolderModalOpen, setIsNewFolderModalOpen] = useState(false);
   const [googleCreateOption, setGoogleCreateOption] = useState<SharedFolderGoogleCreateOption | null>(null);
   const [newTabFile, setNewTabFile] = useState<{ name: string; viewUrl: string } | null>(null);
+  const [renamingItem, setRenamingItem] = useState<SharedFolderDriveItemData | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -261,6 +264,31 @@ export default function SharedFolderBoard() {
     setIsCreateMenuOpen(false);
   };
 
+  const handleRenameRequest = (item: SharedFolderDriveItemData) => {
+    setOpenItemMenuId(null);
+    setRenamingItem(item);
+  };
+
+  const handleRename = async (name: string) => {
+    if (!renamingItem) return;
+
+    setIsSubmitting(true);
+
+    try {
+      const result = await updateSharedFolderContentAction(renamingItem.id, { name });
+
+      if (result.success) {
+        toast.success(result.message);
+        setRenamingItem(null);
+        await refreshItems();
+      } else {
+        toast.error(result.message);
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleFolderOpen = (item: SharedFolderDriveItemData) => {
     setPath((current) => [...current, { id: item.id, name: item.name }]);
     setFilter("ALL");
@@ -362,7 +390,7 @@ export default function SharedFolderBoard() {
             onItemMenuSelect={() => setOpenItemMenuId(null)}
             onItemMenuToggle={handleItemMenuToggle}
             onItemMove={() => setOpenItemMenuId(null)}
-            onItemRename={() => setOpenItemMenuId(null)}
+            onItemRename={handleRenameRequest}
             onLoadMore={handleLoadMore}
           />
         )}
@@ -406,6 +434,15 @@ export default function SharedFolderBoard() {
           fileName={newTabFile.name}
           viewUrl={newTabFile.viewUrl}
           onClose={() => setNewTabFile(null)}
+        />
+      )}
+
+      {renamingItem && (
+        <SharedFolderEditNameModal
+          currentName={renamingItem.name}
+          isSubmitting={isSubmitting}
+          onClose={() => setRenamingItem(null)}
+          onRename={handleRename}
         />
       )}
     </main>

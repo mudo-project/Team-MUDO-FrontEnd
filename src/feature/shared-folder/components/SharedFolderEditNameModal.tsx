@@ -4,11 +4,12 @@ import { useState } from "react";
 
 type SharedFolderEditNameModalProps = {
   currentName: string;
+  isSubmitting: boolean;
   onClose: () => void;
   onRename: (name: string) => void;
 };
 
-export default function SharedFolderEditNameModal({ currentName, onClose, onRename }: SharedFolderEditNameModalProps) {
+export default function SharedFolderEditNameModal({ currentName, isSubmitting, onClose, onRename }: SharedFolderEditNameModalProps) {
   const [name, setName] = useState(currentName);
 
   const trimmedName = name.trim();
@@ -45,11 +46,11 @@ export default function SharedFolderEditNameModal({ currentName, onClose, onRena
           </button>
           <button
             className="h-9 rounded-lg bg-[#12182B] px-4 text-[12px] font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
-            disabled={!trimmedName}
+            disabled={!trimmedName || isSubmitting}
             type="button"
             onClick={() => onRename(trimmedName)}
           >
-            변경
+            {isSubmitting ? "변경 중..." : "변경"}
           </button>
         </div>
       </section>
