@@ -7,6 +7,7 @@ type SharedFolderListProps = {
   isLoadingMore: boolean;
   openItemMenuId: string | null;
   onDelete: (item: SharedFolderDriveItemData) => void;
+  onDownload: (item: SharedFolderDriveItemData) => void;
   onFileUploadRequest: () => void;
   onFolderCreateRequest: () => void;
   onFolderOpen: (item: SharedFolderDriveItemData) => void;
@@ -15,6 +16,7 @@ type SharedFolderListProps = {
   onItemMenuSelect: () => void;
   onItemMenuToggle: (itemId: string) => void;
   onLoadMore: () => void;
+  onPreviewOpen: (item: SharedFolderDriveItemData) => void;
 };
 
 export default function SharedFolderList({
@@ -24,6 +26,7 @@ export default function SharedFolderList({
   isLoadingMore,
   openItemMenuId,
   onDelete,
+  onDownload,
   onFileUploadRequest,
   onFolderCreateRequest,
   onFolderOpen,
@@ -32,6 +35,7 @@ export default function SharedFolderList({
   onItemMenuSelect,
   onItemMenuToggle,
   onLoadMore,
+  onPreviewOpen,
 }: SharedFolderListProps) {
   if (items.length === 0) {
     if (!isFolderEmpty) {
@@ -63,10 +67,12 @@ export default function SharedFolderList({
           isMenuOpen={openItemMenuId === item.id}
           item={item}
           onDelete={() => onDelete(item)}
+          onDownload={() => onDownload(item)}
           onFolderOpen={() => onFolderOpen(item)}
           onMenuSelect={onItemMenuSelect}
           onMenuToggle={() => onItemMenuToggle(item.id)}
           onMove={() => onItemMove(item)}
+          onOpenPreview={() => onPreviewOpen(item)}
           onRename={() => onItemRename(item)}
         />
       ))}

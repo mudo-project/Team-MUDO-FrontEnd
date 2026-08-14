@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import {
   createSharedFolderFolderAction,
   createSharedFolderGoogleFileAction,
+  deleteSharedFolderContentAction,
+  downloadSharedFolderContentAction,
   getSharedFolderContentListAction,
   getSharedFolderRootStatusAction,
   recreateSharedFolderRootAction,
@@ -15,9 +17,11 @@ import {
 import { getSharedFolderItemKind } from "../sharedFolderFormat";
 import SharedFolderCreateGoogleModal from "./SharedFolderCreateGoogleModal";
 import SharedFolderCreateNewFolderModal from "./SharedFolderCreateNewFolderModal";
+import SharedFolderDeleteCheckModal from "./SharedFolderDeleteCheckModal";
 import SharedFolderEditNameModal from "./SharedFolderEditNameModal";
 import SharedFolderList from "./SharedFolderList";
 import SharedFolderListHeader from "./SharedFolderListHeader";
+import SharedFolderMoveModal from "./SharedFolderMoveModal";
 import SharedFolderOpenNewTabModal from "./SharedFolderOpenNewTabModal";
 import SharedFolderPath from "./SharedFolderPath";
 import SharedFolderToolbar from "./SharedFolderToolbar";
@@ -56,6 +60,8 @@ export default function SharedFolderBoard() {
   const [googleCreateOption, setGoogleCreateOption] = useState<SharedFolderGoogleCreateOption | null>(null);
   const [newTabFile, setNewTabFile] = useState<{ name: string; viewUrl: string } | null>(null);
   const [renamingItem, setRenamingItem] = useState<SharedFolderDriveItemData | null>(null);
+  const [movingItem, setMovingItem] = useState<SharedFolderDriveItemData | null>(null);
+  const [deletingItem, setDeletingItem] = useState<SharedFolderDriveItemData | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -289,6 +295,83 @@ export default function SharedFolderBoard() {
     }
   };
 
+  const handleMoveRequest = (item: SharedFolderDriveItemData) => {
+    setOpenItemMenuId(null);
+    setMovingItem(item);
+  };
+
+  const handleMove = async (destinationFolderId: string) => {
+    if (!movingItem) return;
+
+    setIsSubmitting(true);
+
+    try {
+      const result = await updateSharedFolderContentAction(movingItem.id, { parentId: destinationFolderId });
+
+      if (result.success) {
+        toast.success(result.message);
+        setMovingItem(null);
+        await refreshItems();
+      } else {
+        toast.error(result.message);
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteRequest = (item: SharedFolderDriveItemData) => {
+    setOpenItemMenuId(null);
+    setDeletingItem(item);
+  };
+
+  const handleDelete = async () => {
+    if (!deletingItem) return;
+
+    setIsSubmitting(true);
+
+    try {
+      const result = await deleteSharedFolderContentAction(deletingItem.id);
+
+      if (result.success) {
+        toast.success(result.message);
+        setDeletingItem(null);
+        await refreshItems();
+      } else {
+        toast.error(result.message);
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handlePreviewOpen = (item: SharedFolderDriveItemData) => {
+    setOpenItemMenuId(null);
+    window.open(item.viewUrl, "_blank", "noopener,noreferrer");
+  };
+
+  const handleDownload = async (item: SharedFolderDriveItemData) => {
+    setOpenItemMenuId(null);
+
+    const result = await downloadSharedFolderContentAction(item.id);
+
+    if (!result.success || !result.file) {
+      toast.error(result.message);
+      return;
+    }
+
+    const byteArray = Uint8Array.from(atob(result.file), (char) => char.charCodeAt(0));
+    const blob = new Blob([byteArray], { type: result.mimeType });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = result.fileName ?? item.name;
+    link.click();
+
+    URL.revokeObjectURL(url);
+  };
+
   const handleFolderOpen = (item: SharedFolderDriveItemData) => {
     setPath((current) => [...current, { id: item.id, name: item.name }]);
     setFilter("ALL");
@@ -383,15 +466,17 @@ export default function SharedFolderBoard() {
             isLoadingMore={isLoadingMore}
             items={filteredItems}
             openItemMenuId={openItemMenuId}
-            onDelete={() => setOpenItemMenuId(null)}
+            onDelete={handleDeleteRequest}
+            onDownload={handleDownload}
             onFileUploadRequest={() => fileInputRef.current?.click()}
             onFolderCreateRequest={() => setIsNewFolderModalOpen(true)}
             onFolderOpen={handleFolderOpen}
             onItemMenuSelect={() => setOpenItemMenuId(null)}
             onItemMenuToggle={handleItemMenuToggle}
-            onItemMove={() => setOpenItemMenuId(null)}
+            onItemMove={handleMoveRequest}
             onItemRename={handleRenameRequest}
             onLoadMore={handleLoadMore}
+            onPreviewOpen={handlePreviewOpen}
           />
         )}
       </section>
@@ -443,6 +528,24 @@ export default function SharedFolderBoard() {
           isSubmitting={isSubmitting}
           onClose={() => setRenamingItem(null)}
           onRename={handleRename}
+        />
+      )}
+
+      {movingItem && (
+        <SharedFolderMoveModal
+          isSubmitting={isSubmitting}
+          item={movingItem}
+          onClose={() => setMovingItem(null)}
+          onMove={handleMove}
+        />
+      )}
+
+      {deletingItem && (
+        <SharedFolderDeleteCheckModal
+          isSubmitting={isSubmitting}
+          item={deletingItem}
+          onClose={() => setDeletingItem(null)}
+          onDelete={handleDelete}
         />
       )}
     </main>
