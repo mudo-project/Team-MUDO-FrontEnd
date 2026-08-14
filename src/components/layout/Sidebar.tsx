@@ -2,15 +2,11 @@
 
 import { useSidebarStore } from "@/store/useSidebarStore";
 import NavLink from "./NavLink";
-import { GraduationCap, LogOut, Settings } from "lucide-react";
+import { GraduationCap } from "lucide-react";
 import CloseSidebar from "./CloseSidebar";
 import OpenMemo from "./OpenMemo";
 import { useEffect, useRef, useState } from "react";
-import { getApprovalPendingCountAction } from "@/feature/approval/actions";
-import { logoutAction } from "@/feature/auth/actions";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { getApprovalPendingCountAction } from "@/feature/approval/actions";;
 import { useUserStore } from "@/store/useUserStore";
 import MyMenu from "./MyMenu";
 import { decodeJWT } from "@/lib/decode";
@@ -18,7 +14,7 @@ import { decodeJWT } from "@/lib/decode";
 type MenuItem = {
     label: string;
     href: string;
-    icon: 'Home' | "PanelTop" | "MessageSquare" | "Bell" | "FileCheck2" | "Grid2X2" | "Clock3" | "WalletCards" | "GraduationCap" | "CalendarDays" | "Users" | "Shield" | "Settings",
+    icon: 'Home' | "PanelTop" | "MessageSquare" | "Bell" | "FileCheck2" | "Grid2X2" | "Clock3" | "WalletCards" | "GraduationCap" | "CalendarDays" | "Users" | "Shield" | "Settings" | "Book",
     count?: number;
     active?: boolean;
     dividerAfter?: boolean;
@@ -80,7 +76,8 @@ export default function Sidebar() {
         { label: "워크스페이스", href: "/workspace/my-works", icon: 'Grid2X2' },
         { label: "근태", href: "/attendance", icon: 'Clock3' },
         { label: "재무", href: "/finance", icon: 'WalletCards' },
-        // { label: "원생관리", href: "#", icon: 'GraduationCap' },
+        { label: "원생관리", href: "/student", icon: 'GraduationCap' },
+        { label: "강의 관리", href: "/lecture", icon: 'Book' },
         { label: "일정", href: "/schedule", icon: 'CalendarDays' },
         { label: "시간표", href: "/timetable", icon: 'Grid2X2' },
         { label: "구성원", href: "/members", icon: 'Users' },
