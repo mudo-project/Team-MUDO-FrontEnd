@@ -12,6 +12,8 @@
 
 현재는 Google Drive API 연동이 없다. `SharedFolderBoard`가 들고 있는 in-memory mock 데이터(React state)로 폴더 생성·진입·이동·삭제, 파일 생성·업로드·이름변경까지 화면 위에서 실제로 동작하지만, 새로고침하면 초기 mock 목록으로 되돌아간다.
 
+화면 진입 시에는 실제로 `GET /api/shared-files/root`를 호출해 공유파일 시스템 루트가 사용 가능한 상태(`ready`)인지부터 확인한다. 사용할 수 없으면 목록(현재는 mock 데이터) 대신 안내와 "다시 만들기"(`POST /api/shared-files/root/recreation`) 버튼만 보여준다.
+
 ### 핵심 제약
 
 - 폴더/파일의 실제 저장·관리 주체는 Google Drive가 될 예정이며, 지금은 그 자리를 프론트 state가 대신한다.
@@ -78,6 +80,13 @@ Sidebar의 공유폴더 메뉴를 클릭해 공유폴더 화면으로 이동할 
 ---
 
 ## 4. 기능 목록
+
+### 4.0 시스템 루트 상태
+
+| 기능 | 트리거 | 동작 | 상태 |
+|---|---|---|---|
+| 루트 상태 확인 | 화면 진입 | `GET /api/shared-files/root` 조회 결과 `ready`가 참이면 화면(현재는 mock 목록)을 보여주고, 아니거나 조회 자체가 실패하면 안내 화면으로 전환 | 구현 완료 |
+| 루트 재생성 | 안내 화면의 `다시 만들기` 클릭 | `POST /api/shared-files/root/recreation` 호출. 성공하면 화면으로 전환, 실패하면 안내 화면에 오류 메시지 표시 | 구현 완료 |
 
 ### 4.1 필터 · 검색
 
@@ -157,7 +166,7 @@ Sidebar의 공유폴더 메뉴를 클릭해 공유폴더 화면으로 이동할 
 
 | 컴포넌트 | 책임 |
 |---|---|
-| **SharedFolderBoard** | 화면 최상위 컴포넌트(client). 목록(`items`), 현재 경로(`currentFolderId`), 필터·검색어, 새로만들기·케밥 메뉴 열림 상태, 각 모달(새 폴더/Google/새 탭/이름변경/이동/삭제)의 열림 상태를 전부 소유한다. 생성·이름변경·이동·삭제 핸들러와 하위 항목 id를 재귀로 모으는 `getDescendantIds`도 이 컴포넌트에 있다. 바깥 클릭 시 새로만들기 컨테이너·케밥 메뉴를 닫으며, 숨겨진 `input[type=file]`도 여기서 관리한다 |
+| **SharedFolderBoard** | 화면 최상위 컴포넌트(client). 마운트 시 `getSharedFolderRootStatusAction`으로 시스템 루트 상태(`rootStatus`)를 확인해 사용 불가능하면 안내 화면(`recreateSharedFolderRootAction`으로 재생성)만 보여준다. 그 외에는 목록(`items`), 현재 경로(`currentFolderId`), 필터·검색어, 새로만들기·케밥 메뉴 열림 상태, 각 모달(새 폴더/Google/새 탭/이름변경/이동/삭제)의 열림 상태를 전부 소유한다. 생성·이름변경·이동·삭제 핸들러와 하위 항목 id를 재귀로 모으는 `getDescendantIds`도 이 컴포넌트에 있다. 바깥 클릭 시 새로만들기 컨테이너·케밥 메뉴를 닫으며, 숨겨진 `input[type=file]`도 여기서 관리한다 |
 | **SharedFolderToolbar** | 상단 검색바·필터 탭·새로 만들기 버튼(client). 검색어·필터 변경을 그대로 부모에 전달하고, 새로만들기 컨테이너에서 `파일 업로드`를 선택하면 부모의 파일 선택창을 연다 |
 | **SharedFolderCreateMenu** | `새로 만들기` 클릭 시 나타나는 컨테이너. 선택한 옵션(`FOLDER`/`GOOGLE_DOCS`/`GOOGLE_SHEETS`/`GOOGLE_SLIDES`/`UPLOAD`)을 그대로 상위에 전달한다 |
 | **SharedFolderCreateNewFolderModal** | 새 폴더 이름 입력 모달. 현재 위치를 안내하고, 이름이 비어 있으면 `만들기` 버튼이 비활성화된다 |
