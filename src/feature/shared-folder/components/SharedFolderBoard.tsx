@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import {
@@ -9,6 +9,7 @@ import {
   getSharedFolderContentListAction,
   getSharedFolderRootStatusAction,
   recreateSharedFolderRootAction,
+  uploadSharedFolderFileAction,
 } from "../actions";
 import { getSharedFolderItemKind } from "../sharedFolderFormat";
 import SharedFolderCreateGoogleModal from "./SharedFolderCreateGoogleModal";
@@ -52,6 +53,8 @@ export default function SharedFolderBoard() {
   const [isNewFolderModalOpen, setIsNewFolderModalOpen] = useState(false);
   const [googleCreateOption, setGoogleCreateOption] = useState<SharedFolderGoogleCreateOption | null>(null);
   const [newTabFile, setNewTabFile] = useState<{ name: string; viewUrl: string } | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const currentParentId = path.at(-1)?.id;
 
@@ -220,6 +223,17 @@ export default function SharedFolderBoard() {
     }
   };
 
+  const handleFileSelect = async (file: File) => {
+    const result = await uploadSharedFolderFileAction(currentParentId, file);
+
+    if (result.success) {
+      toast.success(result.message);
+      await refreshItems();
+    } else {
+      toast.error(result.message);
+    }
+  };
+
   const handleNewFolderCreate = async (folderName: string) => {
     setIsSubmitting(true);
 
@@ -317,7 +331,7 @@ export default function SharedFolderBoard() {
         searchQuery={searchQuery}
         onCreateMenuSelect={handleCreateMenuSelect}
         onCreateMenuToggle={handleCreateMenuToggle}
-        onFileUploadRequest={() => {}}
+        onFileUploadRequest={() => fileInputRef.current?.click()}
         onFilterChange={handleFilterChange}
         onSearchQueryChange={handleSearchQueryChange}
       />
@@ -342,7 +356,7 @@ export default function SharedFolderBoard() {
             items={filteredItems}
             openItemMenuId={openItemMenuId}
             onDelete={() => setOpenItemMenuId(null)}
-            onFileUploadRequest={() => {}}
+            onFileUploadRequest={() => fileInputRef.current?.click()}
             onFolderCreateRequest={() => setIsNewFolderModalOpen(true)}
             onFolderOpen={handleFolderOpen}
             onItemMenuSelect={() => setOpenItemMenuId(null)}
@@ -353,6 +367,21 @@ export default function SharedFolderBoard() {
           />
         )}
       </section>
+
+      <input
+        ref={fileInputRef}
+        className="hidden"
+        type="file"
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+
+          if (file) {
+            handleFileSelect(file);
+          }
+
+          event.target.value = "";
+        }}
+      />
 
       {isNewFolderModalOpen && (
         <SharedFolderCreateNewFolderModal
