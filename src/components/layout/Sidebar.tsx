@@ -15,7 +15,7 @@ import { getMyPermissionListAction } from "@/feature/auth/actions";
 type MenuItem = {
     label: string;
     href: string;
-    icon: 'Home' | "PanelTop" | "MessageSquare" | "Bell" | "FileCheck2" | "Grid2X2" | "Clock3" | "WalletCards" | "GraduationCap" | "CalendarDays" | "Users" | "Shield" | "Settings" | "Book",
+    icon: 'Home' | "PanelTop" | "MessageSquare" | "Bell" | "FileCheck2" | "Grid2X2" | "Clock3" | "WalletCards" | "GraduationCap" | "CalendarDays" | "Users" | "Shield" | "Settings" | "Book" | "Folder" | "TrendingUp",
     count?: number;
     active?: boolean;
     dividerAfter?: boolean;
@@ -81,13 +81,14 @@ export default function Sidebar() {
 
     const menuItems: MenuItem[] = [
         { label: "홈", href: "/", icon: 'Home' },
-        { label: "템플릿", href: "/template", icon: 'PanelTop' },
         { label: "메신저", href: "/messenger", icon: 'MessageSquare', count: 3 },
         { label: "공지사항", href: "/notice", icon: 'Bell', count: 2 },
         { label: "전자결재", href: "/approval/my", icon: 'FileCheck2', count: approvalPendingCount },
         { label: "워크스페이스", href: "/workspace/my-works", icon: 'Grid2X2' },
+        { label: "공용폴더", href: "/shared-folder", icon: 'Folder' },
         { label: "근태", href: "/attendance", icon: 'Clock3' },
         { label: "재무", href: "/finance", icon: 'WalletCards' },
+        { label: "매출 리포트", href: "/revenue-report", icon: 'TrendingUp' },
         { label: "원생관리", href: "/student", icon: 'GraduationCap' },
         { label: "강의 관리", href: "/lecture", icon: 'Book' },
         { label: "일정", href: "/schedule", icon: 'CalendarDays' },
