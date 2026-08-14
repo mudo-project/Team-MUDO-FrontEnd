@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Pencil } from "lucide-react";
 import { toast } from "sonner";
+import { useUserStore } from "@/store/useUserStore";
 import AttendanceTodaySituation from "./AttendanceTodaySituation";
 import AttendanceCalendar from "./AttendanceCalendar";
 import AttendanceCommuteInformation from "./AttendanceCommuteInformation";
@@ -33,7 +34,12 @@ type AttendanceBoardProps = {
   initialNow: string;
 };
 
-const TABS: { key: TabKey; label: string }[] = [
+// 백엔드 role 도메인의 권한 카탈로그에 정의된 코드값(2026-08-12 확인).
+const PERMISSION_TEAM_READ = "ATTENDANCE:READ";
+const PERMISSION_CORRECTION_READ = "ATTENDANCE:CORRECTION_READ";
+const PERMISSION_CORRECTION_PROCESS = "ATTENDANCE:CORRECTION_PROCESS";
+
+const ALL_TABS: { key: TabKey; label: string }[] = [
   { key: "mine", label: "내 근태" },
   { key: "all", label: "전직원 현황" },
   { key: "manage", label: "수정 요청 관리" },
@@ -68,6 +74,16 @@ export default function AttendanceBoard({ initialNow }: AttendanceBoardProps) {
   const [tab, setTab] = useState<TabKey>("mine");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const permissions = useUserStore((state) => state.permissions);
+  const canViewTeam = permissions.includes(PERMISSION_TEAM_READ);
+  const canViewCorrections = permissions.includes(PERMISSION_CORRECTION_READ);
+  const canProcessCorrections = permissions.includes(PERMISSION_CORRECTION_PROCESS);
+  const visibleTabs = ALL_TABS.filter((item) => {
+    if (item.key === "all") return canViewTeam;
+    if (item.key === "manage") return canViewCorrections;
+    return true;
+  });
+
   useEffect(() => {
     const timer = setInterval(() => {
       setNow(new Date(Date.now() + serverOffsetRef.current));
@@ -88,8 +104,21 @@ export default function AttendanceBoard({ initialNow }: AttendanceBoardProps) {
   }, []);
 
   useEffect(() => {
+    if (!canViewTeam) {
+      setIsTeamLoading(false);
+      return;
+    }
+
     loadTeam();
-  }, [loadTeam]);
+  }, [canViewTeam, loadTeam]);
+
+  useEffect(() => {
+    // 지금 보고 있는 탭에 대한 권한이 사라지면(권한 store가 나중에 채워지는 등) 안전하게 내 근태로 되돌린다.
+    if (!visibleTabs.some((item) => item.key === tab)) {
+      setTab("mine");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canViewTeam, canViewCorrections]);
 
   const loadMyRequests = useCallback(() => {
     getMyCorrectionRequestListAction()
@@ -154,7 +183,7 @@ export default function AttendanceBoard({ initialNow }: AttendanceBoardProps) {
     );
   }
 
-  if (isDashboardLoading || isTeamLoading || !dashboard || !team) {
+  if (isDashboardLoading || isTeamLoading || !dashboard || (canViewTeam && !team)) {
     return <main className="flex h-[calc(100dvh-3.25rem)] items-center justify-center bg-[#FCFCFC] text-[13px] text-[#718096]">근태 정보를 불러오는 중입니다...</main>;
   }
 
@@ -259,11 +288,11 @@ export default function AttendanceBoard({ initialNow }: AttendanceBoardProps) {
       <main className="h-[calc(100dvh-3.25rem)] overflow-hidden bg-[#FCFCFC] px-5 py-6 text-[#172033] lg:px-6">
         <div className="h-full overflow-y-auto scrollbar-hide">
           <div className="mx-auto w-full max-w-[1360px]">
-            <AttendanceTodaySituation team={team} />
+            {canViewTeam && team && <AttendanceTodaySituation team={team} />}
 
             <section className="mt-6">
               <nav aria-label="근태 메뉴" className="flex gap-7 border-b border-[#DCE9DF] text-[12px]">
-                {TABS.map((item) => (
+                {visibleTabs.map((item) => (
                   <button
                     className={tab === item.key ? "border-b-2 border-[#4D9560] px-1 pb-3 font-semibold" : "pb-3 text-[#718096]"}
                     key={item.key}
@@ -304,15 +333,15 @@ export default function AttendanceBoard({ initialNow }: AttendanceBoardProps) {
                 </div>
               )}
 
-              {tab === "all" && (
+              {tab === "all" && canViewTeam && (
                 <div className="mt-5">
                   <AttendanceAllEmployees />
                 </div>
               )}
 
-              {tab === "manage" && (
+              {tab === "manage" && canViewCorrections && (
                 <div className="mt-5">
-                  <AttendanceEditRequestManage />
+                  <AttendanceEditRequestManage canProcess={canProcessCorrections} />
                 </div>
               )}
 

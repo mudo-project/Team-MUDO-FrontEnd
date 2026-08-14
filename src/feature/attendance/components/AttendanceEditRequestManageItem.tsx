@@ -10,11 +10,12 @@ import {
 
 type AttendanceEditRequestManageItemProps = {
   request: AttendanceAdminCorrectionRequestData;
+  canProcess: boolean;
   onApprove: (id: number) => void;
   onSelect: (request: AttendanceAdminCorrectionRequestData) => void;
 };
 
-export default function AttendanceEditRequestManageItem({ request, onApprove, onSelect }: AttendanceEditRequestManageItemProps) {
+export default function AttendanceEditRequestManageItem({ request, canProcess, onApprove, onSelect }: AttendanceEditRequestManageItemProps) {
   return (
     <tr
       className="cursor-pointer border-b border-[#E5EEE7] text-[12px] transition hover:bg-[#FBFCFB] last:border-0"
@@ -52,29 +53,33 @@ export default function AttendanceEditRequestManageItem({ request, onApprove, on
       </td>
       <td className="px-4 py-3">
         {request.status === "PENDING" ? (
-          <span className="flex items-center gap-2 whitespace-nowrap">
-            {/* 반려는 사유가 필수라 테이블에서 바로 처리하지 않고, 상세 모달의 반려 사유 입력으로 이동시킨다 */}
-            <button
-              className="text-[12px] font-medium text-[#C65A50]"
-              type="button"
-              onClick={(event) => {
-                event.stopPropagation();
-                onSelect(request);
-              }}
-            >
-              반려
-            </button>
-            <button
-              className="h-8 rounded-md bg-[#172033] px-3 text-[12px] font-semibold text-white"
-              type="button"
-              onClick={(event) => {
-                event.stopPropagation();
-                onApprove(request.requestId);
-              }}
-            >
-              승인
-            </button>
-          </span>
+          canProcess ? (
+            <span className="flex items-center gap-2 whitespace-nowrap">
+              {/* 반려는 사유가 필수라 테이블에서 바로 처리하지 않고, 상세 모달의 반려 사유 입력으로 이동시킨다 */}
+              <button
+                className="text-[12px] font-medium text-[#C65A50]"
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onSelect(request);
+                }}
+              >
+                반려
+              </button>
+              <button
+                className="h-8 rounded-md bg-[#172033] px-3 text-[12px] font-semibold text-white"
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onApprove(request.requestId);
+                }}
+              >
+                승인
+              </button>
+            </span>
+          ) : (
+            <span className="text-[11px] text-[#718096]">대기중</span>
+          )
         ) : (
           <span className="text-[11px] text-[#718096]">{formatDateTimeLabel(request.processedAt)}</span>
         )}
