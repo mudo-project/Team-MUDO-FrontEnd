@@ -7,6 +7,7 @@ import {
   createSharedFolderFolderAction,
   createSharedFolderGoogleFileAction,
   deleteSharedFolderContentAction,
+  downloadSharedFolderContentAction,
   getSharedFolderContentListAction,
   getSharedFolderRootStatusAction,
   recreateSharedFolderRootAction,
@@ -344,6 +345,33 @@ export default function SharedFolderBoard() {
     }
   };
 
+  const handlePreviewOpen = (item: SharedFolderDriveItemData) => {
+    setOpenItemMenuId(null);
+    window.open(item.viewUrl, "_blank", "noopener,noreferrer");
+  };
+
+  const handleDownload = async (item: SharedFolderDriveItemData) => {
+    setOpenItemMenuId(null);
+
+    const result = await downloadSharedFolderContentAction(item.id);
+
+    if (!result.success || !result.file) {
+      toast.error(result.message);
+      return;
+    }
+
+    const byteArray = Uint8Array.from(atob(result.file), (char) => char.charCodeAt(0));
+    const blob = new Blob([byteArray], { type: result.mimeType });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = result.fileName ?? item.name;
+    link.click();
+
+    URL.revokeObjectURL(url);
+  };
+
   const handleFolderOpen = (item: SharedFolderDriveItemData) => {
     setPath((current) => [...current, { id: item.id, name: item.name }]);
     setFilter("ALL");
@@ -439,6 +467,7 @@ export default function SharedFolderBoard() {
             items={filteredItems}
             openItemMenuId={openItemMenuId}
             onDelete={handleDeleteRequest}
+            onDownload={handleDownload}
             onFileUploadRequest={() => fileInputRef.current?.click()}
             onFolderCreateRequest={() => setIsNewFolderModalOpen(true)}
             onFolderOpen={handleFolderOpen}
@@ -447,6 +476,7 @@ export default function SharedFolderBoard() {
             onItemMove={handleMoveRequest}
             onItemRename={handleRenameRequest}
             onLoadMore={handleLoadMore}
+            onPreviewOpen={handlePreviewOpen}
           />
         )}
       </section>

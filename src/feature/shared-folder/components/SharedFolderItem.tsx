@@ -7,10 +7,12 @@ type SharedFolderItemProps = {
   isMenuOpen: boolean;
   item: SharedFolderDriveItemData;
   onDelete: () => void;
+  onDownload: () => void;
   onFolderOpen: () => void;
   onMenuSelect: () => void;
   onMenuToggle: () => void;
   onMove: () => void;
+  onOpenPreview: () => void;
   onRename: () => void;
 };
 
@@ -58,7 +60,7 @@ function ItemIcon({ kind, fileType }: { kind: SharedFolderItemKind; fileType: Sh
   }
 }
 
-export default function SharedFolderItem({ isMenuOpen, item, onDelete, onFolderOpen, onMenuSelect, onMenuToggle, onMove, onRename }: SharedFolderItemProps) {
+export default function SharedFolderItem({ isMenuOpen, item, onDelete, onDownload, onFolderOpen, onMenuSelect, onMenuToggle, onMove, onOpenPreview, onRename }: SharedFolderItemProps) {
   const kind = getSharedFolderItemKind(item);
   const fileType = getSharedFolderFileType(item);
   const typeLabel = kind === "FOLDER" ? "폴더" : FILE_TYPE_LABEL[fileType];
@@ -93,9 +95,9 @@ export default function SharedFolderItem({ isMenuOpen, item, onDelete, onFolderO
           <SharedFolderItemMenu
             kind={kind}
             onDelete={onDelete}
-            onDownload={onMenuSelect}
+            onDownload={onDownload}
             onMove={onMove}
-            onOpenPreview={onMenuSelect}
+            onOpenPreview={onOpenPreview}
             onRename={onRename}
             onViewDetail={onMenuSelect}
           />
