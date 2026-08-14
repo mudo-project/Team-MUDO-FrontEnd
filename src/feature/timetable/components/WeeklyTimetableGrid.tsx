@@ -1,4 +1,5 @@
-import type { ClassItem } from "@/feature/timetable/types";
+import { gradeLabels } from "@/feature/timetable/constants";
+import type { ClassItem } from "@/feature/timetable/viewModel";
 
 type WeeklyTimetableGridDay = {
   date: string;
@@ -42,8 +43,8 @@ export default function WeeklyTimetableGrid({
       aria-label="주간 시간표"
       className="min-w-0 max-w-full overflow-hidden rounded-xl border border-[#DCE9DF] bg-white"
     >
-      <div data-testid="weekly-timetable-scroll" className="max-h-[calc(100dvh-14rem)] max-w-full overflow-auto overscroll-contain scrollbar-hide">
-        <div className="min-w-[2240px]" role="table" aria-label="2026년 8월 첫째 주 시간표">
+      <div data-testid="weekly-timetable-scroll" className="max-w-full overflow-x-auto overscroll-contain">
+        <div className="max-h-[calc(100dvh-14rem)] min-w-[2240px] overflow-y-auto scrollbar-hide" role="table" aria-label="2026년 8월 첫째 주 시간표">
           <div 
             className="grid border-b border-[#DCE9DF]" 
             role="row" 
@@ -106,7 +107,7 @@ export default function WeeklyTimetableGrid({
                       style={{ gridColumn: roomIndex + 1, gridRow: `${item.start} / span ${item.duration}` }} 
                       type="button"
                     >
-                      <strong className="block">{item.grade ? `${item.grade} ${item.course}` : item.course}</strong>
+                      <strong className="block">{item.grade ? `${gradeLabels[item.grade]} ${item.course}` : item.course}</strong>
                       <span className="mt-0.5 block font-medium">{item.teacher}</span>
                     </button>;
                   })}

@@ -3,22 +3,27 @@
 import { X } from "lucide-react";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { getUserListAction } from "@/feature/auth/actions";
-import { addWorkspaceMembersAction } from "../../actions";
+import { addWorkspaceMembersAction, removeWorkspaceMemberAction } from "../../actions";
 import WorkspaceAttends from "../WorkspaceAttends";
 import WorkspaceAttendItem from "../WorkspaceAttendItem";
+import { WorkspaceMemberData } from "../../type";
 
 interface AddWorkspaceAttendModalProps {
     closeModal: () => void;
     workspaceId: string;
+    currentMembers: WorkspaceMemberData[] | undefined
 }
 
 export default function AddWorkspaceAttendModal({
     closeModal,
     workspaceId,
+    currentMembers
 }: AddWorkspaceAttendModalProps) {
     const router = useRouter();
+    const queryClient = useQueryClient();
     const [isMemberListOpen, setIsMemberListOpen] = useState(false);
     const [searchInput, setSearchInput] = useState("");
     const [members, setMembers] = useState<UserListResponse[]>([]);
@@ -32,6 +37,25 @@ export default function AddWorkspaceAttendModal({
         success: false,
         message: "",
         data: undefined,
+    });
+
+    const removeMemberMutation = useMutation({
+        mutationFn: (userId: number) =>
+            removeWorkspaceMemberAction(Number(workspaceId), userId),
+        onSuccess: (result) => {
+            if (!result.success) {
+                toast.error(result.message);
+                return;
+            }
+
+            void queryClient.invalidateQueries({
+                queryKey: ["workspace", workspaceId],
+            });
+            toast.success(result.message);
+        },
+        onError: (error) => {
+            toast.error(error.message);
+        },
     });
 
     const isFirstRender = useRef(true);
@@ -87,6 +111,10 @@ export default function AddWorkspaceAttendModal({
         );
     };
 
+    const removeCurrentMember = (userId: number) => {
+        removeMemberMutation.mutate(userId);
+    };
+
     return (
         <div
             className="fixed top-0 left-0 z-999 h-screen w-screen bg-[#162236]/30"
@@ -99,10 +127,10 @@ export default function AddWorkspaceAttendModal({
             >
                 <div className="flex w-full items-center">
                     <h2 className="text-[15px] leading-[22.5px] font-bold text-[#0F172A]">
-                        워크스페이스 참여자 추가
+                        워크스페이스 참여자
                     </h2>
                     <button
-                        aria-label="워크스페이스 참여자 추가 모달 닫기"
+                        aria-label="워크스페이스 참여자 모달 닫기"
                         className="ml-auto flex size-3.5 items-center justify-center text-[#94A3B8]"
                         onClick={closeModal}
                         type="button"
@@ -111,9 +139,30 @@ export default function AddWorkspaceAttendModal({
                     </button>
                 </div>
 
+
                 <div className="mt-5">
                     <p className="text-[12px] leading-[18px] font-medium text-[#6B7280]">
-                        추가할 참여자
+                        현재 참여자
+                    </p>
+                    <p className="text-[10px] leading-[18px] font-base text-[#0F172A]/40">
+                        x 표시를 누르면 참여자가 제거됩니다.
+                    </p>
+
+                    <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                        {currentMembers?.map((member) => (
+                            <WorkspaceAttendItem
+                                key={member.userId}
+                                member={{ ...member, username: '' }}
+                                removeMember={removeCurrentMember}
+                                disabled={removeMemberMutation.isPending}
+                            />
+                        ))}
+                    </div>
+                </div>
+
+                <div className="mt-5">
+                    <p className="text-[12px] leading-[18px] font-medium text-[#6B7280]">
+                        참여자 추가
                     </p>
 
                     {selectedMembers.length > 0 && (

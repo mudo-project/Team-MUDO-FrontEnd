@@ -12,7 +12,7 @@ const workTag = {
         title: "진행중"
     },
     COMPLETED: {
-        color: 'bg-[#9CA9BD]',
+        color: 'bg-[#5FAF83]',
         title: '완료'
     },
 }
@@ -29,7 +29,7 @@ export default function WorkList({ setSelectedTask, type, task }: { setSelectedT
                 </span>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2  h-[calc(100dvh-400px)] overflow-auto scrollbar-hide">
                 {task.map((t) => (
                     <WorkItem key={t.taskId} setSelectedTask={setSelectedTask} task={t} type={type} />
                 ))}

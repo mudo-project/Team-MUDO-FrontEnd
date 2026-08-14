@@ -1,5 +1,5 @@
 import { weekDayNames } from "@/feature/timetable/constants";
-import type { ClassItem, FloorConfig, TimetableTemplate } from "@/feature/timetable/types";
+import type { ClassItem, FloorConfig, TimetableTemplate } from "@/feature/timetable/viewModel";
 import type { ClassRegistrationFormValues } from "@/lib/classRegistrationSchema";
 
 // weekDayNames(["일", "월", ..., "토"]) 인덱스 <-> API DayOfWeek 매핑
@@ -79,7 +79,7 @@ export function toTimetableTemplate(
       room: rooms.indexOf(slot.classroomCode),
       start: (startMinutes - baseMinutes) / slotMinutes + 1,
       duration: (endMinutes - startMinutes) / slotMinutes,
-      grade: slot.grade ?? undefined,
+      grade: slot.grade,
       course: slot.subjectName ?? "",
       teacher: slot.teacherName ?? "",
       tone: classTypeToTone[slot.classType],
@@ -117,4 +117,12 @@ export function toTimetableSlotRequestPayload(
     teacherName: values.teacher,
     subjectName: values.course,
   };
+}
+
+// 내보내기 색상 지정 UI가 아직 없어서, 강의실 코드마다 고정 팔레트를 순서대로 배정
+const EXPORT_COLOR_PALETTE = ["90A9C6", "6F9278", "B7A18C", "77A4B0", "C46A62", "94A3B8"];
+
+export function buildDefaultClassroomColorMap(classroomGroups: FloorConfig[]): Record<string, string> {
+  const codes = classroomGroups.flatMap((group) => group.rooms);
+  return Object.fromEntries(codes.map((code, index) => [code, EXPORT_COLOR_PALETTE[index % EXPORT_COLOR_PALETTE.length]]));
 }

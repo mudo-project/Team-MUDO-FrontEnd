@@ -106,7 +106,7 @@ export default function ClassRegistrationModal({
               aria-label="학년" 
               className="h-8 w-full rounded-md border border-[#DCE9DF] bg-white px-2 text-[12px] font-normal text-[#526071] outline-none" {...register("grade")}
             >
-              {gradeOptions.map((grade) => <option key={grade} value={grade}>{grade}</option>)}
+              {gradeOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
             </select>
           </label>
           <div className="grid grid-cols-2 gap-2">

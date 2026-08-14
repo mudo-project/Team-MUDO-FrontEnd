@@ -17,6 +17,7 @@ import {
     getWorkspaceRecurringTemplateList,
     getWorkspaceDetail,
     getWorkspaceList,
+    getMyWorkspaceTaskList,
     getWorkspaceTaskCommentList,
     getWorkspaceTaskDetail,
     recordWorkspaceRecentAccess,
@@ -37,6 +38,7 @@ import {
     CreateWorkspaceTaskData,
     CreateWorkspaceTaskRequest,
     WorkspaceDetailData,
+    GetMyWorkspaceTaskListRequest,
     WorkspaceListData,
     WorkspaceListScope,
     WorkspaceRecurringTemplateListData,
@@ -45,6 +47,7 @@ import {
     WorkspaceTaskCommentRequest,
     WorkspaceTaskDetailData,
     WorkspaceRecurrenceRule,
+    MyWorkspaceTaskListData,
 } from "./type";
 
 export interface WorkspaceActionResult<T = undefined> {
@@ -76,6 +79,61 @@ export const getWorkspaceListAction = async (scope: WorkspaceListScope = "MINE")
             message: getActionErrorMessage(
                 error,
                 "워크스페이스 목록 조회에 실패했습니다.",
+            ),
+        };
+    }
+};
+
+export const getMyWorkspaceTaskListAction = async (
+    request: GetMyWorkspaceTaskListRequest,
+): Promise<WorkspaceActionResult<MyWorkspaceTaskListData>> => {
+    const { status, workspaceId, page = 0, size = 20 } = request;
+
+    if (
+        status !== undefined &&
+        status !== "WAITING" &&
+        status !== "IN_PROGRESS" &&
+        status !== "DELAYED"
+    ) {
+        return {
+            success: false,
+            message: "업무 상태 조건이 올바르지 않습니다.",
+        };
+    }
+
+    if (workspaceId !== undefined && !isPositiveInteger(workspaceId)) {
+        return {
+            success: false,
+            message: "워크스페이스 번호가 올바르지 않습니다.",
+        };
+    }
+
+    if (!Number.isInteger(page) || page < 0 || !Number.isInteger(size) || size < 1 || size > 100) {
+        return {
+            success: false,
+            message: "업무 목록 페이지 조건이 올바르지 않습니다.",
+        };
+    }
+
+    try {
+        const response = await getMyWorkspaceTaskList({
+            status,
+            workspaceId,
+            page,
+            size,
+        });
+
+        return {
+            success: true,
+            message: response.message,
+            data: response.data,
+        };
+    } catch (error) {
+        return {
+            success: false,
+            message: getActionErrorMessage(
+                error,
+                "내 업무 목록 조회에 실패했습니다.",
             ),
         };
     }

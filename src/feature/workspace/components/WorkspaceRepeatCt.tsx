@@ -46,7 +46,7 @@ export default function WorkspaceRepeatCt({ workspaceId }: WorkspaceRepeatCtProp
                             <WorkTemplateItem key={template.templateId} template={template} workspaceId={workspaceId} />
                         ))
                     ) : (
-                        <p className="text-[12px] text-[#AEB6C3]">등록된 반복 업무가 없습니다.</p>
+                        <p className="text-[12px] text-[#AEB6C3] text-center  py-3 mt-4">등록된 반복 업무가 없습니다.</p>
                     )}
                 </section>
             )}
