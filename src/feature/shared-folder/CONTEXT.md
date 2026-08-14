@@ -12,7 +12,7 @@
 
 화면 진입 시에는 `GET /api/shared-files/root`를 호출해 공유파일 시스템 루트가 사용 가능한 상태(`ready`)인지부터 확인한다. 사용할 수 없으면 목록 대신 안내와 "다시 만들기"(`POST /api/shared-files/root/recreation`) 버튼만 보여준다.
 
-루트가 준비되면 `GET /api/shared-files/items`로 폴더 목록을 실제로 조회하고, 폴더 진입·breadcrumb 이동·더 보기(페이지네이션)·새 폴더 생성까지 실제 API로 동작한다. Google 파일 생성·파일 업로드·이름 변경·이동·삭제·다운로드는 아직 이 화면에 연결되지 않았다 — 버튼과 메뉴는 열리고 닫히지만 클릭해도 실제로 아무 것도 만들거나 바꾸지 않는다(후속 PR에서 하나씩 연동 예정).
+루트가 준비되면 `GET /api/shared-files/items`로 폴더 목록을 실제로 조회하고, 폴더 진입·breadcrumb 이동·더 보기(페이지네이션)·새 폴더 생성·Google Docs/Sheets/Slides 생성까지 실제 API로 동작한다. 파일 업로드·이름 변경·이동·삭제·다운로드는 아직 이 화면에 연결되지 않았다 — 버튼과 메뉴는 열리고 닫히지만 클릭해도 실제로 아무 것도 만들거나 바꾸지 않는다(후속 PR에서 하나씩 연동 예정).
 
 ### 핵심 제약
 
@@ -21,7 +21,8 @@
 - API는 항목의 수정자(작성자)와 크기를 내려주지 않는다. 두 컬럼은 화면 레이아웃 유지를 위해 그대로 두되 값은 항상 "-"로 표시한다.
 - 목록 조회는 한 번에 `size: 100`으로 요청한다. `hasNext`가 참이면 목록 하단에 "더 보기" 버튼이 나타나 `nextCursor`로 다음 페이지를 이어서 불러온다.
 - 필터·검색은 현재까지 불러온 목록 위에서만 동작하는 클라이언트 사이드 필터링이다(전체 검색 API는 아직 사용하지 않음).
-- 새 폴더 생성은 **현재 위치한 경로**를 기준으로 생성된다. 현재 위치가 공유파일 루트(최상위)일 때는 API 명세상 루트 자신의 id를 얻을 방법이 없어 `parentId`를 생략해서 요청한다(백엔드가 생략 시 루트로 처리해주는지 확인이 필요한 상태 — 백엔드팀에 문의 중).
+- 새 폴더 생성, Google Docs/Sheets/Slides 생성은 모두 **현재 위치한 경로**를 기준으로 생성된다. 현재 위치가 공유파일 루트(최상위)일 때는 API 명세상 루트 자신의 id를 얻을 방법이 없어 `parentId`를 생략해서 요청한다(백엔드가 생략 시 루트로 처리해주는지 확인이 필요한 상태 — 백엔드팀에 문의 중).
+- Google Docs/Sheets/Slides 생성에 성공하면 목록을 다시 불러온 뒤 "새 탭에서 열기" 모달을 띄운다. 새 폴더 생성과 달리 경로 이동이 없어 목록을 직접 다시 조회해야 한다.
 
 ### 진입점
 
@@ -42,6 +43,8 @@ Sidebar의 공유폴더 메뉴를 클릭해 공유폴더 화면으로 이동할 
 | **케밥 메뉴** | 내용 행 우측의 `⋮` 버튼과 그 하위 메뉴. 폴더는 이름 변경/이동/삭제, 파일은 상세 보기/미리보기 열기/다운로드/이름 변경/이동/삭제 — 목록만 표시되고 클릭해도 아직 동작하지 않는다 |
 | **새로만들기 컨테이너** | 상단 `새로 만들기` 버튼 클릭 시 나타나는, 새 폴더/Google Docs/Google Sheets/Google Slides/파일 업로드 선택 영역 |
 | **새 폴더 만들기 모달** | 새 폴더 클릭 시 나타나는, 현재 위치와 폴더 이름을 입력하는 모달 |
+| **Docs/Sheets/Slides 만들기 모달** | Google Docs/Sheets/Slides 클릭 시 나타나는, 파일 이름을 입력하는 모달 |
+| **새 탭에서 열기 모달** | Docs/Sheets/Slides 생성 완료 후 나타나는, 새 탭에서 해당 파일을 열지 안내하는 모달. 실제로 Google Drive의 편집 URL을 새 탭으로 연다 |
 
 ---
 
@@ -115,7 +118,10 @@ Sidebar의 공유폴더 메뉴를 클릭해 공유폴더 화면으로 이동할 
 | 새로만들기 컨테이너 열기/닫기 | 상단 `새로 만들기` 버튼 클릭 / 바깥 클릭 | 새 폴더/Google Docs/Google Sheets/Google Slides/파일 업로드 선택 영역 표시/닫힘 | 구현 완료 |
 | 새 폴더 만들기 모달 열기/닫기 | 컨테이너에서 `새 폴더` 클릭 / 취소·바깥 클릭 | 현재 위치·폴더 이름 입력 모달 표시/닫힘 | 구현 완료 |
 | 새 폴더 생성 | 모달 `만들기` 클릭(이름 미입력 시 버튼 비활성) | `POST /api/shared-files/folders` 호출. 성공하면 생성된 폴더로 즉시 이동하며 필터·검색어 초기화, 실패하면 토스트로 오류 안내 | 구현 완료 |
-| Google 파일 생성 / 파일 업로드 | 컨테이너에서 `Google Docs`/`Google Sheets`/`Google Slides`/`파일 업로드` 클릭 | 현재 경로에 생성 | 미구현 — 클릭하면 컨테이너만 닫힌다 |
+| Docs/Sheets/Slides 만들기 모달 열기/닫기 | 컨테이너에서 `Google Docs`/`Google Sheets`/`Google Slides` 클릭 / 취소·바깥 클릭 | 입력창 모달(제목이 선택한 종류에 맞춰 바뀜) 표시/닫힘 | 구현 완료 |
+| Docs/Sheets/Slides 생성 | 모달 `만들기` 클릭 | `POST /api/shared-files/google-files` 호출. 성공하면 목록을 다시 불러오고 새 탭에서 열기 모달 표시, 실패하면 토스트로 오류 안내 | 구현 완료 |
+| 새 탭에서 열기 | 새 탭에서 열기 모달의 `새 탭에서 열기` 클릭 | 생성된 파일의 `viewUrl`을 새 탭으로 연다 | 구현 완료 |
+| 파일 업로드 | 컨테이너에서 `파일 업로드` 클릭 | 현재 경로에 업로드 | 미구현 — 클릭하면 컨테이너만 닫힌다 |
 
 ### 4.4 케밥 메뉴 — 폴더 · 파일
 
@@ -163,31 +169,35 @@ Sidebar의 공유폴더 메뉴를 클릭해 공유폴더 화면으로 이동할 
 
 | 컴포넌트 | 책임 |
 |---|---|
-| **SharedFolderBoard** | 화면 최상위 컴포넌트(client). 마운트 시 시스템 루트 상태(`rootStatus`)를 확인해 사용 불가능하면 안내 화면만 보여준다. 준비되면 목록(`items`)과 로딩·오류·페이지네이션 상태, 현재 경로(`path`), 필터·검색어, 새로만들기·케밥 메뉴 열림 상태, 새 폴더 만들기 모달 열림·제출 상태(`isSubmitting`)를 소유한다. 마운트·경로 변경 시 목록을 자동 조회하는 effect는 `.then/.catch/.finally` 안에서만 state를 바꾼다(effect 안에서 곧바로 setState하지 않기 위함). 새 폴더 생성 성공 시 생성된 폴더로 바로 이동한다(경로가 바뀌면서 자동 조회 effect가 다시 실행됨). Google 파일 생성·파일 업로드와 케밥 메뉴의 각 항목 클릭은 아직 해당 메뉴/컨테이너를 닫기만 한다 |
+| **SharedFolderBoard** | 화면 최상위 컴포넌트(client). 마운트 시 시스템 루트 상태(`rootStatus`)를 확인해 사용 불가능하면 안내 화면만 보여준다. 준비되면 목록(`items`)과 로딩·오류·페이지네이션 상태, 현재 경로(`path`), 필터·검색어, 새로만들기·케밥 메뉴 열림 상태, 새 폴더 만들기·Google 파일 만들기·새 탭에서 열기 모달의 열림 상태와 제출 상태(`isSubmitting`)를 소유한다. 마운트·경로 변경 시 목록을 자동 조회하는 effect는 `.then/.catch/.finally` 안에서만 state를 바꾼다(effect 안에서 곧바로 setState하지 않기 위함). 새 폴더 생성 성공 시에는 생성된 폴더로 바로 이동하고(경로가 바뀌며 자동 조회 effect가 다시 실행됨), Google 파일 생성 성공 시에는 경로 이동이 없어 `refreshItems`로 같은 경로를 직접 다시 조회한다. 파일 업로드와 케밥 메뉴의 각 항목 클릭은 아직 해당 메뉴를 닫기만 한다 |
 | **SharedFolderToolbar** | 상단 검색바·필터 탭·새로 만들기 버튼(client). 검색어·필터 변경과 새로만들기 컨테이너에서 선택한 옵션을 그대로 부모에 전달한다 |
-| **SharedFolderCreateMenu** | `새로 만들기` 클릭 시 나타나는 컨테이너. 선택한 옵션(`FOLDER`/`GOOGLE_DOCS`/`GOOGLE_SHEETS`/`GOOGLE_SLIDES`/`UPLOAD`)을 그대로 상위에 전달한다(`FOLDER`만 실제로 모달을 열고, 나머지는 아직 컨테이너를 닫는 것 외에 처리하지 않는다) |
+| **SharedFolderCreateMenu** | `새로 만들기` 클릭 시 나타나는 컨테이너. 선택한 옵션(`FOLDER`/`GOOGLE_DOCS`/`GOOGLE_SHEETS`/`GOOGLE_SLIDES`/`UPLOAD`)을 그대로 상위에 전달한다(`FOLDER`와 Google 옵션 3종은 실제로 모달을 열고, `UPLOAD`만 아직 컨테이너를 닫는 것 외에 처리하지 않는다) |
 | **SharedFolderCreateNewFolderModal** | 새 폴더 이름 입력 모달. 현재 위치를 안내하고, 이름이 비어 있거나 요청 중이면 `만들기` 버튼이 비활성화된다 |
+| **SharedFolderCreateGoogleModal** | Docs/Sheets/Slides 파일 이름 입력 모달. `fileType`에 따라 제목이 바뀌고, 이름이 비어 있으면 종류별 기본 이름("제목 없는 문서" 등)으로 생성한다. `SharedFolderItem`의 `FILE_TYPE_LABEL`을 재사용한다 |
+| **SharedFolderOpenNewTabModal** | Google 파일 생성 완료 후 나타나는 모달. `viewUrl`을 받아 `새 탭에서 열기` 클릭 시 실제로 새 탭을 연다 |
 | **SharedFolderPath** | 폴더 경로(breadcrumb, client). `{ id, name }[]`과 각 구간의 인덱스를 받아, 클릭한 인덱스까지로 경로를 자른다(-1은 루트) |
 | **SharedFolderListHeader** | 이름·종류·수정자·수정일·크기 제목행 |
 | **SharedFolderList** | 현재 폴더의 항목 목록을 `SharedFolderItem`으로 매핑한다. 폴더 자체가 비어 있으면(`isFolderEmpty`) 안내 문구 + 업로드/폴더 만들기 버튼을, 필터·검색 때문에 결과만 없으면 "파일이 없습니다." 문구만 보여준다. `hasNext`가 참이면 하단에 `더 보기` 버튼을 보여준다 |
 | **SharedFolderItem** | 폴더/파일 내용 행 1건. `mimeType`으로 종류를 판별해(`sharedFolderFormat.ts`) 아이콘·라벨을 정하고, 수정자·크기는 항상 "-"로 표시한다. 폴더는 이름이 버튼으로 렌더링되어 클릭 시 그 폴더로 진입하고, 파일 이름은 아직 클릭 이벤트가 없다. 케밥 버튼 클릭 시 `SharedFolderItemMenu`를 연다 |
 | **SharedFolderItemMenu** | 케밥 메뉴 내용. `kind`가 `FILE`이면 상세 보기/미리보기 열기/다운로드 항목이 추가된다. 모든 항목 클릭은 아직 메뉴를 닫기만 한다 |
 
-> `SharedFolderCreateGoogleModal`/`SharedFolderOpenNewTabModal`/`SharedFolderEditNameModal`/`SharedFolderMoveModal`/`SharedFolderDeleteCheckModal` 컴포넌트 파일은 이미 존재하지만, 이번 화면에는 아직 연결되지 않았다(각 기능을 다루는 후속 PR에서 하나씩 연결 예정).
+> `SharedFolderEditNameModal`/`SharedFolderMoveModal`/`SharedFolderDeleteCheckModal` 컴포넌트 파일은 이미 존재하지만, 이번 화면에는 아직 연결되지 않았다(각 기능을 다루는 후속 PR에서 하나씩 연결 예정).
 
 ### 관계
 
 ```
 SharedFolderBoard                       (rootStatus, items, path, filter, searchQuery, 새로만들기·케밥 메뉴 열림 state, isSubmitting)
 ├── SharedFolderToolbar
-│   └── SharedFolderCreateMenu          (새로 만들기 클릭 시 — FOLDER만 모달을 열고 나머지는 컨테이너만 닫힘)
+│   └── SharedFolderCreateMenu          (새로 만들기 클릭 시 — UPLOAD만 컨테이너를 닫기만 함)
 ├── (저장소 컨테이너 — Board가 직접 마크업)
 │   ├── SharedFolderPath
 │   ├── SharedFolderListHeader
 │   └── SharedFolderList
 │       └── SharedFolderItem[]
 │           └── SharedFolderItemMenu    (케밥 클릭 시 — 항목 선택해도 메뉴만 닫힘)
-└── SharedFolderCreateNewFolderModal    (새 폴더 선택 시)
+├── SharedFolderCreateNewFolderModal    (새 폴더 선택 시)
+├── SharedFolderCreateGoogleModal       (Google Docs/Sheets/Slides 선택 시)
+└── SharedFolderOpenNewTabModal         (Google 파일 생성 완료 시)
 ```
 
 ### 컴포넌트 외 필요한 조각
@@ -195,8 +205,8 @@ SharedFolderBoard                       (rootStatus, items, path, filter, search
 | 조각 | 역할 | 상태 |
 |---|---|---|
 | 폴더/파일 목록 데이터 | Google Drive 연동 조회 | 구현 완료(`.docs/api/shared-folder/apiIntegration.md` 기준) |
-| 새 폴더 생성 | 새로만들기 컨테이너의 `새 폴더` | 구현 완료 — 단, 공유파일 루트에서 생성할 때 `parentId`를 생략하는 방식이 백엔드와 확정되지 않았다(핵심 제약 참고) |
-| Google 파일 생성, 파일 업로드 | 새로만들기 컨테이너의 나머지 항목 | 미구현 |
+| 새 폴더/Google 파일 생성 | 새로만들기 컨테이너의 `새 폴더`/`Google Docs`/`Google Sheets`/`Google Slides` | 구현 완료 — 단, 공유파일 루트에서 생성할 때 `parentId`를 생략하는 방식이 백엔드와 확정되지 않았다(핵심 제약 참고) |
+| 파일 업로드 | 새로만들기 컨테이너의 `파일 업로드` | 미구현 |
 | 이름 변경 / 이동 / 삭제 | 케밥 메뉴의 각 항목 | 미구현 |
 | 파일 미리보기 · 상세보기 · 다운로드 | 케밥 메뉴의 해당 항목, 파일 이름 클릭 | 미구현 |
 | 시스템 루트 전체 검색 API 연동 | `GET /api/shared-files/items/search` | 미구현 — 현재 검색바는 현재 폴더에서 이미 불러온 목록만 걸러낸다 |
@@ -217,6 +227,8 @@ SharedFolderBoard                       (rootStatus, items, path, filter, search
 | 새로만들기 컨테이너 | 열림 / 닫힘 |
 | 케밥 메뉴 | 닫힘 / 특정 항목에서 열림(한 번에 하나만) |
 | 새 폴더 만들기 모달 | 열림 / 닫힘 |
-| 생성 요청 중 | 아님 / 진행 중(새 폴더 만들기 모달의 `만들기` 버튼 비활성 + 문구 변경) |
+| Docs/Sheets/Slides 만들기 모달 | 닫힘 / 특정 종류로 열림 |
+| 새 탭에서 열기 모달 | 닫힘 / 특정 파일(이름·`viewUrl`)로 열림 |
+| 생성 요청 중 | 아님 / 진행 중(새 폴더·Docs/Sheets/Slides 만들기 모달의 `만들기` 버튼 비활성 + 문구 변경) |
 
 ---

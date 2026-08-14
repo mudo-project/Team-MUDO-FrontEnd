@@ -13,11 +13,12 @@ const DEFAULT_FILE_NAME: Record<SharedFolderGoogleFileType, string> = {
 
 type SharedFolderCreateGoogleModalProps = {
   fileType: SharedFolderGoogleFileType;
+  isSubmitting: boolean;
   onClose: () => void;
   onCreate: (fileName: string) => void;
 };
 
-export default function SharedFolderCreateGoogleModal({ fileType, onClose, onCreate }: SharedFolderCreateGoogleModalProps) {
+export default function SharedFolderCreateGoogleModal({ fileType, isSubmitting, onClose, onCreate }: SharedFolderCreateGoogleModalProps) {
   const [fileName, setFileName] = useState("");
 
   return (
@@ -48,11 +49,12 @@ export default function SharedFolderCreateGoogleModal({ fileType, onClose, onCre
             취소
           </button>
           <button
-            className="h-9 rounded-lg bg-[#12182B] px-4 text-[12px] font-semibold text-white"
+            className="h-9 rounded-lg bg-[#12182B] px-4 text-[12px] font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={isSubmitting}
             type="button"
             onClick={() => onCreate(fileName.trim() || DEFAULT_FILE_NAME[fileType])}
           >
-            만들기
+            {isSubmitting ? "만드는 중..." : "만들기"}
           </button>
         </div>
       </section>

@@ -1,24 +1,34 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import {
   createSharedFolderFolderAction,
+  createSharedFolderGoogleFileAction,
   getSharedFolderContentListAction,
   getSharedFolderRootStatusAction,
   recreateSharedFolderRootAction,
 } from "../actions";
 import { getSharedFolderItemKind } from "../sharedFolderFormat";
+import SharedFolderCreateGoogleModal from "./SharedFolderCreateGoogleModal";
 import SharedFolderCreateNewFolderModal from "./SharedFolderCreateNewFolderModal";
 import SharedFolderList from "./SharedFolderList";
 import SharedFolderListHeader from "./SharedFolderListHeader";
+import SharedFolderOpenNewTabModal from "./SharedFolderOpenNewTabModal";
 import SharedFolderPath from "./SharedFolderPath";
 import SharedFolderToolbar from "./SharedFolderToolbar";
 import type { SharedFolderCreateOption } from "./SharedFolderCreateMenu";
 
 type SharedFolderFilter = "ALL" | "FOLDER" | "FILE";
+type SharedFolderGoogleCreateOption = Extract<SharedFolderCreateOption, "GOOGLE_DOCS" | "GOOGLE_SHEETS" | "GOOGLE_SLIDES">;
 type SharedFolderPathEntry = { id: string; name: string };
+
+const CREATE_OPTION_TO_GOOGLE_DOC_TYPE: Record<SharedFolderGoogleCreateOption, SharedFolderGoogleDocType> = {
+  GOOGLE_DOCS: "DOCS",
+  GOOGLE_SHEETS: "SHEETS",
+  GOOGLE_SLIDES: "SLIDES",
+};
 
 export default function SharedFolderBoard() {
   const [rootStatus, setRootStatus] = useState<"loading" | "ready" | "not-ready">("loading");
@@ -40,6 +50,8 @@ export default function SharedFolderBoard() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [isNewFolderModalOpen, setIsNewFolderModalOpen] = useState(false);
+  const [googleCreateOption, setGoogleCreateOption] = useState<SharedFolderGoogleCreateOption | null>(null);
+  const [newTabFile, setNewTabFile] = useState<{ name: string; viewUrl: string } | null>(null);
 
   const currentParentId = path.at(-1)?.id;
 
@@ -103,6 +115,23 @@ export default function SharedFolderBoard() {
     };
   }, [rootStatus, currentParentId]);
 
+  // 생성·수정 후 같은 경로를 다시 조회할 때 사용(이벤트 핸들러에서만 호출).
+  const refreshItems = useCallback(async () => {
+    setIsLoading(true);
+    setLoadError(null);
+
+    try {
+      const data = await getSharedFolderContentListAction({ parentId: currentParentId, size: 100 });
+      setItems(data.items);
+      setHasNext(data.hasNext);
+      setNextCursor(data.nextCursor);
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : "공유폴더 목록을 불러오지 못했습니다.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [currentParentId]);
+
   useEffect(() => {
     const handlePointerDown = (event: PointerEvent) => {
       if (!(event.target instanceof Element)) return;
@@ -158,6 +187,36 @@ export default function SharedFolderBoard() {
 
     if (option === "FOLDER") {
       setIsNewFolderModalOpen(true);
+      return;
+    }
+
+    if (option === "GOOGLE_DOCS" || option === "GOOGLE_SHEETS" || option === "GOOGLE_SLIDES") {
+      setGoogleCreateOption(option);
+    }
+  };
+
+  const handleGoogleFileCreate = async (fileName: string) => {
+    if (!googleCreateOption) return;
+
+    setIsSubmitting(true);
+
+    try {
+      const result = await createSharedFolderGoogleFileAction({
+        parentId: currentParentId,
+        name: fileName,
+        type: CREATE_OPTION_TO_GOOGLE_DOC_TYPE[googleCreateOption],
+      });
+
+      if (result.success && result.data) {
+        toast.success(result.message);
+        setGoogleCreateOption(null);
+        setNewTabFile({ name: result.data.name, viewUrl: result.data.viewUrl });
+        await refreshItems();
+      } else {
+        toast.error(result.message);
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -301,6 +360,23 @@ export default function SharedFolderBoard() {
           isSubmitting={isSubmitting}
           onClose={() => setIsNewFolderModalOpen(false)}
           onCreate={handleNewFolderCreate}
+        />
+      )}
+
+      {googleCreateOption && (
+        <SharedFolderCreateGoogleModal
+          fileType={googleCreateOption}
+          isSubmitting={isSubmitting}
+          onClose={() => setGoogleCreateOption(null)}
+          onCreate={handleGoogleFileCreate}
+        />
+      )}
+
+      {newTabFile && (
+        <SharedFolderOpenNewTabModal
+          fileName={newTabFile.name}
+          viewUrl={newTabFile.viewUrl}
+          onClose={() => setNewTabFile(null)}
         />
       )}
     </main>

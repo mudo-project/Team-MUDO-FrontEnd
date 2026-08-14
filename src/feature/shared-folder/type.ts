@@ -121,9 +121,9 @@ interface SharedFolderFileUploadResponse {
 // Google 파일 생성 시 선택 가능한 Google Workspace 파일 유형
 type SharedFolderGoogleDocType = "DOCS" | "SHEETS" | "SLIDES";
 
-// Google 파일 생성 요청값
+// Google 파일 생성 요청값(parentId를 생략하면 공유파일 루트 바로 아래에 생성한다)
 interface SharedFolderGoogleFileCreateRequest {
-    parentId: string;
+    parentId?: string;
     name: string;
     type: SharedFolderGoogleDocType;
 }
