@@ -11,7 +11,11 @@ type FilterTab = "전체" | "PENDING" | "APPROVED" | "REJECTED";
 const FILTERS: FilterTab[] = ["전체", "PENDING", "APPROVED", "REJECTED"];
 const FILTER_LABEL: Record<FilterTab, string> = { 전체: "전체", PENDING: "대기", APPROVED: "승인", REJECTED: "반려" };
 
-export default function AttendanceEditRequestManage() {
+type AttendanceEditRequestManageProps = {
+  canProcess: boolean;
+};
+
+export default function AttendanceEditRequestManage({ canProcess }: AttendanceEditRequestManageProps) {
   const [requests, setRequests] = useState<AttendanceAdminCorrectionRequestData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState<FilterTab>("전체");
@@ -125,7 +129,13 @@ export default function AttendanceEditRequestManage() {
               </tr>
             ) : (
               visibleRequests.map((request) => (
-                <AttendanceEditRequestManageItem key={request.requestId} request={request} onApprove={handleApprove} onSelect={setSelectedRequest} />
+                <AttendanceEditRequestManageItem
+                  canProcess={canProcess}
+                  key={request.requestId}
+                  request={request}
+                  onApprove={handleApprove}
+                  onSelect={setSelectedRequest}
+                />
               ))
             )}
           </tbody>
@@ -134,6 +144,7 @@ export default function AttendanceEditRequestManage() {
 
       {selectedRequest && (
         <AttendanceEditRequestManageModal
+          canProcess={canProcess}
           isSubmitting={isSubmitting}
           request={selectedRequest}
           onApprove={handleApprove}

@@ -15,14 +15,22 @@ import {
 
 type AttendanceEditRequestManageModalProps = {
   request: AttendanceAdminCorrectionRequestData;
+  canProcess: boolean;
   isSubmitting: boolean;
   onClose: () => void;
   onApprove: (id: number) => void;
   onReject: (id: number, reason: string) => void;
 };
 
-export default function AttendanceEditRequestManageModal({ request, isSubmitting, onClose, onApprove, onReject }: AttendanceEditRequestManageModalProps) {
-  const isPending = request.status === "PENDING";
+export default function AttendanceEditRequestManageModal({
+  request,
+  canProcess,
+  isSubmitting,
+  onClose,
+  onApprove,
+  onReject,
+}: AttendanceEditRequestManageModalProps) {
+  const isPending = request.status === "PENDING" && canProcess;
   const [isRejecting, setIsRejecting] = useState(false);
   const {
     register,
