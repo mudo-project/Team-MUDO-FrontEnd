@@ -1,7 +1,7 @@
 # Revenue Report(AI 매출 브리핑) Domain — CONTEXT
 > 배치 경로: `src/feature/revenue-report/CONTEXT.md`
 > 목적: 이 문서를 읽은 사람 또는 AI 에이전트가 매출 리포트 도메인이 **무엇을 하는 도메인이고, 어떤 기능이 있으며, 어떤 조각으로 이루어져 있는지** 파악할 수 있게 한다.
-> 구현 상태: **정적 UI 단계**. 상태·이벤트·API 연동이 없고, 화면 구성 요소를 고정된 예시 데이터로 렌더링한다. `type.ts`/`service`/`actions`는 아직 없다.
+> 구현 상태: **정적 UI 단계**. 화면 구성 요소는 고정된 예시 데이터로 렌더링하며 상태·이벤트는 없다. `type.ts`/`service`/`actions`는 준비되어 있지만 화면에서는 아직 호출하지 않는다.
 
 ---
 
@@ -96,3 +96,10 @@ AI(Gemini)가 매월 학원의 매출·지출·순이익을 집계해 서술형 
 
 - `src/app/(user)/revenue-report/page.tsx` — 목록 화면 서버 컴포넌트
 - `src/app/(user)/revenue-report/[reportId]/page.tsx` — 상세 화면 서버 컴포넌트
+
+### 데이터 연동 계층
+
+- `src/feature/revenue-report/type.ts` — 요청/응답 인터페이스. `export` 없이 선언되어 프로젝트 전역에서 import 없이 바로 참조된다. `RevenueSnapshot`은 `dataSnapshot` 문자열을 `JSON.parse`한 뒤의 구조를 나타낸다.
+- `src/service/revenue-report.service.ts` — `fetchWithAuth` 기반 API 호출(`getRevenueReportList`, `getRevenueReportDetail`, `getRevenueReportUnreadCount`).
+- `src/feature/revenue-report/actions.ts` — 위 service를 감싼 Server Action(`getRevenueReportListAction`, `getRevenueReportDetailAction`, `getRevenueReportUnreadCountAction`). 컴포넌트는 이 액션만 호출하고 service를 직접 부르지 않는다.
+- 세 API 모두 조회 전용이라 별도의 실패 상태 객체(`{ success, message }`) 없이 데이터 또는 예외를 그대로 반환한다. 호출부(페이지 컴포넌트)가 `try/catch`로 에러 상태를 판단한다.
