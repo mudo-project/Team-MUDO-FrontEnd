@@ -78,13 +78,6 @@ export const searchSharedFolderContentAction = async (
 export const createSharedFolderFolderAction = async (
     payload: SharedFolderFolderCreateRequest
 ): Promise<SharedFolderActionState & { data?: SharedFolderDriveItemData }> => {
-    if (!payload.parentId.trim()) {
-        return {
-            success: false,
-            message: "상위 폴더를 확인할 수 없습니다.",
-        };
-    }
-
     if (!payload.name.trim()) {
         return {
             success: false,

@@ -96,9 +96,9 @@ interface SharedFolderContentSearchResponse {
     data: SharedFolderContentListData;
 }
 
-// 하위 폴더 생성 요청값
+// 하위 폴더 생성 요청값(parentId를 생략하면 공유파일 루트 바로 아래에 생성한다)
 interface SharedFolderFolderCreateRequest {
-    parentId: string;
+    parentId?: string;
     name: string;
 }
 

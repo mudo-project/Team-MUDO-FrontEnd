@@ -4,11 +4,12 @@ import { useState } from "react";
 
 type SharedFolderCreateNewFolderModalProps = {
   currentPath: string;
+  isSubmitting: boolean;
   onClose: () => void;
   onCreate: (folderName: string) => void;
 };
 
-export default function SharedFolderCreateNewFolderModal({ currentPath, onClose, onCreate }: SharedFolderCreateNewFolderModalProps) {
+export default function SharedFolderCreateNewFolderModal({ currentPath, isSubmitting, onClose, onCreate }: SharedFolderCreateNewFolderModalProps) {
   const [folderName, setFolderName] = useState("");
   const trimmedFolderName = folderName.trim();
 
@@ -44,13 +45,13 @@ export default function SharedFolderCreateNewFolderModal({ currentPath, onClose,
           >
             취소
           </button>
-          <button 
+          <button
             className="h-9 rounded-lg bg-[#12182B] px-4 text-[12px] font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
-            disabled={!trimmedFolderName}
-            type="button" 
+            disabled={!trimmedFolderName || isSubmitting}
+            type="button"
             onClick={() => onCreate(trimmedFolderName)}
           >
-            만들기
+            {isSubmitting ? "만드는 중..." : "만들기"}
           </button>
         </div>
       </section>
