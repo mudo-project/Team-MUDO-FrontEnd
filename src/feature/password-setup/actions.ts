@@ -8,7 +8,11 @@ export interface PasswordSetupActionResult {
 }
 
 export const setupPasswordAction = async (payload: {
+<<<<<<< Updated upstream
     email: string, phone: string, newPassword: string
+=======
+    username: string, tempPassword: string, newPassword: string
+>>>>>>> Stashed changes
 }): Promise<PasswordSetupActionResult> => {
 
     try {
