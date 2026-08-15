@@ -18,9 +18,8 @@ import { useMessengerUnreadStore } from "@/store/useMessengerUnreadStore";
 type MenuItem = {
     label: string;
     href: string;
-    icon: 'Home' | "PanelTop" | "MessageSquare" | "Bell" | "BellRing" | "FileCheck2" | "Grid2X2" | "Clock3" | "WalletCards" | "GraduationCap" | "CalendarDays" | "Users" | "Shield" | "Settings" | "Book" | "Folder" | "TrendingUp",
+    icon: 'Home' | "PanelTop" | "MessageSquare" | "Bell" | "BellRing" | "FileCheck2" | "Grid2X2" | "Clock3" | "WalletCards" | "GraduationCap" | "CalendarDays" | "Users" | "Shield" | "Settings" | "Book" | "Folder" | "TrendingUp" | "Mail" | 'UserRoundPen' | 'HardDriveDownload',
     count?: number;
-    active?: boolean;
     dividerAfter?: boolean;
 };
 
@@ -100,20 +99,23 @@ export default function Sidebar() {
 
     const menuItems: MenuItem[] = [
         { label: "알림", href: "/alarm", icon: 'BellRing', count: unreadNotificationCount },
+        { label: "공지사항", href: "/notice", icon: 'Bell' },
         { label: "메신저", href: "/messenger", icon: 'MessageSquare', count: unreadMessengerCount },
-        { label: "공지사항", href: "/notice", icon: 'Bell'},
         { label: "전자결재", href: "/approval/my", icon: 'FileCheck2', count: approvalPendingCount },
         { label: "워크스페이스", href: "/workspace/my-works", icon: 'Grid2X2' },
         { label: "공용폴더", href: "/shared-folder", icon: 'Folder' },
+        { label: "일정", href: "/schedule", icon: 'CalendarDays', dividerAfter: true },
         { label: "근태", href: "/attendance", icon: 'Clock3' },
-        { label: "재무", href: "/finance", icon: 'WalletCards' },
-        { label: "매출 리포트", href: "/revenue-report", icon: 'TrendingUp' },
-        { label: "원생관리", href: "/student", icon: 'GraduationCap' },
+        { label: "재무", href: "/finance", icon: 'WalletCards', dividerAfter: true },
+        { label: "원생 관리", href: "/student", icon: 'GraduationCap' },
         { label: "강의 관리", href: "/lecture", icon: 'Book' },
-        { label: "일정", href: "/schedule", icon: 'CalendarDays' },
-        { label: "시간표", href: "/timetable", icon: 'Grid2X2' },
+        { label: "출결 관리", href: "/rollbook", icon: 'UserRoundPen' },
+        { label: "SMS 관리", href: "/message", icon: 'Mail' },
+        { label: "시간표", href: "/timetable", icon: 'Grid2X2', dividerAfter: true },
+        { label: "매출 리포트", href: "/revenue-report", icon: 'TrendingUp' },
         { label: "구성원", href: "/members", icon: 'Users' },
-        { label: "역할 설정", href: "/role", icon: 'Shield', active: true },
+        { label: "역할 설정", href: "/role", icon: 'Shield' },
+        { label: "데이터 세팅", href: "/initial", icon: 'HardDriveDownload' },
         { label: "설정", href: "/setting", icon: 'Settings' },
     ];
 
@@ -131,7 +133,7 @@ export default function Sidebar() {
 
             <nav className="w-full overflow-y-auto px-2 py-2  scrollbar-hide">
                 {menuItems.map((item) => (
-                    <NavLink key={item.label} href={item.href} icon={item.icon} count={item.count} >
+                    <NavLink key={item.label} href={item.href} icon={item.icon} count={item.count} border={item.dividerAfter} >
                         {item.label}
                     </NavLink>))}
                 <OpenMemo />
