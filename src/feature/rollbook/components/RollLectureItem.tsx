@@ -34,7 +34,10 @@ export default function RollLectureItem({ lecture }: { lecture: LectureListItemD
                 <span className="col-span-2 text-center text-[13px] font-semibold text-[#0F172A]">{lecture.studentCount}<span className="text-[11px] font-normal text-[#B0B8C1]">명</span></span>
             </button>
             {detailModal.isModal && (
-                <ViewRollbookModal closeModal={detailModal.closeModal} />
+                <ViewRollbookModal
+                    closeModal={detailModal.closeModal}
+                    lectureId={lecture.id}
+                />
             )}
         </>
     );
