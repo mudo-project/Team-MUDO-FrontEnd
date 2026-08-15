@@ -29,77 +29,6 @@ interface PayrollMonthSummaryData {
     totalNetPay: number;
 }
 
-// 급여 상세의 근태 Snapshot
-interface PayrollDetailAttendance {
-    workDays: number;
-    workHours: number;
-    overtimeHours: number;
-    nightHours: number;
-    holidayHours: number;
-    paidLeaveHours: number;
-}
-
-// 급여 상세의 계약 Snapshot
-interface PayrollDetailContract {
-    employmentTypeLabel: string;
-    salaryTypeLabel: string;
-    baseSalary: number;
-    ordinaryHourlyWage: number;
-    weeklyContractHours: number;
-}
-
-// 급여 상세 지급/공제 항목
-interface PayrollDetailLineItem {
-    name: string;
-    amount: number;
-    editable: boolean;
-    originalAmount?: number | null;
-    adjusted?: boolean;
-    adjustmentReason?: string | null;
-    calculationFormula?: string | null;
-    calculationBasis?: string | null;
-}
-
-// 급여명세서 생성 상태
-interface PayrollDetailStatement {
-    status: "PENDING" | "READY" | "FAILED";
-    generatedAt: string | null;
-    fileSizeLabel: string | null;
-    failureReason?: string | null;
-}
-
-// 급여 상세
-interface PayrollDetailData {
-    payrollId: number;
-    employeeName: string;
-    employmentType: PayrollEmploymentType;
-    preparationStatus: PayrollPreparationStatus;
-    yearMonth: string;
-    scheduledPayDate: string;
-    revisionNo: number;
-    memo: string | null;
-    attendance: PayrollDetailAttendance;
-    contract: PayrollDetailContract;
-    earnings: PayrollDetailLineItem[];
-    deductions: PayrollDetailLineItem[];
-    totalEarnings: number;
-    totalDeductions: number;
-    netPay: number;
-    statement: PayrollDetailStatement | null;
-}
-
-// 급여 정정 이력 1건
-interface PayrollRevisionSummary {
-    payrollId: number;
-    revisionNo: number;
-    isLatest: boolean;
-    preparationStatus: PayrollPreparationStatus;
-    totalEarnings: number | null;
-    totalDeductions: number | null;
-    netPay: number | null;
-    confirmedAt: string | null;
-}
-
 // 이메일 발송 상태(개별)
 type PayrollEmailDeliveryStatus = "PENDING" | "SENDING" | "RETRY_WAIT" | "SENT" | "DELIVERED" | "FAILED" | "SKIPPED" | "UNKNOWN";
 
@@ -138,57 +67,11 @@ interface PayrollEmailBatchResultData {
 // 급여 지급일 유형
 type PayrollPayDayType = "FIXED_DAY" | "MONTH_END";
 
-// 급여 정책
-interface PayrollPolicyData {
-    payDayType: PayrollPayDayType;
-    payDay: number | null;
-    paymentMonthOffset: number;
-}
-
 // 급여형태
 type PayrollSalaryType = "MONTHLY" | "HOURLY";
 
-// 직원 계약 이력 1건
-interface PayrollCompensationRecord {
-    id: number;
-    employmentType: PayrollEmploymentType;
-    salaryType: PayrollSalaryType;
-    baseSalary: number | null;
-    hourlyWage: number | null;
-    weeklyContractHours: number;
-    effectiveFrom: string;
-    effectiveTo: string | null;
-}
-
 // 고정수당 유형
 type PayrollFixedAllowanceType = "MEAL" | "POSITION" | "DUTY" | "TRANSPORTATION" | "OTHER";
-
-// 고정수당 이력 1건
-interface PayrollFixedAllowanceRecord {
-    id: number;
-    allowanceType: PayrollFixedAllowanceType;
-    name: string;
-    amount: number;
-    effectiveFrom: string;
-    effectiveTo: string | null;
-}
-
-// 통상시급 이력 1건
-interface PayrollPayBasisRecord {
-    id: number;
-    ordinaryHourlyWage: number;
-    effectiveFrom: string;
-    effectiveTo: string | null;
-}
-
-// 직원 급여 설정
-interface PayrollEmployeeCompensationData {
-    employeeId: number;
-    employeeName: string;
-    compensations: PayrollCompensationRecord[];
-    fixedAllowances: PayrollFixedAllowanceRecord[];
-    payBases: PayrollPayBasisRecord[];
-}
 
 // 급여 Aggregate의 직원 정보(목록 조회의 employeeName과 달리 name 필드를 사용한다)
 interface PayrollAggregateEmployeeData {

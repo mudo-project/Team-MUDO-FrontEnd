@@ -1,33 +1,74 @@
 'use client'
 
 import { useState } from "react";
+import { toast } from "sonner";
 import useModal from "@/components/hooks/useModal";
 import TwoButtonModal from "@/components/ui/TwoButtonModal";
-import { payrollDetailMock } from "../payrollDetailMock";
+import { calculatePayrollAction, getPayrollAction } from "../actions";
 import PayrollDetail from "./PayrollDetail";
 import PayrollListItem from "./PayrollListItem";
 
 interface PayrollListProps {
+    isLoading: boolean;
     items: PayrollListItemData[];
+    onListChanged: () => void;
     onToggleAll: () => void;
     onToggleItem: (employeeId: number) => void;
     selectedItemIds: number[];
 }
 
-export default function PayrollList({ items, onToggleAll, onToggleItem, selectedItemIds }: PayrollListProps) {
-    const [selectedPayrollId, setSelectedPayrollId] = useState<number | null>(null);
+export default function PayrollList({ isLoading, items, onListChanged, onToggleAll, onToggleItem, selectedItemIds }: PayrollListProps) {
+    const [selectedDetail, setSelectedDetail] = useState<PayrollAggregateData | null>(null);
+    const [isDetailLoading, setIsDetailLoading] = useState(false);
     const [calculatingItem, setCalculatingItem] = useState<PayrollListItemData | null>(null);
+    const [isCalculating, setIsCalculating] = useState(false);
     const calculateModal = useModal();
-    const selectedDetail = selectedPayrollId !== null ? payrollDetailMock[selectedPayrollId] ?? null : null;
     const isAllSelected = items.length > 0 && items.every((item) => selectedItemIds.includes(item.employeeId));
+
+    const handlePreview = async (payrollId: number) => {
+        if (isDetailLoading) return;
+
+        setIsDetailLoading(true);
+        try {
+            const detail = await getPayrollAction(payrollId);
+            setSelectedDetail(detail);
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : "급여 상세 조회에 실패하였습니다.");
+        } finally {
+            setIsDetailLoading(false);
+        }
+    };
 
     const handleCalculate = (item: PayrollListItemData) => {
         setCalculatingItem(item);
         calculateModal.openModal();
     };
 
+    const handleConfirmCalculate = async () => {
+        if (!calculatingItem?.payrollId || isCalculating) return;
+
+        setIsCalculating(true);
+        try {
+            const detail = await getPayrollAction(calculatingItem.payrollId);
+            const result = await calculatePayrollAction(calculatingItem.payrollId, detail.version);
+
+            if (!result.success) {
+                toast.error(result.message);
+                return;
+            }
+
+            toast.success(result.message);
+            calculateModal.closeModal();
+            onListChanged();
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : "급여 계산에 실패하였습니다.");
+        } finally {
+            setIsCalculating(false);
+        }
+    };
+
     return (
-        <div className="mt-4 overflow-hidden rounded-xl border border-[#DCE9DF] bg-white">
+        <div className="relative mt-4 overflow-hidden rounded-xl border border-[#DCE9DF] bg-white">
             <table aria-label="급여 목록" className="w-full table-fixed text-left">
                 <colgroup>
                     <col className="w-[54px]" />
@@ -64,7 +105,7 @@ export default function PayrollList({ items, onToggleAll, onToggleItem, selected
                             item={item}
                             key={item.employeeId}
                             onCalculate={handleCalculate}
-                            onPreview={setSelectedPayrollId}
+                            onPreview={handlePreview}
                             onToggleSelect={onToggleItem}
                         />
                     ))}
@@ -78,16 +119,28 @@ export default function PayrollList({ items, onToggleAll, onToggleItem, selected
                 </tbody>
             </table>
 
+            {isLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-white/60 text-[13px] text-[#64748B]">
+                    불러오는 중...
+                </div>
+            )}
+
             {selectedDetail && (
-                <PayrollDetail detail={selectedDetail} key={selectedDetail.payrollId} onClose={() => setSelectedPayrollId(null)} />
+                <PayrollDetail
+                    detail={selectedDetail}
+                    key={selectedDetail.payrollId}
+                    onClose={() => setSelectedDetail(null)}
+                    onListChanged={onListChanged}
+                />
             )}
 
             {calculateModal.isModal && calculatingItem && (
                 <TwoButtonModal
-                    activeModal={calculateModal.activeModal}
+                    activeModal={handleConfirmCalculate}
                     closeModal={calculateModal.closeModal}
                     confirmLabel="계산하기"
                     content={`${calculatingItem.employeeName}님의 근태·계약 정보를 기준으로 이번 달 급여를 계산합니다.`}
+                    isPending={isCalculating}
                     title="급여를 계산하시겠습니까?"
                 />
             )}

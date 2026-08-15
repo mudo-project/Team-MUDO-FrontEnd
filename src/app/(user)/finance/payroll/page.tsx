@@ -1,27 +1,26 @@
-import PayrollAmountSummary from "@/feature/payroll/components/PayrollAmountSummary";
+import { getPayrollsAction } from "@/feature/payroll/actions";
 import PayrollManagement from "@/feature/payroll/components/PayrollManagement";
-import PayrollMonthOverview from "@/feature/payroll/components/PayrollMonthOverview";
-import { payrollListMock } from "@/feature/payroll/mockData";
 
-export default function FinancePayrollPage() {
-    const items = payrollListMock;
+export default async function FinancePayrollPage() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth() + 1;
 
-    const summary: PayrollMonthSummaryData = {
-        targetEmployeeCount: items.length,
-        notCreatedCount: items.filter((item) => item.preparationStatus === "NOT_CREATED").length,
-        draftCount: items.filter((item) => item.preparationStatus === "DRAFT").length,
-        calculatedCount: items.filter((item) => item.preparationStatus === "CALCULATED").length,
-        confirmedCount: items.filter((item) => item.preparationStatus === "CONFIRMED").length,
-        totalEarnings: items.reduce((sum, item) => sum + (item.totalEarnings ?? 0), 0),
-        totalDeductions: items.reduce((sum, item) => sum + (item.totalDeductions ?? 0), 0),
-        totalNetPay: items.reduce((sum, item) => sum + (item.netPay ?? 0), 0),
-    };
+    let listData: PayrollListData | null = null;
 
-    return (
-        <>
-            <PayrollMonthOverview summary={summary} />
-            <PayrollAmountSummary summary={summary} />
-            <PayrollManagement items={items} />
-        </>
-    );
+    try {
+        listData = await getPayrollsAction({ year, month, size: 100 });
+    } catch {
+        listData = null;
+    }
+
+    if (!listData) {
+        return (
+            <div className="mt-10 flex h-[200px] items-center justify-center rounded-xl border border-[#DCE9DF] bg-white text-[13px] text-[#64748B]">
+                급여 정보를 불러오지 못했습니다.
+            </div>
+        );
+    }
+
+    return <PayrollManagement initialData={listData} initialMonth={month} initialYear={year} />;
 }

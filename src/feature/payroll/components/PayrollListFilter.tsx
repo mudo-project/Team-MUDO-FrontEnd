@@ -15,7 +15,7 @@ interface PayrollListFilterProps {
     onChangeEmploymentTypeFilter: (filter: PayrollEmploymentTypeFilter) => void;
     onChangeSearchQuery: (query: string) => void;
     onChangeStatusFilter: (filter: PayrollStatusFilter) => void;
-    onConfirmBatchSend: () => PayrollEmailBatchResultData;
+    onConfirmBatchSend: () => Promise<PayrollEmailBatchResultData>;
     searchQuery: string;
     selectedCount: number;
     statusFilter: PayrollStatusFilter;
@@ -35,7 +35,18 @@ export default function PayrollListFilter({
     totalCount,
 }: PayrollListFilterProps) {
     const [batchResult, setBatchResult] = useState<PayrollEmailBatchResultData | null>(null);
-    const batchSendModal = useModal(() => setBatchResult(onConfirmBatchSend()));
+    const [isSending, setIsSending] = useState(false);
+    const batchSendModal = useModal();
+
+    const handleConfirmSend = async () => {
+        if (isSending) return;
+
+        setIsSending(true);
+        const result = await onConfirmBatchSend();
+        setIsSending(false);
+        batchSendModal.closeModal();
+        setBatchResult(result);
+    };
 
     return (
         <div className="mt-5 flex items-start gap-2">
@@ -91,10 +102,11 @@ export default function PayrollListFilter({
 
             {batchSendModal.isModal && (
                 <TwoButtonModal
-                    activeModal={batchSendModal.activeModal}
+                    activeModal={handleConfirmSend}
                     closeModal={batchSendModal.closeModal}
                     confirmLabel="발송 시작"
                     content={`${monthLabel} 확정 급여 중 선택한 ${selectedCount}명에게 명세서를 이메일로 발송합니다. 확정되지 않았거나 명세서가 준비되지 않은 직원, 이메일이 없는 직원은 자동 제외됩니다.`}
+                    isPending={isSending}
                     title={`선택한 ${selectedCount}명에게 명세서를 발송하시겠습니까?`}
                 />
             )}
