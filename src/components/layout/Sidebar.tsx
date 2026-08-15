@@ -13,6 +13,7 @@ import { decodeJWT } from "@/lib/decode";
 import { getMyPermissionListAction } from "@/feature/auth/actions";
 import { getUnreadNotificationCountAction } from "@/feature/alarm/actions";
 import { useAlarmStore } from "@/store/useAlarmStore";
+import { useMessengerUnreadStore } from "@/store/useMessengerUnreadStore";
 
 type MenuItem = {
     label: string;
@@ -34,6 +35,7 @@ export default function Sidebar() {
     const setPermissions = useUserStore((state) => state.setPermissions);
     const unreadNotificationCount = useAlarmStore((state) => state.unreadCount);
     const setUnreadNotificationCount = useAlarmStore((state) => state.setUnreadCount);
+    const unreadMessengerCount = useMessengerUnreadStore((state) => state.unreadCount);
 
     useEffect(() => {
         let cancelled = false;
@@ -98,8 +100,8 @@ export default function Sidebar() {
 
     const menuItems: MenuItem[] = [
         { label: "알림", href: "/alarm", icon: 'BellRing', count: unreadNotificationCount },
-        { label: "메신저", href: "/messenger", icon: 'MessageSquare', count: 3 },
-        { label: "공지사항", href: "/notice", icon: 'Bell', count: 2 },
+        { label: "메신저", href: "/messenger", icon: 'MessageSquare', count: unreadMessengerCount },
+        { label: "공지사항", href: "/notice", icon: 'Bell'},
         { label: "전자결재", href: "/approval/my", icon: 'FileCheck2', count: approvalPendingCount },
         { label: "워크스페이스", href: "/workspace/my-works", icon: 'Grid2X2' },
         { label: "공용폴더", href: "/shared-folder", icon: 'Folder' },

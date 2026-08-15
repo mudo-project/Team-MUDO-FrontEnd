@@ -57,17 +57,38 @@ export function formatChatTime(iso: string | null): string {
     if (!iso) return "";
 
     const date = new Date(iso);
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+
+    if (isToday) return formatTimeOnly(iso);
+
+    return `${date.getMonth() + 1}.${date.getDate()} ${formatTimeOnly(iso)}`;
+}
+
+// 채팅방 대화 피드에서 쓰는, 날짜 없이 시각만 표시하는 포맷입니다(날짜는 별도 구분선으로 표시).
+export function formatTimeOnly(iso: string | null): string {
+    if (!iso) return "";
+
+    const date = new Date(iso);
     const hours = date.getHours();
     const minutes = date.getMinutes().toString().padStart(2, "0");
     const period = hours < 12 ? "오전" : "오후";
     const displayHours = hours % 12 === 0 ? 12 : hours % 12;
 
-    const now = new Date();
-    const isToday = date.toDateString() === now.toDateString();
+    return `${period} ${displayHours}:${minutes}`;
+}
 
-    if (isToday) return `${period} ${displayHours}:${minutes}`;
+const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 
-    return `${date.getMonth() + 1}.${date.getDate()} ${period} ${displayHours}:${minutes}`;
+// 채팅방 대화 피드의 날짜 구분선에 쓰는 "YYYY년 M월 D일 (요일)" 포맷입니다.
+export function formatFeedDateDivider(iso: string): string {
+    const date = new Date(iso);
+    return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일 (${WEEKDAYS[date.getDay()]})`;
+}
+
+// 두 ISO 시각이 같은 날짜인지 비교합니다.
+export function isSameDay(isoA: string, isoB: string): boolean {
+    return new Date(isoA).toDateString() === new Date(isoB).toDateString();
 }
 
 

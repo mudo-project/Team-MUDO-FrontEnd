@@ -1,7 +1,7 @@
 # Payroll(급여명세서) Domain — CONTEXT
 > 배치 경로: `src/feature/payroll/CONTEXT.md`
-> 목적: 이 문서를 읽은 사람 또는 AI 에이전트가 급여명세서 도메인이 **무엇을 하는 도메인이고, 어떤 기능이 있으며, API 명세상 어떤 데이터로 구성되는지** 파악할 수 있게 한다.
-> 구현 상태: **미착수**. `src/feature/payroll/`, `src/app/(user)/finance/payroll/`는 빈 디렉터리만 존재하고 화면·컴포넌트·데이터 연동 코드는 없다. 화면 디자인도 확정되지 않았다. 아래 화면 구성은 사용자가 구두로 설명한 배치를 근거로 하며, API 규격은 `.docs/api/payroll/apiIntegration.md`(2026-08-13 기준, Controller·DTO·Service·ErrorCode와 동기화된 문서)에 확정되어 있다.
+> 목적: 이 문서를 읽은 사람 또는 AI 에이전트가 급여명세서 도메인이 **무엇을 하는 도메인이고, 어떤 기능이 있으며, 어떤 조각으로 이루어져 있는지** 파악할 수 있게 한다.
+> 구현 상태: 화면이 실제 API(`.docs/api/payroll/apiIntegration.md`)에 연동되어 있다. mock 데이터 파일은 모두 제거됐다. 이 환경에는 로그인 세션이 없어 브라우저에서는 인증 실패로 인한 오류 화면만 확인했고, 실제 로그인 상태에서의 종단 동작은 확인하지 못했다.
 
 ---
 
@@ -9,165 +9,114 @@
 
 재무(Finance) 페이지의 급여명세서 탭에서, 직원별 월 급여를 계산·검토·확정하고 급여명세서(PDF)를 생성·이메일 발송하는 도메인.
 
-재무 페이지는 법인카드 탭과 급여명세서 탭으로 구성되며([corporate-card CONTEXT](../corporate-card/CONTEXT.md) 참고), 진입 시 기본으로 열리는 탭은 법인카드다. 이 도메인은 급여명세서 탭을 다룬다. 현재 `FinanceTabs`(`src/app/(user)/finance/FinanceTabs.tsx`)에서 급여명세서는 라우트가 없어 클릭 불가능한 비활성 텍스트로만 노출되어 있다.
+재무 페이지는 법인카드 탭과 급여명세서 탭으로 구성되며([corporate-card CONTEXT](../corporate-card/CONTEXT.md) 참고), 진입 시 기본으로 열리는 탭은 법인카드다. `FinanceTabs`(`src/app/(user)/finance/FinanceTabs.tsx`)에서 두 탭 모두 정상 라우트 링크로 연결되어 있다.
 
 ### 핵심 제약
 
 - Mailgun Webhook을 제외한 모든 API는 `PAYROLL:MANAGE` 권한이 필요하다. 직원 본인 여부만으로는 접근할 수 없다(자기 급여명세서 다운로드도 동일).
-- 급여(Payroll) 1건은 낙관적 락 `version`을 가지며, 변경 요청은 `expectedVersion`을 함께 보내야 한다. 버전 불일치는 `409 PAYROLL_VERSION_CONFLICT`다.
-- Payroll 상태는 `NOT_CREATED`(급여 미생성, 목록 조회 시에만 나타나는 상태) → `DRAFT`(초안) → `CALCULATED`(계산됨) → `CONFIRMED`(확정) 순으로 전이한다. 확정 후에는 지급항목·메모 수정, 재계산이 불가능하고 대신 정정본(Revision)을 새로 생성한다.
-- 월 급여 목록 조회 API(`GET /api/payrolls`)의 `summary`는 `targetEmployeeCount`, `notCreatedCount`, `calculatedCount`, `confirmedCount`, `totalEarnings`, `totalDeductions`, `totalNetPay`만 반환한다. **`DRAFT`(작성중) 건수를 세는 필드가 없다** — 사용자가 요구한 "작성중" 상태 집계는 `targetEmployeeCount - notCreatedCount - calculatedCount - confirmedCount`로 프론트에서 계산하거나, 필드 추가를 백엔드에 확인해야 한다.
-- 급여 정정본 생성은 확정된 최신 Payroll에서만 가능하며, 정정본도 처음엔 `version: 0`, `status: CALCULATED`로 시작해 다시 확정 절차를 거친다. 정정 이력 조회(`GET /api/payrolls/{payrollId}/revisions`)로 같은 직원·귀속월의 모든 Revision을 확인할 수 있다.
-- 급여 확정(`PATCH /api/payrolls/{payrollId}/confirm`) 성공은 `payroll_statement`를 `PENDING`으로 1회 생성하고 PDF를 비동기 생성한다. PDF 생성/S3 업로드 실패는 확정 자체를 되돌리지 않고 명세서만 `FAILED`가 되며, 이 경우 생성 재시도(`PATCH /api/payrolls/{payrollId}/statement/retry`) API로 재시도한다.
-- 명세서 다운로드는 `GET /api/payrolls/{payrollId}/statement/download-url`로 300초 만료 presigned URL을 발급받아 사용한다. 버킷명·object key는 응답에 노출되지 않는다.
-- 이메일 발송은 개별(`POST /api/payrolls/{payrollId}/statement/email-deliveries`)과 월 단위 일괄(`POST /api/payrolls/statement/email-delivery-batches`) 두 가지가 있다. 둘 다 발송 "작업 등록 성공"만 의미하며, 실제 수신 여부는 Mailgun Webhook(`POST /api/webhooks/mailgun`)이 비동기로 반영한다. 동일 명세서에 이미 활성 발송 이력이 있으면 새로 만들지 않고 기존 이력을 `reused: true`로 재사용한다.
-- 급여 계산은 급여 정책(지급일 유형·지급일·지급월 오프셋, `GET/PATCH /api/payroll/policies`)과 직원별 급여 설정(계약·고정수당·통상시급 이력, `GET/PATCH /api/payroll/employees/{employeeId}/compensation`)을 기준 데이터로 사용한다. 이 두 설정 화면은 사용자가 설명한 급여명세서 탭 배치(캘린더·정보 컨테이너·지급액·목록)에는 포함되어 있지 않다 — 별도 화면(직원 상세 등)에서 다룰 가능성이 있으며 현재 미정이다.
+- 급여(Payroll) 1건은 낙관적 락 `version`을 가지며, 변경 요청은 `expectedVersion`을 함께 보내야 한다. 버전 불일치는 `409 PAYROLL_VERSION_CONFLICT`다. 화면은 변경 직전에 `getPayrollAction`으로 최신 상세를 다시 조회해 그 `version`을 실어 보낸다(목록 항목에는 `version`이 없다).
+- Payroll 상태는 `NOT_CREATED`(급여 미생성) → `DRAFT`(초안) → `CALCULATED`(계산됨) → `CONFIRMED`(확정) 순으로 전이한다. 확정 후에는 지급항목·메모 수정, 재계산이 불가능하고 대신 정정본(Revision)을 새로 생성한다.
+- 월 급여 목록 조회 API의 `summary`는 `targetEmployeeCount`, `notCreatedCount`, `calculatedCount`, `confirmedCount`, `totalEarnings`, `totalDeductions`, `totalNetPay`만 반환한다. **`DRAFT`(작성중) 건수를 세는 필드가 없다** — `PayrollManagement`가 `targetEmployeeCount - notCreatedCount - calculatedCount - confirmedCount`로 클라이언트에서 계산해 만든다.
+- 급여 확정(`confirm`) 성공은 `payroll_statement`를 `PENDING`으로 1회 생성하고 PDF를 비동기 생성한다. PDF 생성/S3 업로드 실패는 확정 자체를 되돌리지 않고 명세서만 `FAILED`가 되며, 이 경우 생성 재시도로 재시도한다.
+- 명세서 다운로드는 300초 만료 presigned URL을 발급받아 사용하며, 버킷명·object key는 응답에 노출되지 않는다.
+- **이메일 일괄 발송 API(월 단위, 대상 선택 불가)와 화면의 "선택한 직원에게만 발송" UX는 맞지 않는다.** API 명세서상 일괄 발송(`POST /api/payrolls/statement/email-delivery-batches`)은 귀속월 전체를 대상으로 하며 특정 직원만 골라 보내는 파라미터가 없다. 그래서 화면은 이 배치 엔드포인트를 쓰지 않고, 개별 발송 API(`POST /api/payrolls/{payrollId}/statement/email-deliveries`)를 선택된 직원 수만큼 반복 호출한 뒤 결과를 클라이언트에서 집계해 보여준다(`PayrollManagement.handleConfirmBatchSend`). `createPayrollEmailBatch`/`getPayrollEmailBatchResult` service 함수는 만들어져 있지만 화면에서는 사용하지 않는다.
+- **직원별 급여 설정을 한 번에 조회하는 API가 없다.** `GET /api/payroll/employees/{employeeId}/compensation`은 직원 1명 단위 조회만 지원한다. 설정 화면은 이번 달 급여 목록(`getPayrollsAction`)으로 직원 목록을 얻은 뒤, 각 직원마다 이 API를 병렬 호출(`Promise.all`)해서 테이블을 구성한다 — 조직 규모가 커지면 N+1 호출 비용이 늘어난다.
 
 ### 진입점
 
-Sidebar `재무` 클릭 → `/finance` → `/finance/corporate-card`로 redirect(기본 탭) → 급여명세서 탭 클릭 시 `/finance/payroll`로 이동할 예정이나, 현재 라우트가 없어 이동할 수 없다.
+Sidebar `재무` 클릭 → `/finance` → `/finance/corporate-card`로 redirect(기본 탭) → 상단 탭에서 `급여명세서` 클릭 → `/finance/payroll`.
 
 ---
 
-## 2. 용어
+## 2. 라우트
+
+| 경로 | 설명 |
+|---|---|
+| `/finance/payroll` | 급여명세서 메인 화면. `src/app/(user)/finance/payroll/page.tsx`(서버 컴포넌트, 이번 달 급여 목록을 `getPayrollsAction`으로 조회) |
+| `/finance/payroll/settings` | 급여 정책·직원별 급여 설정 화면. `src/app/(user)/finance/payroll/settings/page.tsx`(서버 컴포넌트, 정책 조회 + 직원별 급여 설정 병렬 조회) |
+
+두 페이지 모두 최상위에서 조회 액션을 `try/catch`로 감싸 실패 시 인라인 오류 문구("급여 정보를 불러오지 못했습니다" 등)를 렌더링한다.
+
+`src/app/(user)/finance/layout.tsx`가 재무 공통 헤더(`FinanceTabs`, `FinanceSensitiveNotice`)를 렌더링한다. 두 컴포넌트 모두 `usePathname`으로 현재 경로가 `/finance/payroll/settings`인지 확인해, 설정 화면에서는 탭 네비게이션과 "민감정보 화면입니다" 안내를 표시하지 않는다(설정 화면은 자체 "급여명세서로 돌아가기" 링크로 상위로 돌아간다).
+
+---
+
+## 3. 용어
 
 | 용어 | 정의 |
 |---|---|
 | **급여(Payroll)** | 직원 1명의 특정 귀속월 급여 1건. `payrollId`로 식별하며 `version`(낙관적 락)을 가진다 |
-| **급여 준비 상태(preparationStatus / status)** | `NOT_CREATED`(미작성) / `DRAFT`(작성중) / `CALCULATED`(검토 필요) / `CONFIRMED`(확정 완료) |
-| **급여 대상** | 해당 귀속월에 급여 계산 대상인 활성 직원 전체 수(`summary.targetEmployeeCount`). 급여가 아직 없는 직원도 `NOT_CREATED`로 포함된다 |
-| **지급항목(earnings)** | 기본급·연장근로수당 등 급여에 더해지는 항목. `sourceType`이 `CONTRACT`/`ATTENDANCE`(자동 계산, 대부분 `editable: false`)와 `MANUAL`(수기 추가, `editable: true`)로 나뉜다 |
-| **공제항목(deductions)** | 국민연금 등 급여에서 빼는 항목. 현재 명세서상 전부 `editable: false`(수정 불가) |
-| **차인지급 예정액(netPay)** | 총 지급액(`totalEarnings`) − 총 공제액(`totalDeductions`) |
-| **Snapshot** | 급여 계산 시점의 근태(`attendance`)·계약(`compensations`)·법정 계산 기준(`rule`)을 그대로 저장한 값. 계산 이후 원본 데이터가 바뀌어도 Snapshot은 변하지 않는다 |
-| **급여 정정본(Revision)** | 확정된 급여를 수정해야 할 때, 원본(`originalPayrollId`)을 참조해 새로 만드는 급여 건. `revisionNo`가 1씩 증가한다 |
-| **급여명세서(Statement)** | 확정된 급여에 대해 생성되는 PDF 문서. `status`는 `PENDING`/`READY`/`FAILED` |
+| **급여 준비 상태(status/preparationStatus)** | `NOT_CREATED`(미작성) / `DRAFT`(작성중) / `CALCULATED`(검토 필요) / `CONFIRMED`(확정) |
+| **지급항목(earnings)** | 기본급·연장근로수당 등. `sourceType`이 `CONTRACT`/`ATTENDANCE`면 수정 불가, `editable: true`인 항목(수기 추가분)만 수정·삭제 가능 |
+| **공제항목(deductions)** | 국민연금 등. 명세서상 전부 `editable: false` |
+| **차인지급 예정액(netPay)** | 총 지급액 − 총 공제액 |
+| **Snapshot** | 급여 계산 시점의 근태(`attendance`)·계약(`compensations`)·법정 계산 기준(`rule`)을 그대로 저장한 값. `DRAFT` 상태는 `null` |
+| **급여 정정본(Revision)** | 확정된 급여를 수정해야 할 때 원본(`originalPayrollId`)을 참조해 새로 만드는 급여 건. `revisionNo`가 1씩 증가 |
+| **급여명세서(Statement)** | 확정된 급여에 대해 생성되는 PDF. 상태는 `PENDING`/`READY`/`FAILED` |
 | **급여 정책(Policy)** | 지급일 유형(`FIXED_DAY`/`MONTH_END`)·지급일·지급월 오프셋을 정의하는 학원 단위 설정 |
-| **직원 급여 설정(Compensation)** | 직원별 계약(급여형태·기본급/시급·주 계약시간)·고정수당·통상시급 이력. 적용기간(`effectiveFrom`~`effectiveTo`)이 겹치지 않게 관리된다 |
-| **이메일 발송 이력(Delivery)** | 명세서 1건을 특정 직원 이메일로 보낸 기록. 상태는 `PENDING`/`SENDING`/`RETRY_WAIT`/`SENT`/`DELIVERED`/`FAILED`/`SKIPPED`/`UNKNOWN` |
-| **일괄 발송 배치(Batch)** | 귀속월 단위로 여러 직원에게 한 번에 이메일 발송을 시작하는 단위. 배치 상태는 `PENDING`/`PROCESSING`/`AWAITING_DELIVERY`/`COMPLETED` |
+| **직원 급여 설정(Compensation)** | 직원별 계약·고정수당·통상시급 이력. 적용기간이 겹치지 않게 관리 |
+| **이메일 발송 이력(Delivery)** | 명세서 1건을 특정 직원 이메일로 보낸 기록 |
 
 ---
 
-## 3. 화면 구성 (사용자 설명 기반, 디자인 미확정)
+## 4. 화면 구성
 
 ```
 ┌─ 급여명세서 탭 ────────────────────────────────────────────┐
-│ [날짜 선택 캘린더]                          [이번달]        │
+│ [이번달 급여 정보] 급여대상 미작성 작성중 검토필요 확정완료(진행바) │
+│ [지급액 정보] 총지급액 총공제액 차인지급예정액 확정현황       │
 ├────────────────────────────────────────────────────────────┤
-│ [이번달 급여 정보 컨테이너]                                 │
-│  급여 대상   미작성   작성중   검토 필요   확정 완료         │
+│ [< 2026년 8월 >] [이번 달]                    [급여 설정 →] │
 ├────────────────────────────────────────────────────────────┤
-│ [지급액 관련 컴포넌트]                                      │
-│  총 지급액   총 공제액   차인지급 예정액   확정 현황         │
+│ [검색] 총 N명   [전체 고용형태▾] [전체 준비상태▾]  [선택 N명 발송] │
 ├────────────────────────────────────────────────────────────┤
-│ [검색]  [필터]                                  [발송]      │
-├────────────────────────────────────────────────────────────┤
-│ [사용자 정보 테이블]                                        │
-│  직원명 | 고용형태 | 준비상태 | 총지급액 | 총공제액 | 차인지급액 │
+│ [테이블] ☐ 직원명 고용형태 지급합계 공제합계 실수령액 차수 준비상태 작업 │
 └──────────────────────────────────────────────────────────────┘
 ```
 
-- **날짜 선택 캘린더 + 이번달 버튼**: 조회할 급여 귀속월(`year`, `month`)을 선택한다. 목록 조회 API의 필수 Query와 대응한다.
-- **이번달 급여 정보 컨테이너**: 급여 대상·미작성·작성중·검토 필요·확정 완료 5개 항목. API `summary`는 대상/미작성/계산됨/확정됨 4개 수치만 제공하므로, "작성중"은 별도 계산이 필요하다(핵심 제약 참고).
-- **지급액 관련 컴포넌트**: 해당 월 기준 총 지급액(`summary.totalEarnings`)·총 공제액(`summary.totalDeductions`)·차인지급 예정액(`summary.totalNetPay`)·확정 현황(`confirmedCount` / `targetEmployeeCount`).
-- **검색·필터·발송 버튼**: 검색·필터는 목록 조회 Query(`employeeName`, `employmentType`, `status`)와 대응한다. 발송 버튼은 이메일 일괄 발송(`POST /api/payrolls/statement/email-delivery-batches`)과 대응할 것으로 보이나, 확정되지 않은 급여가 섞여 있을 때의 동작(부분 발송/막힘)은 미정이다.
-- **사용자 정보 테이블**: 목록 조회 응답의 `content` 배열(직원명·고용형태·준비상태·총지급액·총공제액·차인지급액 등)을 행 단위로 표시한다. 행별 클릭 동작(상세 진입/계산/확정 등)은 아직 정해지지 않았다.
+- **이번달 급여 정보 / 지급액 정보**: `PayrollManagement`가 현재 로드된 `PayrollListData.summary` 기준으로 계산해 표시한다. 월 이동·필터 변경으로 목록이 다시 조회되면 함께 갱신된다.
+- **캘린더 + 이번 달 + 급여 설정 링크**: 캘린더에서 월을 바꾸면 `getPayrollsAction`을 그 연·월로 다시 호출한다(연/월/고용형태/준비상태/검색어가 바뀔 때마다 재조회, 검색어는 300ms debounce). "이번 달" 버튼은 페이지 최초 진입 시 서버에서 계산한 연·월로 되돌린다.
+- **검색·필터·발송 행**: 검색·고용형태·준비상태는 모두 서버 API 쿼리 파라미터로 전달되는 실제 필터다(클라이언트 재필터링 없음). "총 N명"은 `PayrollListData.totalElements`.
+- **테이블 체크박스**: 전체선택/개별선택이 실제 상태와 연결되어 있으며, 발송 버튼은 **선택한 직원에게만** 명세서를 보낸다(0건 선택 시 비활성화). 내부적으로 개별 이메일 발송 API를 선택 인원만큼 반복 호출한다(핵심 제약 참고). 발송 확인 모달 → 결과 패널이 선택된 인원만 반영해서 열리고, 완료 후 목록을 다시 조회한다.
+- **작업 열**: `CALCULATED`/`CONFIRMED`는 "미리보기" 버튼(클릭 시 `getPayrollAction`으로 상세 조회 후 우측 패널), `DRAFT`는 "계산하기" 버튼(확인 모달 → `getPayrollAction`으로 최신 version 확인 후 `calculatePayrollAction` 호출), `NOT_CREATED`는 빈 칸(초안 생성 화면은 없음).
 
-이 배치 이후의 화면(급여 상세, 계산 결과 검토, 지급항목 수정, 확정, 정정본 생성, 명세서 미리보기/다운로드, 정책·직원별 급여 설정)은 API가 모두 준비되어 있지만 사용자가 화면 흐름을 아직 설명하지 않아 미정이다.
+### 급여 상세 패널(`PayrollDetail`)
 
----
+`PayrollAggregateData`(급여 Aggregate 공통 응답 구조)를 그대로 받아 렌더링한다. 근태 기준 / 계약 기준 / 계산 기준(접힘 고정) / 지급 항목 / 공제 항목 / 메모 / 합계 / 명세서 작업 순으로 구성된다.
 
-## 4. API 목록
+- **`CALCULATED`**: 메모 textarea + "메모 저장"(`updatePayrollAction`), 수기 지급항목 추가(`createPayrollEarningAction`)·삭제(`editable`인 항목만, `deletePayrollEarningAction`), 하단 "확정하기"(`confirmPayrollAction`). 각 변경 성공 시 `getPayrollAction`으로 상세를 다시 조회해 패널과 상위 목록(`onListChanged`)을 함께 갱신한다.
+- **`CONFIRMED`**: 지급/공제 항목 읽기 전용. 하단에 "정정 이력 보기"(`getPayrollRevisionsAction` → `PayrollRevisionHistory` 패널), "정정본 생성"(`createPayrollRevisionAction`, 성공 시 패널을 닫고 목록만 새로고침 — 정정본은 `payrollId`가 다른 새 급여라 같은 패널에서 이어보지 않는다) 버튼
+- **명세서 작업 섹션**: `statement.status`가 `READY`면 "PDF 다운로드"(`getPayrollStatementDownloadUrlAction` → 새 탭으로 열기)/"이메일 발송"(`createPayrollEmailDeliveryAction`) 버튼, `FAILED`면 실패 사유 + "재시도"(`retryPayrollStatementAction`), `PENDING`이면 생성 중 안내, `null`(statement 없음)이면 "급여 확정 후 명세서가 생성됩니다" 안내
 
-전체 규격: `.docs/api/payroll/apiIntegration.md`. Notion 원본도 같은 문서에 API별로 링크되어 있다.
+### 급여 설정 화면(`/finance/payroll/settings`)
 
-| # | 기능 | Method·URI |
-|---|---|---|
-| 1 | 월 급여 목록 조회 | `GET /api/payrolls` |
-| 2 | 월 급여 초안 생성 | `POST /api/payrolls/employees/{employeeId}` |
-| 3 | 급여 계산 및 재계산 | `PATCH /api/payrolls/{payrollId}/calculate` |
-| 4 | 급여 상세 조회 | `GET /api/payrolls/{payrollId}` |
-| 5 | 급여 지급항목 및 메모 수정 | `PATCH /api/payrolls/{payrollId}` |
-| 6 | 수기 지급항목 추가 | `POST /api/payrolls/{payrollId}/earnings` |
-| 7 | 수기 지급항목 삭제 | `DELETE /api/payrolls/{payrollId}/earnings/{itemId}` |
-| 8 | 급여 확정 및 명세서 생성 | `PATCH /api/payrolls/{payrollId}/confirm` |
-| 9 | 급여 정정본 생성 | `POST /api/payrolls/{payrollId}/revisions` |
-| 10 | 급여 정정 이력 조회 | `GET /api/payrolls/{payrollId}/revisions` |
-| 11 | 급여명세서 미리보기 | `GET /api/payrolls/{payrollId}/preview` |
-| 12 | 급여명세서 다운로드 URL 발급 | `GET /api/payrolls/{payrollId}/statement/download-url` |
-| 13 | 급여명세서 생성 재시도 | `PATCH /api/payrolls/{payrollId}/statement/retry` |
-| 14 | 급여명세서 개별 이메일 발송 | `POST /api/payrolls/{payrollId}/statement/email-deliveries` |
-| 15 | 급여명세서 이메일 일괄 발송 | `POST /api/payrolls/statement/email-delivery-batches` |
-| 16 | 급여명세서 이메일 일괄 발송 결과 조회 | `GET /api/payrolls/statement/email-delivery-batches/{batchId}` |
-| 17 | 급여 정책 조회 | `GET /api/payroll/policies` |
-| 18 | 급여 정책 수정 | `PATCH /api/payroll/policies` |
-| 19 | 직원 급여 설정 조회 | `GET /api/payroll/employees/{employeeId}/compensation` |
-| 20 | 직원 급여 설정 저장 | `PATCH /api/payroll/employees/{employeeId}/compensation` |
-| 21 | Mailgun 급여명세서 이메일 상태 Webhook | `POST /api/webhooks/mailgun` |
-
-이 중 위 화면 구성(3장)과 직접 대응하는 API는 1(목록·요약)과 15(발송)이며, 나머지는 상세·계산·확정·정정·정책·설정 화면에서 쓰일 것으로 예상되나 해당 화면이 아직 설계되지 않았다.
+- **급여 정책**: 지급일 유형(고정일/말일) 토글, 지급일 입력(말일 선택 시 비활성화), 지급월 오프셋 입력, 저장 버튼(`updatePayrollPolicyAction`)
+- **직원별 급여 설정**: 이번 달 급여 대상 직원 목록 + 직원별 `getPayrollCompensationAction` 병렬 조회 결과로 테이블 구성 → "편집" 버튼 → 우측 패널에서 계약 이력·고정수당 이력(추가/삭제 가능, 유형 select 포함)·통상시급 이력을 보여주고 저장 버튼(`savePayrollCompensationAction`, 고정수당만 전송 — 계약·통상시급 편집 UI는 없음)
 
 ---
 
-## 5. 데이터
+## 5. 컴포넌트 구성
 
-### 급여 목록 항목 (`GET /api/payrolls` → `data.content[]`)
-
-| 필드 | 설명 |
+| 컴포넌트 | 책임 |
 |---|---|
-| `employeeId`, `employeeName` | 직원 식별자, 이름 |
-| `employmentType` | 고용형태(예: `REGULAR`, `PART_TIME`) |
-| `payrollId` | 급여 식별자. 급여가 없으면 `null` |
-| `preparationStatus` | `NOT_CREATED` / `DRAFT` / `CALCULATED` / `CONFIRMED` |
-| `totalEarnings`, `totalDeductions`, `netPay` | 지급/공제 합계, 차인지급액. 급여가 없으면 `null` |
-| `revisionNo` | 정정 차수. 급여가 없으면 `0` |
+| **PayrollMonthOverview** | 급여 대상/미작성/작성중/검토필요/확정완료 5열 요약(확정완료에 진행바 포함) |
+| **PayrollAmountSummary** | 총지급액/총공제액/차인지급예정액/확정현황 4열 요약 |
+| **PayrollManagement** | `'use client'`. 초기 서버 데이터(`initialData`/`initialYear`/`initialMonth`)를 받아, 연·월/고용형태/준비상태/검색어가 바뀔 때마다 `useEffect` + `useTransition`으로 `getPayrollsAction`을 재호출한다. 체크박스 선택 state, 선택 인원 대상 발송 로직(`handleConfirmBatchSend`, 개별 이메일 발송 API 반복 호출)도 여기 있다 |
+| **PayrollCalendar** | 법인카드 `FinanceCardCalendar`와 동일한 패턴(이전/다음달 버튼 + 연도·월 선택 드롭다운). `month`/`onChangeMonth`를 controlled로 받는다 |
+| **PayrollListFilter** | 검색·고용형태·준비상태 select(상위에서 받은 controlled 값, 변경 시 상위가 재조회) + 발송 버튼(`onConfirmBatchSend`를 await, `TwoButtonModal`의 `isPending`으로 처리 중 표시) + `PayrollBatchResultPanel` 오픈 |
+| **PayrollList** | 테이블 렌더링, 전체선택 체크박스, 미리보기 클릭 시 `getPayrollAction` 호출(`isDetailLoading`), 계산하기 확인 모달(`getPayrollAction`으로 version 확인 후 `calculatePayrollAction`), 로딩 중 오버레이(`isLoading` prop) |
+| **PayrollListItem** | 행 1개. 체크박스, 배지, 미리보기/계산하기 버튼 |
+| **PayrollDetail** | 우측 상세 패널. `PayrollAggregateData` 기반. 메모·수기 지급항목 편집, 확정/정정본 생성, 명세서 다운로드·이메일·재시도, 정정 이력 열기 — 전부 실제 액션 호출 |
+| **PayrollRevisionHistory** | `getPayrollRevisionsAction`이 반환한 `PayrollAggregateData[]`를 그대로 렌더링하는 이력 목록 패널(`PayrollDetail` 위에 한 겹 더 겹쳐서 열림) |
+| **PayrollBatchResultPanel** | 발송 결과 패널(대상자별 상태 목록). 실제 배치 API를 쓰지 않으므로 `batchId`가 0이면 "배치 #N" 표기를 생략한다 |
+| **PayrollPolicyForm** | 급여 정책 폼, `PayrollPolicyGetData` 기반 |
+| **PayrollCompensationList** / **PayrollCompensationDetail** | 직원별 급여 설정 목록/편집 패널, `PayrollCompensationGetData` 기반 |
 
-### 급여 상세 (`GET /api/payrolls/{payrollId}` 등 대부분의 급여 API 공통 응답 구조)
+### 데이터 계층
 
-| 필드 | 설명 |
-|---|---|
-| `payrollId`, `employee`(`employeeId`/`name`/`employmentType`) | 급여·직원 식별 정보 |
-| `yearMonth`, `scheduledPayDate` | 귀속월, 지급 예정일 |
-| `status`, `revisionNo`, `originalPayrollId` | 준비 상태, 정정 차수, 원본 급여 식별자(정정본일 때만) |
-| `snapshots.attendance` | 근무일수·근무시간·연장/야간/휴일근로시간·유급휴가시간 |
-| `snapshots.compensations[]` | 계산에 적용된 계약 이력(적용기간·고용형태·급여형태·기본급/시급·통상시급·주 계약시간) |
-| `snapshots.rule` | 계산에 적용된 법정 기준(가산율 등) |
-| `earnings[]`, `deductions[]` | 항목별 `itemId`/`type`/`name`/`sourceType`/`amount`/`adjusted`/`adjustmentReason`/`calculationFormula`/`calculationBasis`/`editable` |
-| `totalEarnings`, `totalDeductions`, `netPay` | 합계 |
-| `memo` | 검토 메모(자유 텍스트) |
-| `statement` | 명세서 정보(`statementId`/`status`/`fileSize`/`generatedAt`/`failureReason`), 미확정이면 `null` |
-| `version` | 낙관적 락 버전 |
-
-### 이메일 발송 결과 조회 요약 (`GET /api/payrolls/statement/email-delivery-batches/{batchId}` → `data.summary`)
-
-`totalCount`, `pendingCount`, `sendingCount`, `sentCount`, `retryWaitCount`, `unknownCount`, `deliveredCount`, `failedCount`, `skippedCount`.
-
----
-
-## 6. 컴포넌트 구성
-
-미정. 화면 디자인이 확정되지 않아 컴포넌트 분해를 진행하지 않았다.
-
----
-
-## 7. 상태 정리
-
-화면 디자인과 무관하게 API 명세에서 확정된 값이다.
-
-| 상태 그룹 | 값 |
-|---|---|
-| 급여 준비 상태(`preparationStatus` / `status`) | `NOT_CREATED`(미작성) / `DRAFT`(작성중) / `CALCULATED`(검토 필요) / `CONFIRMED`(확정 완료) |
-| 급여명세서 상태(`statement.status`) | `PENDING`(생성 중) / `READY`(다운로드 가능) / `FAILED`(생성 실패, 재시도 가능) |
-| 이메일 발송 상태(`delivery.status`) | `PENDING` / `SENDING` / `RETRY_WAIT` / `SENT` / `DELIVERED` / `FAILED` / `SKIPPED` / `UNKNOWN` |
-| 일괄 발송 배치 상태(`batch.status`) | `PENDING`(전체 대기) / `PROCESSING`(처리 중) / `AWAITING_DELIVERY`(Webhook·대사 대기) / `COMPLETED`(전건 종결 또는 대상 없음) |
-| 급여 지급일 유형(`payDayType`) | `FIXED_DAY`(매월 고정일) / `MONTH_END`(월말) |
-| 급여형태(`salaryType`) | `MONTHLY`(월급, `baseSalary` 필수) / `HOURLY`(시급, `hourlyWage` 필수) |
-| 고정수당 유형(`allowanceType`) | `MEAL` / `POSITION` / `DUTY` / `TRANSPORTATION` / `OTHER` |
-| 지급항목 출처(`earnings[].sourceType`) | `CONTRACT`(계약 기반, 수정 불가) / `ATTENDANCE`(근태 기반, 수정 불가) / `MANUAL`(수기 추가, 수정·삭제 가능) |
-| 공제항목 출처(`deductions[].sourceType`) | 명세서에는 `MOCK_INSURANCE`(임시 보험 계산)만 예시로 등장하며 전부 `editable: false`. 세금 등 다른 출처 타입은 명세서에서 확인되지 않음 |
-| 지급항목 유형(`earnings[].type`) | 명세서 예시에 `BASE_SALARY`(기본급), `OVERTIME_PAY`(연장근로수당), `OTHER_ALLOWANCE`(수기 수당)만 등장 — 전체 enum 목록은 명세서에서 확인되지 않음 |
-| 공제항목 유형(`deductions[].type`) | 명세서 예시에 `NATIONAL_PENSION`(국민연금)만 등장 — 전체 enum 목록은 명세서에서 확인되지 않음 |
-| 고용형태(`employmentType`) | 명세서 예시에 `REGULAR`, `PART_TIME`만 등장 — 전체 enum 목록은 명세서에서 확인되지 않음 |
+- `src/feature/payroll/type.ts` — export 없는 ambient 전역 타입 파일(프로젝트 전역 컨벤션). 화면이 실제로 쓰는 타입(`PayrollListItemData`, `PayrollMonthSummaryData`, `PayrollEmailDeliveryData`/`PayrollEmailBatchResultData` — 선택 발송 결과를 클라이언트에서 조립할 때 쓰는 UI 전용 타입)과, `.docs/api/payroll/apiIntegration.md`의 API Request/Response를 그대로 옮긴 타입(`PayrollAggregateData`, `PayrollListResponse`, `PayrollCompensationSaveRequest` 등)이 한 파일에 섞여 있다. mock 전용으로만 쓰이던 타입(예: 라벨을 미리 붙여둔 구 버전 상세 타입)은 정리해서 제거했다.
+- `src/service/payroll.service.ts` — Mailgun Webhook을 제외한 20개 API 전부에 대응하는 `fetchWithAuth` 기반 함수.
+- `src/feature/payroll/actions.ts` — 위 service를 감싼 Server Action. 조회 액션은 pass-through, 변경 액션은 명세서의 비즈니스 규칙(귀속월 1~12, 지급일 유형별 필수값, 월급제/시급제 필수 금액, 주 계약시간 0~168 등)을 검증한 뒤 `{ success, message, data? }`를 반환한다. **화면 컴포넌트가 실제로 이 액션들을 호출한다** — mock 데이터 파일은 없다.
+- `statusStyles.ts` — 상태별 라벨·배지 클래스(준비상태, 이메일 발송 상태, 고용형태, 급여형태, 고정수당 유형).
 
 ---

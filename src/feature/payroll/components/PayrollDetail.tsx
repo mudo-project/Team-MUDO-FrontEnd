@@ -2,15 +2,28 @@
 
 import { Download, Mail, Plus, RotateCw, X } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 import useModal from "@/components/hooks/useModal";
 import TwoButtonModal from "@/components/ui/TwoButtonModal";
-import { payrollRevisionHistoryMock } from "../payrollDetailMock";
-import { PAYROLL_STATUS_BADGE_CLASS, PAYROLL_STATUS_LABEL } from "../statusStyles";
+import {
+    confirmPayrollAction,
+    createPayrollEarningAction,
+    createPayrollEmailDeliveryAction,
+    createPayrollRevisionAction,
+    deletePayrollEarningAction,
+    getPayrollAction,
+    getPayrollRevisionsAction,
+    getPayrollStatementDownloadUrlAction,
+    retryPayrollStatementAction,
+    updatePayrollAction,
+} from "../actions";
+import { PAYROLL_EMPLOYMENT_TYPE_LABEL, PAYROLL_SALARY_TYPE_LABEL, PAYROLL_STATUS_BADGE_CLASS, PAYROLL_STATUS_LABEL } from "../statusStyles";
 import PayrollRevisionHistory from "./PayrollRevisionHistory";
 
 interface PayrollDetailProps {
-    detail: PayrollDetailData;
+    detail: PayrollAggregateData;
     onClose: () => void;
+    onListChanged: () => void;
 }
 
 function formatYearMonth(yearMonth: string) {
@@ -18,7 +31,7 @@ function formatYearMonth(yearMonth: string) {
     return `${year}년 ${Number(month)}월`;
 }
 
-function LineItemRow({ item, onDelete }: { item: PayrollDetailLineItem; onDelete?: () => void }) {
+function LineItemRow({ item, onDelete }: { item: PayrollLineItemData; onDelete?: () => void }) {
     return (
         <div className="border-b border-[#F1F3F6] px-4 py-3 last:border-b-0">
             <div className="flex items-center justify-between text-[13px]">
@@ -48,37 +61,155 @@ function LineItemRow({ item, onDelete }: { item: PayrollDetailLineItem; onDelete
     );
 }
 
-export default function PayrollDetail({ detail, onClose }: PayrollDetailProps) {
-    const [earnings, setEarnings] = useState(detail.earnings);
+export default function PayrollDetail({ detail: initialDetail, onClose, onListChanged }: PayrollDetailProps) {
+    const [detail, setDetail] = useState(initialDetail);
     const [memo, setMemo] = useState(detail.memo ?? "");
+    const [isSavingMemo, setIsSavingMemo] = useState(false);
     const [isAddingEarning, setIsAddingEarning] = useState(false);
     const [newEarningName, setNewEarningName] = useState("");
     const [newEarningAmount, setNewEarningAmount] = useState("");
+    const [isMutating, setIsMutating] = useState(false);
+    const [revisions, setRevisions] = useState<PayrollAggregateData[] | null>(null);
     const [isRevisionHistoryOpen, setIsRevisionHistoryOpen] = useState(false);
     const confirmModal = useModal();
     const revisionModal = useModal();
     const retryModal = useModal();
 
     const revisionLabel = detail.revisionNo > 1 ? `정정 ${detail.revisionNo}차` : `${detail.revisionNo}차`;
-    const isEditable = detail.preparationStatus === "CALCULATED";
-    const isConfirmed = detail.preparationStatus === "CONFIRMED";
-    const revisions = payrollRevisionHistoryMock[detail.payrollId] ?? [];
+    const isEditable = detail.status === "CALCULATED";
+    const isConfirmed = detail.status === "CONFIRMED";
+    const employmentTypeLabel = detail.employee.employmentType ? PAYROLL_EMPLOYMENT_TYPE_LABEL[detail.employee.employmentType] : "-";
+    const compensation = detail.snapshots?.compensations?.[0];
 
-    const totalEarnings = earnings.reduce((sum, item) => sum + item.amount, 0);
-    const netPay = totalEarnings - detail.totalDeductions;
+    const refreshDetail = async () => {
+        const nextDetail = await getPayrollAction(detail.payrollId);
+        setDetail(nextDetail);
+        setMemo(nextDetail.memo ?? "");
+        onListChanged();
+    };
 
-    const handleAddEarning = () => {
+    const handleSaveMemo = async () => {
+        if (isSavingMemo) return;
+
+        setIsSavingMemo(true);
+        const result = await updatePayrollAction(detail.payrollId, detail.version, memo);
+        setIsSavingMemo(false);
+
+        if (!result.success) {
+            toast.error(result.message);
+            return;
+        }
+
+        toast.success(result.message);
+        await refreshDetail();
+    };
+
+    const handleAddEarning = async () => {
         const amount = Number(newEarningAmount);
-        if (!newEarningName.trim() || !amount) return;
+        if (!newEarningName.trim() || !amount || isMutating) return;
 
-        setEarnings((items) => [...items, { name: newEarningName.trim(), amount, editable: true }]);
+        setIsMutating(true);
+        const result = await createPayrollEarningAction(detail.payrollId, detail.version, newEarningName.trim(), amount);
+        setIsMutating(false);
+
+        if (!result.success) {
+            toast.error(result.message);
+            return;
+        }
+
+        toast.success(result.message);
         setNewEarningName("");
         setNewEarningAmount("");
         setIsAddingEarning(false);
+        await refreshDetail();
     };
 
-    const handleDeleteEarning = (index: number) => {
-        setEarnings((items) => items.filter((_, itemIndex) => itemIndex !== index));
+    const handleDeleteEarning = async (itemId: number) => {
+        if (isMutating) return;
+
+        setIsMutating(true);
+        const result = await deletePayrollEarningAction(detail.payrollId, itemId, detail.version);
+        setIsMutating(false);
+
+        if (!result.success) {
+            toast.error(result.message);
+            return;
+        }
+
+        toast.success(result.message);
+        await refreshDetail();
+    };
+
+    const handleConfirm = async () => {
+        const result = await confirmPayrollAction(detail.payrollId, detail.version);
+
+        if (!result.success) {
+            toast.error(result.message);
+            return;
+        }
+
+        toast.success(result.message);
+        confirmModal.closeModal();
+        await refreshDetail();
+    };
+
+    const handleCreateRevision = async () => {
+        const result = await createPayrollRevisionAction(detail.payrollId, detail.version);
+
+        if (!result.success) {
+            toast.error(result.message);
+            return;
+        }
+
+        toast.success(result.message);
+        revisionModal.closeModal();
+        onListChanged();
+        onClose();
+    };
+
+    const handleRetryStatement = async () => {
+        const result = await retryPayrollStatementAction(detail.payrollId);
+
+        if (!result.success) {
+            toast.error(result.message);
+            return;
+        }
+
+        toast.success(result.message);
+        retryModal.closeModal();
+        await refreshDetail();
+    };
+
+    const handleOpenRevisionHistory = async () => {
+        try {
+            const data = await getPayrollRevisionsAction(detail.payrollId);
+            setRevisions(data);
+            setIsRevisionHistoryOpen(true);
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : "급여 정정 이력 조회에 실패하였습니다.");
+        }
+    };
+
+    const handleDownloadStatement = async () => {
+        const result = await getPayrollStatementDownloadUrlAction(detail.payrollId);
+
+        if (!result.success || !result.data) {
+            toast.error(result.message);
+            return;
+        }
+
+        window.open(result.data.downloadUrl, "_blank", "noopener,noreferrer");
+    };
+
+    const handleSendEmail = async () => {
+        const result = await createPayrollEmailDeliveryAction(detail.payrollId);
+
+        if (!result.success) {
+            toast.error(result.message);
+            return;
+        }
+
+        toast.success(result.message);
     };
 
     return (
@@ -87,12 +218,12 @@ export default function PayrollDetail({ detail, onClose }: PayrollDetailProps) {
                 <header className="border-b border-[#E1EBE3] px-7 py-5">
                     <div className="flex items-start justify-between gap-4">
                         <p className="flex items-center gap-2 text-[15px]">
-                            <span className={`inline-flex rounded-full px-2.5 py-1 text-[10px] font-semibold ${PAYROLL_STATUS_BADGE_CLASS[detail.preparationStatus]}`}>
-                                {PAYROLL_STATUS_LABEL[detail.preparationStatus]}
+                            <span className={`inline-flex rounded-full px-2.5 py-1 text-[10px] font-semibold ${PAYROLL_STATUS_BADGE_CLASS[detail.status]}`}>
+                                {PAYROLL_STATUS_LABEL[detail.status]}
                             </span>
-                            <strong className="text-[18px] font-bold text-[#172033]">{detail.employeeName}</strong>
+                            <strong className="text-[18px] font-bold text-[#172033]">{detail.employee.name}</strong>
                             <span className="text-[#94A3B8]">
-                                · {detail.contract.employmentTypeLabel} · {formatYearMonth(detail.yearMonth)} · {revisionLabel}
+                                · {employmentTypeLabel} · {formatYearMonth(detail.yearMonth)} · {revisionLabel}
                             </span>
                         </p>
                         <button aria-label="닫기" onClick={onClose} type="button">
@@ -103,41 +234,53 @@ export default function PayrollDetail({ detail, onClose }: PayrollDetailProps) {
                 </header>
 
                 <div className="min-h-0 flex-1 overflow-y-auto px-7 py-6">
-                    <section aria-label="근태 기준">
-                        <h2 className="text-[13px] font-semibold text-[#394257]">근태 기준</h2>
-                        <div className="mt-3 grid grid-cols-3 gap-2">
-                            {([
-                                ["근무일수", `${detail.attendance.workDays}일`],
-                                ["총 근로시간", `${detail.attendance.workHours}시간`],
-                                ["연장근로", `${detail.attendance.overtimeHours}시간`],
-                                ["야간근로", `${detail.attendance.nightHours}시간`],
-                                ["휴일근로", `${detail.attendance.holidayHours}시간`],
-                                ["유급휴가", `${detail.attendance.paidLeaveHours}시간`],
-                            ] as [string, string][]).map(([label, value]) => (
-                                <div className="rounded-lg bg-[#F8FAF8] px-3 py-2.5" key={label}>
-                                    <span className="block text-[11px] text-[#94A3B8]">{label}</span>
-                                    <strong className="mt-1 block text-[15px] text-[#172033]">{value}</strong>
+                    {detail.snapshots ? (
+                        <>
+                            <section aria-label="근태 기준">
+                                <h2 className="text-[13px] font-semibold text-[#394257]">근태 기준</h2>
+                                <div className="mt-3 grid grid-cols-3 gap-2">
+                                    {([
+                                        ["근무일수", `${detail.snapshots.attendance.workDays}일`],
+                                        ["총 근로시간", `${detail.snapshots.attendance.workHours}시간`],
+                                        ["연장근로", `${detail.snapshots.attendance.overtimeHours}시간`],
+                                        ["야간근로", `${detail.snapshots.attendance.nightHours}시간`],
+                                        ["휴일근로", `${detail.snapshots.attendance.holidayHours}시간`],
+                                        ["유급휴가", `${detail.snapshots.attendance.paidLeaveHours}시간`],
+                                    ] as [string, string][]).map(([label, value]) => (
+                                        <div className="rounded-lg bg-[#F8FAF8] px-3 py-2.5" key={label}>
+                                            <span className="block text-[11px] text-[#94A3B8]">{label}</span>
+                                            <strong className="mt-1 block text-[15px] text-[#172033]">{value}</strong>
+                                        </div>
+                                    ))}
                                 </div>
-                            ))}
-                        </div>
-                    </section>
+                            </section>
 
-                    <section aria-label="계약 기준" className="mt-6">
-                        <h2 className="text-[13px] font-semibold text-[#394257]">계약 기준</h2>
-                        <dl className="mt-3 divide-y divide-[#F1F3F6] rounded-lg border border-[#E1EBE3]">
-                            {([
-                                ["고용 형태", `${detail.contract.employmentTypeLabel} · ${detail.contract.salaryTypeLabel}`],
-                                ["기본급", `${detail.contract.baseSalary.toLocaleString()}원`],
-                                ["통상시급", `${detail.contract.ordinaryHourlyWage.toLocaleString()}원`],
-                                ["주 계약시간", `${detail.contract.weeklyContractHours}시간`],
-                            ] as [string, string][]).map(([label, value]) => (
-                                <div className="flex items-center justify-between px-4 py-2.5 text-[13px]" key={label}>
-                                    <dt className="text-[#7C8AA0]">{label}</dt>
-                                    <dd className="font-semibold text-[#172033]">{value}</dd>
-                                </div>
-                            ))}
-                        </dl>
-                    </section>
+                            {compensation && (
+                                <section aria-label="계약 기준" className="mt-6">
+                                    <h2 className="text-[13px] font-semibold text-[#394257]">계약 기준</h2>
+                                    <dl className="mt-3 divide-y divide-[#F1F3F6] rounded-lg border border-[#E1EBE3]">
+                                        {([
+                                            ["고용 형태", `${PAYROLL_EMPLOYMENT_TYPE_LABEL[compensation.employmentType]} · ${PAYROLL_SALARY_TYPE_LABEL[compensation.salaryType]}`],
+                                            ["기본급/시급", compensation.salaryType === "MONTHLY"
+                                                ? `${compensation.baseSalary?.toLocaleString()}원`
+                                                : `${compensation.hourlyWage?.toLocaleString()}원`],
+                                            ["통상시급", `${compensation.ordinaryHourlyWage.toLocaleString()}원`],
+                                            ["주 계약시간", `${compensation.weeklyContractHours}시간`],
+                                        ] as [string, string][]).map(([label, value]) => (
+                                            <div className="flex items-center justify-between px-4 py-2.5 text-[13px]" key={label}>
+                                                <dt className="text-[#7C8AA0]">{label}</dt>
+                                                <dd className="font-semibold text-[#172033]">{value}</dd>
+                                            </div>
+                                        ))}
+                                    </dl>
+                                </section>
+                            )}
+                        </>
+                    ) : (
+                        <p className="rounded-lg border border-[#E1EBE3] bg-[#F8FAF8] px-4 py-3 text-[12px] text-[#94A3B8]">
+                            아직 계산 기준 Snapshot이 없습니다.
+                        </p>
+                    )}
 
                     <button
                         aria-expanded="false"
@@ -163,11 +306,11 @@ export default function PayrollDetail({ detail, onClose }: PayrollDetailProps) {
                             )}
                         </div>
                         <div className="mt-3 overflow-hidden rounded-lg border border-[#E1EBE3]">
-                            {earnings.map((item, index) => (
+                            {detail.earnings.map((item) => (
                                 <LineItemRow
                                     item={item}
-                                    key={`${item.name}-${index}`}
-                                    onDelete={isEditable && item.editable ? () => handleDeleteEarning(index) : undefined}
+                                    key={item.itemId}
+                                    onDelete={isEditable && item.editable ? () => handleDeleteEarning(item.itemId) : undefined}
                                 />
                             ))}
                         </div>
@@ -187,7 +330,8 @@ export default function PayrollDetail({ detail, onClose }: PayrollDetailProps) {
                                     value={newEarningAmount}
                                 />
                                 <button
-                                    className="h-9 shrink-0 rounded-md bg-[#172033] px-3 text-[12px] font-semibold text-white"
+                                    className="h-9 shrink-0 rounded-md bg-[#172033] px-3 text-[12px] font-semibold text-white disabled:opacity-60"
+                                    disabled={isMutating}
                                     onClick={handleAddEarning}
                                     type="button"
                                 >
@@ -208,7 +352,7 @@ export default function PayrollDetail({ detail, onClose }: PayrollDetailProps) {
                         <h2 className="text-[13px] font-semibold text-[#394257]">공제 항목</h2>
                         <div className="mt-3 overflow-hidden rounded-lg border border-[#E1EBE3]">
                             {detail.deductions.map((item) => (
-                                <LineItemRow item={item} key={item.name} />
+                                <LineItemRow item={item} key={item.itemId} />
                             ))}
                         </div>
                     </section>
@@ -217,12 +361,24 @@ export default function PayrollDetail({ detail, onClose }: PayrollDetailProps) {
                         <section aria-label="메모" className="mt-6">
                             <h2 className="text-[13px] font-semibold text-[#394257]">메모</h2>
                             {isEditable ?
-                                <textarea
-                                    className="mt-3 min-h-24 w-full resize-y rounded-lg border border-[#E1EBE3] px-3.5 py-3 text-[13px] outline-none focus:border-[#4D9560]"
-                                    onChange={(event) => setMemo(event.target.value)}
-                                    placeholder="검토 메모를 입력하세요."
-                                    value={memo}
-                                />
+                                <>
+                                    <textarea
+                                        className="mt-3 min-h-24 w-full resize-y rounded-lg border border-[#E1EBE3] px-3.5 py-3 text-[13px] outline-none focus:border-[#4D9560]"
+                                        onChange={(event) => setMemo(event.target.value)}
+                                        placeholder="검토 메모를 입력하세요."
+                                        value={memo}
+                                    />
+                                    <div className="mt-2 flex justify-end">
+                                        <button
+                                            className="h-8 rounded-md border border-[#DCE9DF] bg-white px-3 text-[11px] font-semibold text-[#394257] disabled:opacity-60"
+                                            disabled={isSavingMemo}
+                                            onClick={handleSaveMemo}
+                                            type="button"
+                                        >
+                                            {isSavingMemo ? "저장 중..." : "메모 저장"}
+                                        </button>
+                                    </div>
+                                </>
                                 :
                                 <p className="mt-3 rounded-lg bg-[#F8FAF8] px-3.5 py-3 text-[13px] text-[#394257]">{detail.memo}</p>
                             }
@@ -232,15 +388,15 @@ export default function PayrollDetail({ detail, onClose }: PayrollDetailProps) {
                     <section aria-label="지급/공제 요약" className="mt-6 rounded-lg bg-[#F8FAF8] px-4 py-3.5">
                         <div className="flex items-center justify-between text-[13px] text-[#7C8AA0]">
                             <span>지급 합계</span>
-                            <span>{totalEarnings.toLocaleString()}원</span>
+                            <span>{detail.totalEarnings?.toLocaleString() ?? "-"}원</span>
                         </div>
                         <div className="mt-1.5 flex items-center justify-between text-[13px] text-[#7C8AA0]">
                             <span>공제 합계</span>
-                            <span>{detail.totalDeductions.toLocaleString()}원</span>
+                            <span>{detail.totalDeductions?.toLocaleString() ?? "-"}원</span>
                         </div>
                         <div className="mt-2.5 flex items-center justify-between border-t border-[#E1EBE3] pt-2.5 text-[15px] font-bold text-[#172033]">
                             <span>실수령액</span>
-                            <span>{netPay.toLocaleString()}원</span>
+                            <span>{detail.netPay?.toLocaleString() ?? "-"}원</span>
                         </div>
                     </section>
 
@@ -251,12 +407,13 @@ export default function PayrollDetail({ detail, onClose }: PayrollDetailProps) {
                                 <div>
                                     <strong className="block text-[13px] font-semibold text-[#172033]">준비 완료</strong>
                                     <span className="mt-0.5 block text-[11px] text-[#94A3B8]">
-                                        {detail.statement.generatedAt} · {detail.statement.fileSizeLabel}
+                                        {detail.statement.generatedAt} · {detail.statement.fileSize ? `${Math.round(detail.statement.fileSize / 1024)}KB` : ""}
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <button
                                         className="flex h-9 items-center gap-1.5 rounded-lg border border-[#DCE9DF] bg-white px-3 text-[12px] font-semibold text-[#394257]"
+                                        onClick={handleDownloadStatement}
                                         type="button"
                                     >
                                         <Download className="size-3.5" />
@@ -264,6 +421,7 @@ export default function PayrollDetail({ detail, onClose }: PayrollDetailProps) {
                                     </button>
                                     <button
                                         className="flex h-9 items-center gap-1.5 rounded-lg bg-[#172033] px-3 text-[12px] font-semibold text-white"
+                                        onClick={handleSendEmail}
                                         type="button"
                                     >
                                         <Mail className="size-3.5" />
@@ -288,6 +446,11 @@ export default function PayrollDetail({ detail, onClose }: PayrollDetailProps) {
                                 <p className="mt-2 text-[12px] text-[#8A5A54]">{detail.statement.failureReason}</p>
                             </div>
                         )}
+                        {detail.statement?.status === "PENDING" && (
+                            <p className="mt-3 rounded-lg border border-[#E1EBE3] bg-[#F8FAF8] px-4 py-3 text-[12px] text-[#94A3B8]">
+                                명세서를 생성하고 있습니다.
+                            </p>
+                        )}
                         {!detail.statement && (
                             <p className="mt-3 rounded-lg border border-[#E1EBE3] bg-[#F8FAF8] px-4 py-3 text-[12px] text-[#94A3B8]">
                                 급여 확정 후 명세서가 생성됩니다.
@@ -311,7 +474,7 @@ export default function PayrollDetail({ detail, onClose }: PayrollDetailProps) {
                     <footer className="grid grid-cols-2 gap-2 border-t border-[#E1EBE3] bg-white px-7 py-3">
                         <button
                             className="h-11 rounded-lg border border-[#DCE9DF] text-[13px] font-semibold text-[#64748B]"
-                            onClick={() => setIsRevisionHistoryOpen(true)}
+                            onClick={handleOpenRevisionHistory}
                             type="button"
                         >
                             정정 이력 보기
@@ -329,16 +492,16 @@ export default function PayrollDetail({ detail, onClose }: PayrollDetailProps) {
 
             {confirmModal.isModal && (
                 <TwoButtonModal
-                    activeModal={confirmModal.activeModal}
+                    activeModal={handleConfirm}
                     closeModal={confirmModal.closeModal}
                     confirmLabel="확정하기"
-                    content={`${detail.employeeName}님의 ${formatYearMonth(detail.yearMonth)} 급여를 확정합니다. 확정 후에는 지급항목과 메모를 수정할 수 없습니다.`}
+                    content={`${detail.employee.name}님의 ${formatYearMonth(detail.yearMonth)} 급여를 확정합니다. 확정 후에는 지급항목과 메모를 수정할 수 없습니다.`}
                     title="급여를 확정하시겠습니까?"
                 />
             )}
             {revisionModal.isModal && (
                 <TwoButtonModal
-                    activeModal={revisionModal.activeModal}
+                    activeModal={handleCreateRevision}
                     closeModal={revisionModal.closeModal}
                     confirmLabel="정정본 생성"
                     content={`확정된 급여를 기준으로 새 정정본(${detail.revisionNo + 1}차)을 생성합니다.`}
@@ -347,16 +510,16 @@ export default function PayrollDetail({ detail, onClose }: PayrollDetailProps) {
             )}
             {retryModal.isModal && (
                 <TwoButtonModal
-                    activeModal={retryModal.activeModal}
+                    activeModal={handleRetryStatement}
                     closeModal={retryModal.closeModal}
                     confirmLabel="재시도"
                     content="급여명세서 생성을 다시 시도합니다."
                     title="명세서 생성을 재시도하시겠습니까?"
                 />
             )}
-            {isRevisionHistoryOpen && (
+            {isRevisionHistoryOpen && revisions && (
                 <PayrollRevisionHistory
-                    employeeName={detail.employeeName}
+                    employeeName={detail.employee.name}
                     onClose={() => setIsRevisionHistoryOpen(false)}
                     revisions={revisions}
                 />

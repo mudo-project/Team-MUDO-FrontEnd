@@ -1,18 +1,41 @@
 'use client'
 
 import { useState } from "react";
+import { toast } from "sonner";
 import useModal from "@/components/hooks/useModal";
 import TwoButtonModal from "@/components/ui/TwoButtonModal";
+import { updatePayrollPolicyAction } from "../actions";
 
 interface PayrollPolicyFormProps {
-    policy: PayrollPolicyData;
+    policy: PayrollPolicyGetData;
 }
 
 export default function PayrollPolicyForm({ policy }: PayrollPolicyFormProps) {
     const [payDayType, setPayDayType] = useState<PayrollPayDayType>(policy.payDayType);
     const [payDay, setPayDay] = useState(policy.payDay ?? 5);
     const [paymentMonthOffset, setPaymentMonthOffset] = useState(policy.paymentMonthOffset);
+    const [isSaving, setIsSaving] = useState(false);
     const saveModal = useModal();
+
+    const handleSave = async () => {
+        if (isSaving) return;
+
+        setIsSaving(true);
+        const result = await updatePayrollPolicyAction({
+            payDayType,
+            payDay: payDayType === "FIXED_DAY" ? payDay : null,
+            paymentMonthOffset,
+        });
+        setIsSaving(false);
+
+        if (!result.success) {
+            toast.error(result.message);
+            return;
+        }
+
+        toast.success(result.message);
+        saveModal.closeModal();
+    };
 
     return (
         <section aria-label="급여 정책 설정" className="rounded-xl border border-[#DCE9DF] bg-white p-6">
@@ -83,10 +106,11 @@ export default function PayrollPolicyForm({ policy }: PayrollPolicyFormProps) {
 
             {saveModal.isModal && (
                 <TwoButtonModal
-                    activeModal={saveModal.activeModal}
+                    activeModal={handleSave}
                     closeModal={saveModal.closeModal}
                     confirmLabel="저장"
                     content="변경한 급여 정책은 이후 생성하는 급여의 지급 예정일 계산부터 적용됩니다."
+                    isPending={isSaving}
                     title="급여 정책을 저장하시겠습니까?"
                 />
             )}

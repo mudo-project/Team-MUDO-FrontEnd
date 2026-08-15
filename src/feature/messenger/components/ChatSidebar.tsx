@@ -20,8 +20,7 @@ export default function ChatSidebar() {
         void loadRooms();
     }, [loadRooms, pathname]);
 
-    useMessengerRealtime((event) => {
-        if (event.eventType === "MESSAGE_READ") return;
+    useMessengerRealtime(() => {
         void loadRooms();
     });
 

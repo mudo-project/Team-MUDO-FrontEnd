@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Plus, Search, X } from "lucide-react";
 import { toast } from "sonner";
-import { getChatRoomMembersAction, createTaskCardAction, updateTaskCardAction } from "../actions";
+import { getChatRoomMembersAction, createTaskCardAction, getCurrentUserIdAction, updateTaskCardAction } from "../actions";
 import { getInitials } from "../utils";
 
 type TaskCreateModalProps = {
@@ -15,25 +15,50 @@ type TaskCreateModalProps = {
 
 export default function TaskCreateModal({ roomId, onClose, onCreated, editingCard }: TaskCreateModalProps) {
     const [members, setMembers] = useState<MessengerRoomMemberData[]>([]);
+    const [currentUserId, setCurrentUserId] = useState<number | null>(null);
     const [content, setContent] = useState(editingCard?.content ?? "");
     const [dueDate, setDueDate] = useState(editingCard?.dueDate ?? "");
     const [assigneeIds, setAssigneeIds] = useState<number[]>(editingCard?.assignees.map((assignee) => assignee.userId) ?? []);
     const [assigneeQuery, setAssigneeQuery] = useState("");
     const [isAssigneeMenuOpen, setIsAssigneeMenuOpen] = useState(false);
+    const assigneeMenuRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         getChatRoomMembersAction(roomId).then(setMembers);
+        getCurrentUserIdAction().then(setCurrentUserId);
     }, [roomId]);
 
+    useEffect(() => {
+        if (!isAssigneeMenuOpen) return;
+
+        const handleClickOutside = (event: MouseEvent) => {
+            if (!assigneeMenuRef.current?.contains(event.target as Node)) {
+                setIsAssigneeMenuOpen(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [isAssigneeMenuOpen]);
+
     const filteredMembers = useMemo(
-        () => members.filter((member) => member.name.includes(assigneeQuery.trim())),
-        [members, assigneeQuery]
+        () =>
+            members.filter(
+                (member) =>
+                    member.userId !== currentUserId &&
+                    !assigneeIds.includes(member.userId) &&
+                    member.name.includes(assigneeQuery.trim())
+            ),
+        [members, currentUserId, assigneeIds, assigneeQuery]
     );
 
-    const toggleAssignee = (userId: number) => {
-        setAssigneeIds((prev) =>
-            prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]
-        );
+    const removeAssignee = (userId: number) => {
+        setAssigneeIds((prev) => prev.filter((id) => id !== userId));
+    };
+
+    const selectAssignee = (userId: number) => {
+        setAssigneeIds((prev) => [...prev, userId]);
+        setIsAssigneeMenuOpen(false);
     };
 
     const handleSubmit = async (event: React.FormEvent) => {
@@ -97,7 +122,7 @@ export default function TaskCreateModal({ roomId, onClose, onCreated, editingCar
                                     <button
                                         aria-label={`${member.name} 담당자 제거`}
                                         className="flex size-4 items-center justify-center text-[#94A3B8]"
-                                        onClick={() => toggleAssignee(userId)}
+                                        onClick={() => removeAssignee(userId)}
                                         type="button"
                                     >
                                         <X className="size-3" strokeWidth={2} />
@@ -106,7 +131,7 @@ export default function TaskCreateModal({ roomId, onClose, onCreated, editingCar
                             );
                         })}
 
-                        <div className="relative">
+                        <div className="relative" ref={assigneeMenuRef}>
                             <button
                                 className="inline-flex h-8 items-center gap-1 rounded-full border border-[#D7E8DB] px-3 text-[12px] font-medium text-[#0F172A]"
                                 onClick={() => setIsAssigneeMenuOpen((open) => !open)}
@@ -133,12 +158,11 @@ export default function TaskCreateModal({ roomId, onClose, onCreated, editingCar
                                         {filteredMembers.length === 0
                                             ? <p className="px-3 py-4 text-center text-[11px] text-[#94A3B8]">일치하는 인원이 없습니다</p>
                                             : filteredMembers.map((member) => {
-                                                const isSelected = assigneeIds.includes(member.userId);
                                                 return (
                                                     <button
-                                                        className={`flex w-full items-center gap-2.5 px-3 py-2 text-left ${isSelected ? "bg-[#EEF3F0]" : "hover:bg-[#F7F9F7]"}`}
+                                                        className="flex w-full items-center gap-2.5 px-3 py-2 text-left hover:bg-[#F7F9F7]"
                                                         key={member.userId}
-                                                        onClick={() => toggleAssignee(member.userId)}
+                                                        onClick={() => selectAssignee(member.userId)}
                                                         type="button"
                                                     >
                                                         <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#E2ECE4] text-[9px] font-semibold text-[#285D3B]">
@@ -169,6 +193,9 @@ export default function TaskCreateModal({ roomId, onClose, onCreated, editingCar
                         className="h-11 w-full rounded-[8px] border border-[#D7E8DB] px-3 text-[14px] text-[#0F172A] outline-none"
                         id="task-due-date"
                         onChange={(event) => setDueDate(event.target.value)}
+                        onKeyDown={(event) => {
+                            if (event.key !== "Tab") event.preventDefault();
+                        }}
                         type="date"
                         value={dueDate}
                     />

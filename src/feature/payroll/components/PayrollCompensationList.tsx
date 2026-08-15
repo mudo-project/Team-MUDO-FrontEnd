@@ -4,13 +4,24 @@ import { useState } from "react";
 import { PAYROLL_EMPLOYMENT_TYPE_LABEL, PAYROLL_SALARY_TYPE_LABEL } from "../statusStyles";
 import PayrollCompensationDetail from "./PayrollCompensationDetail";
 
-interface PayrollCompensationListProps {
-    employees: PayrollEmployeeCompensationData[];
+export interface PayrollCompensationListItem {
+    compensation: PayrollCompensationGetData;
+    employeeId: number;
+    employeeName: string;
 }
 
-export default function PayrollCompensationList({ employees }: PayrollCompensationListProps) {
+interface PayrollCompensationListProps {
+    employees: PayrollCompensationListItem[];
+}
+
+export default function PayrollCompensationList({ employees: initialEmployees }: PayrollCompensationListProps) {
+    const [employees, setEmployees] = useState(initialEmployees);
     const [selectedEmployeeId, setSelectedEmployeeId] = useState<number | null>(null);
     const selected = employees.find((employee) => employee.employeeId === selectedEmployeeId) ?? null;
+
+    const handleSaved = (employeeId: number, compensation: PayrollCompensationGetData) => {
+        setEmployees((items) => items.map((item) => (item.employeeId === employeeId ? { ...item, compensation } : item)));
+    };
 
     return (
         <section aria-label="직원별 급여 설정" className="mt-6 rounded-xl border border-[#DCE9DF] bg-white p-6">
@@ -40,27 +51,29 @@ export default function PayrollCompensationList({ employees }: PayrollCompensati
                         </tr>
                     </thead>
                     <tbody>
-                        {employees.map((employee) => {
-                            const compensation = employee.compensations[0];
-                            const payBasis = employee.payBases[0];
+                        {employees.map(({ employeeId, employeeName, compensation }) => {
+                            const contract = compensation.compensations[0];
+                            const payBasis = compensation.payBases[0];
 
                             return (
-                                <tr className="h-[56px] border-b border-[#F1F3F6] last:border-b-0" key={employee.employeeId}>
-                                    <td className="px-4 text-[13px] font-semibold text-[#172033]">{employee.employeeName}</td>
+                                <tr className="h-[56px] border-b border-[#F1F3F6] last:border-b-0" key={employeeId}>
+                                    <td className="px-4 text-[13px] font-semibold text-[#172033]">{employeeName}</td>
                                     <td className="px-3 text-[12px] text-[#334155]">
-                                        {PAYROLL_EMPLOYMENT_TYPE_LABEL[compensation.employmentType]} · {PAYROLL_SALARY_TYPE_LABEL[compensation.salaryType]}
+                                        {contract ? `${PAYROLL_EMPLOYMENT_TYPE_LABEL[contract.employmentType]} · ${PAYROLL_SALARY_TYPE_LABEL[contract.salaryType]}` : "-"}
                                     </td>
                                     <td className="px-3 text-[12px] text-[#334155]">
-                                        {compensation.salaryType === "MONTHLY"
-                                            ? `${compensation.baseSalary?.toLocaleString()}원`
-                                            : `${compensation.hourlyWage?.toLocaleString()}원`}
+                                        {contract
+                                            ? contract.salaryType === "MONTHLY"
+                                                ? `${contract.baseSalary?.toLocaleString()}원`
+                                                : `${contract.hourlyWage?.toLocaleString()}원`
+                                            : "-"}
                                     </td>
-                                    <td className="px-3 text-[12px] text-[#334155]">{compensation.weeklyContractHours}시간</td>
-                                    <td className="px-3 text-[12px] text-[#334155]">{payBasis?.ordinaryHourlyWage.toLocaleString()}원</td>
+                                    <td className="px-3 text-[12px] text-[#334155]">{contract ? `${contract.weeklyContractHours}시간` : "-"}</td>
+                                    <td className="px-3 text-[12px] text-[#334155]">{payBasis ? `${payBasis.ordinaryHourlyWage.toLocaleString()}원` : "-"}</td>
                                     <td className="px-3 text-center">
                                         <button
                                             className="h-7 rounded-md border border-[#DCE9DF] bg-white px-2.5 text-[11px] font-semibold text-[#4D9560] hover:bg-[#F4F8F5]"
-                                            onClick={() => setSelectedEmployeeId(employee.employeeId)}
+                                            onClick={() => setSelectedEmployeeId(employeeId)}
                                             type="button"
                                         >
                                             편집
@@ -74,7 +87,14 @@ export default function PayrollCompensationList({ employees }: PayrollCompensati
             </div>
 
             {selected && (
-                <PayrollCompensationDetail employee={selected} key={selected.employeeId} onClose={() => setSelectedEmployeeId(null)} />
+                <PayrollCompensationDetail
+                    compensation={selected.compensation}
+                    employeeId={selected.employeeId}
+                    employeeName={selected.employeeName}
+                    key={selected.employeeId}
+                    onClose={() => setSelectedEmployeeId(null)}
+                    onSaved={(compensation) => handleSaved(selected.employeeId, compensation)}
+                />
             )}
         </section>
     );
