@@ -2,24 +2,16 @@
 
 import {
     changeLectureAttendance,
-    changeMessageTemplate,
-    createMessageTemplate,
-    deleteMessageTemplate,
     exportLectureAttendance,
     getLectureAttendance,
     getMessageCandidates,
-    getMessageTemplateList,
     sendAttendanceMessage,
 } from "@/service/rollbook.service";
 import {
     AttendanceStatus,
     ChangeAttendanceRequest,
-    ChangeMessageTemplateRequest,
-    CreateMessageTemplateData,
-    CreateMessageTemplateRequest,
     LectureAttendanceData,
     MessageCandidateData,
-    MessageTemplateData,
     RollbookExportData,
     SendAttendanceMessageData,
     SendAttendanceMessageRequest,
@@ -144,57 +136,3 @@ export const sendAttendanceMessageAction = async (
     }
 };
 
-export const getMessageTemplateListAction = async (): Promise<RollbookActionResult<MessageTemplateData[]>> => {
-    try {
-        const response = await getMessageTemplateList();
-        return { success: true, message: response.message, data: response.data };
-    } catch (error) {
-        return { success: false, message: getActionErrorMessage(error, "문자 템플릿 목록 조회에 실패했습니다.") };
-    }
-};
-
-export const createMessageTemplateAction = async (
-    payload: CreateMessageTemplateRequest,
-): Promise<RollbookActionResult<CreateMessageTemplateData>> => {
-    if (!payload.name.trim() || !payload.content.trim()) {
-        return { success: false, message: "템플릿 이름과 문자 내용을 입력해주세요." };
-    }
-    if (!attendanceStatuses.includes(payload.status)) {
-        return { success: false, message: "출결 상태가 올바르지 않습니다." };
-    }
-
-    try {
-        const response = await createMessageTemplate(payload);
-        return { success: true, message: response.message, data: response.data };
-    } catch (error) {
-        return { success: false, message: getActionErrorMessage(error, "문자 템플릿 생성에 실패했습니다.") };
-    }
-};
-
-export const changeMessageTemplateAction = async (
-    templateId: number,
-    payload: ChangeMessageTemplateRequest,
-): Promise<RollbookActionResult> => {
-    if (!isPositiveInteger(templateId)) return { success: false, message: "문자 템플릿 번호가 올바르지 않습니다." };
-    if (!payload.name.trim() || !payload.content.trim()) {
-        return { success: false, message: "템플릿 이름과 문자 내용을 입력해주세요." };
-    }
-
-    try {
-        await changeMessageTemplate(templateId, payload);
-        return { success: true, message: "문자 템플릿 수정에 성공했습니다." };
-    } catch (error) {
-        return { success: false, message: getActionErrorMessage(error, "문자 템플릿 수정에 실패했습니다.") };
-    }
-};
-
-export const deleteMessageTemplateAction = async (templateId: number): Promise<RollbookActionResult> => {
-    if (!isPositiveInteger(templateId)) return { success: false, message: "문자 템플릿 번호가 올바르지 않습니다." };
-
-    try {
-        await deleteMessageTemplate(templateId);
-        return { success: true, message: "문자 템플릿 삭제에 성공했습니다." };
-    } catch (error) {
-        return { success: false, message: getActionErrorMessage(error, "문자 템플릿 삭제에 실패했습니다.") };
-    }
-};
