@@ -1,6 +1,7 @@
 import Header from "@/components/layout/Header";
 import QueryProvider from "@/components/layout/QueryProvider";
 import Sidebar from "@/components/layout/Sidebar";
+import AlarmRealtimeProvider from "@/feature/alarm/components/AlarmRealtimeProvider";
 import MemoContainer from "@/feature/memo/components/MemoContainer";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
@@ -14,6 +15,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                     {children}
                 </div>
                 <MemoContainer />
+                <AlarmRealtimeProvider />
             </section>
         </QueryProvider>
 
