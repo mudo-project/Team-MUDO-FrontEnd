@@ -109,6 +109,7 @@ type PayrollEmailBatchStatus = "PENDING" | "PROCESSING" | "AWAITING_DELIVERY" | 
 // 일괄 발송 대상 1건
 interface PayrollEmailDeliveryData {
     deliveryId: number;
+    employeeId: number;
     employeeName: string;
     recipientEmailMasked: string;
     status: PayrollEmailDeliveryStatus;

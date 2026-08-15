@@ -1,4 +1,4 @@
-import { ShieldCheck } from "lucide-react";
+import FinanceSensitiveNotice from "./FinanceSensitiveNotice";
 import FinanceTabs from "./FinanceTabs";
 
 export default function FinanceLayout({ children }: { children: React.ReactNode }) {
@@ -8,9 +8,7 @@ export default function FinanceLayout({ children }: { children: React.ReactNode 
                 <div className="w-full pb-6 pt-2">
                     <header className="flex items-center justify-between">
                     <FinanceTabs />
-                        <p className="flex items-center gap-1 text-[11px] text-[#94A3B8]">
-                            <ShieldCheck className="size-3.5" /> 민감정보 화면입니다. 화면 공유에 주의하세요
-                        </p>
+                        <FinanceSensitiveNotice />
                     </header>
                     {children}
                 </div>

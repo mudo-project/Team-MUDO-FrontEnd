@@ -8,6 +8,10 @@ export default function FinanceTabs() {
     const isCorporateCardActive = pathname.startsWith("/finance/corporate-card");
     const isPayrollActive = pathname.startsWith("/finance/payroll");
 
+    if (pathname.startsWith("/finance/payroll/settings")) {
+        return null;
+    }
+
     return (
         <nav
             aria-label="재무 메뉴"

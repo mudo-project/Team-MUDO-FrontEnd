@@ -9,7 +9,7 @@ interface PayrollRevisionHistoryProps {
 export default function PayrollRevisionHistory({ employeeName, onClose, revisions }: PayrollRevisionHistoryProps) {
     return (
         <div className="fixed inset-0 z-[60] bg-[#172033]/35">
-            <aside className="absolute inset-y-0 right-0 flex w-full max-w-[420px] flex-col bg-white shadow-[-12px_0_28px_rgba(23,32,51,0.12)]">
+            <aside className="absolute inset-y-0 right-0 flex w-full max-w-[480px] flex-col bg-white shadow-[-12px_0_28px_rgba(23,32,51,0.12)]">
                 <header className="flex items-center justify-between border-b border-[#E1EBE3] px-7 py-5">
                     <h1 className="text-[16px] font-bold text-[#172033]">{employeeName} · 정정 이력</h1>
                     <button aria-label="닫기" onClick={onClose} type="button">

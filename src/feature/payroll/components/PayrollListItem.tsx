@@ -2,12 +2,14 @@ import { ChevronRight } from "lucide-react";
 import { PAYROLL_EMPLOYMENT_TYPE_LABEL, PAYROLL_STATUS_BADGE_CLASS, PAYROLL_STATUS_LABEL } from "../statusStyles";
 
 interface PayrollListItemProps {
+    isSelected: boolean;
     item: PayrollListItemData;
     onCalculate: (item: PayrollListItemData) => void;
     onPreview: (payrollId: number) => void;
+    onToggleSelect: (employeeId: number) => void;
 }
 
-export default function PayrollListItem({ item, onCalculate, onPreview }: PayrollListItemProps) {
+export default function PayrollListItem({ isSelected, item, onCalculate, onPreview, onToggleSelect }: PayrollListItemProps) {
     const isPreviewable = item.preparationStatus === "CALCULATED" || item.preparationStatus === "CONFIRMED";
     const isDraft = item.preparationStatus === "DRAFT";
     const revisionLabel = item.revisionNo === 0
@@ -19,7 +21,13 @@ export default function PayrollListItem({ item, onCalculate, onPreview }: Payrol
     return (
         <tr className="h-[68px] border-b border-[#E1EBE3] last:border-b-0">
             <td className="px-5 text-center">
-                <input aria-label={`${item.employeeName} 선택`} className="size-4 accent-[#172033]" type="checkbox" />
+                <input
+                    aria-label={`${item.employeeName} 선택`}
+                    checked={isSelected}
+                    className="size-4 accent-[#172033]"
+                    onChange={() => onToggleSelect(item.employeeId)}
+                    type="checkbox"
+                />
             </td>
             <td className="px-3 text-[12px]">
                 <strong className="block font-semibold">{item.employeeName}</strong>
