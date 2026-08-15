@@ -1,20 +1,37 @@
+"use client";
+
 import { format } from "date-fns";
 import { X } from "lucide-react";
-
-interface AlarmListItem {
-    notificationId: number;
-    message: string;
-    read: boolean;
-    createdAt: string;
-}
+import { useEffect, useRef } from "react";
 
 interface AlarmListProps {
-    alarms: AlarmListItem[];
+    alarms: NotificationItemData[];
+    hasNext: boolean;
     onItemClick: (notificationId: number) => void;
     onDelete: (notificationId: number) => void;
+    onLoadMore: () => void;
 }
 
-export default function AlarmList({ alarms, onItemClick, onDelete }: AlarmListProps) {
+export default function AlarmList({ alarms, hasNext, onItemClick, onDelete, onLoadMore }: AlarmListProps) {
+    const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+        if (!hasNext) return;
+
+        const sentinel = sentinelRef.current;
+        if (!sentinel) return;
+
+        const observer = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting) {
+                onLoadMore();
+            }
+        });
+
+        observer.observe(sentinel);
+
+        return () => observer.disconnect();
+    }, [hasNext, onLoadMore]);
+
     if (alarms.length === 0) {
         return (
             <div className="flex h-[200px] items-center justify-center rounded-xl border border-[#DCE9DF] bg-white text-[13px] text-[#64748B] shadow-[0_1px_2px_rgba(15,23,42,0.02)]">
@@ -58,6 +75,7 @@ export default function AlarmList({ alarms, onItemClick, onDelete }: AlarmListPr
                     </button>
                 </div>
             ))}
+            {hasNext && <div className="h-1" ref={sentinelRef} />}
         </div>
     );
 }

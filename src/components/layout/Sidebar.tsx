@@ -11,6 +11,8 @@ import { useUserStore } from "@/store/useUserStore";
 import MyMenu from "./MyMenu";
 import { decodeJWT } from "@/lib/decode";
 import { getMyPermissionListAction } from "@/feature/auth/actions";
+import { getUnreadNotificationCountAction } from "@/feature/alarm/actions";
+import { useAlarmStore } from "@/store/useAlarmStore";
 
 type MenuItem = {
     label: string;
@@ -30,6 +32,8 @@ export default function Sidebar() {
     const setUser = useUserStore((state) => state.setUser);
     const permissions = useUserStore((state) => state.permissions);
     const setPermissions = useUserStore((state) => state.setPermissions);
+    const unreadNotificationCount = useAlarmStore((state) => state.unreadCount);
+    const setUnreadNotificationCount = useAlarmStore((state) => state.setUnreadCount);
 
     useEffect(() => {
         let cancelled = false;
@@ -56,9 +60,22 @@ export default function Sidebar() {
             }
         };
 
+        const loadUnreadNotificationCount = async () => {
+            try {
+                const count = await getUnreadNotificationCountAction();
+
+                if (!cancelled) {
+                    setUnreadNotificationCount(count);
+                }
+            } catch {
+                // 조회 실패 시 뱃지는 0으로 유지한다.
+            }
+        };
+
         decode();
         loadPermission();
         loadApprovalPendingCount();
+        loadUnreadNotificationCount();
 
         return () => {
             cancelled = true;
@@ -80,7 +97,7 @@ export default function Sidebar() {
     }, []);
 
     const menuItems: MenuItem[] = [
-        { label: "알림", href: "/alarm", icon: 'BellRing' },
+        { label: "알림", href: "/alarm", icon: 'BellRing', count: unreadNotificationCount },
         { label: "메신저", href: "/messenger", icon: 'MessageSquare', count: 3 },
         { label: "공지사항", href: "/notice", icon: 'Bell', count: 2 },
         { label: "전자결재", href: "/approval/my", icon: 'FileCheck2', count: approvalPendingCount },
