@@ -112,7 +112,7 @@ export default function CreateTaskTemplateModal({ closeModal, workspaceId }: { c
                 }
 
                 <button
-                    className="mt-3.5 h-10 w-full rounded-[8px] bg-[#0F172A]/40 text-[13px] leading-[19.5px] font-medium text-white"
+                    className="mt-3.5 h-10 w-full rounded-[8px] bg-[#1D2639] text-[13px] leading-[19.5px] font-medium text-white"
                     type="submit"
                 >
                     템플릿 저장

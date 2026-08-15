@@ -1,13 +1,13 @@
 "use client";
 
 import { X } from "lucide-react";
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getUserListAction } from "@/feature/auth/actions";
 import { createWorkspaceAction } from "../../actions";
 import WorkspaceAttends from "../WorkspaceAttends";
 import WorkspaceAttendItem from "../WorkspaceAttendItem";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export default function CreateWorkspaceModal({ closeModal }: { closeModal: () => void }) {
     const [isMemberListOpen, setIsMemberListOpen] = useState(false);
@@ -15,12 +15,27 @@ export default function CreateWorkspaceModal({ closeModal }: { closeModal: () =>
     const [members, setMembers] = useState<UserListResponse[]>([]);
     const [selectedMembers, setSelectedMembers] = useState<UserListResponse[]>([]);
     const [searchError, setSearchError] = useState("");
-    const [state, createWorkspaceFormAction, isPending] = useActionState(createWorkspaceAction, {
-        success: false,
-        message: '',
-        data: undefined
+    const [createError, setCreateError] = useState("");
+    const queryClient = useQueryClient();
+    const createWorkspaceMutation = useMutation({
+        mutationFn: (formData: FormData) =>
+            createWorkspaceAction({ success: false, message: "" }, formData),
+        onSuccess: (result) => {
+            if (!result.success) {
+                setCreateError(result.message);
+                return;
+            }
+
+            void queryClient.invalidateQueries({
+                queryKey: ["workspace-list", "MINE"],
+            });
+            closeModal();
+            toast.success(result.message);
+        },
+        onError: (error) => {
+            setCreateError(error.message);
+        },
     });
-    const route = useRouter();
 
 
     const isFirstRender = useRef(true);
@@ -55,14 +70,6 @@ export default function CreateWorkspaceModal({ closeModal }: { closeModal: () =>
         }
     }, [searchInput]);
 
-    useEffect(() => {
-        if (state.success) {
-            toast.success(state.message);
-            closeModal();
-            route.refresh();
-        }
-    }, [state])
-
     const addMember = (member: UserListResponse) => {
         setSelectedMembers((current) =>
             current.some(({ userId }) => userId === member.userId)
@@ -81,7 +88,13 @@ export default function CreateWorkspaceModal({ closeModal }: { closeModal: () =>
         <div onClick={closeModal} className="fixed top-0 left-0 z-999 h-screen w-screen bg-[#162236]/30">
             <form
                 onClick={(e) => e.stopPropagation()}
-                action={createWorkspaceFormAction}
+                onSubmit={(event) => {
+                    event.preventDefault();
+                    setCreateError("");
+                    createWorkspaceMutation.mutate(
+                        new FormData(event.currentTarget),
+                    );
+                }}
                 className="fixed top-1/2 left-1/2 z-1000 w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-[12px] bg-white p-6 shadow-[0_8px_16px_rgba(22,34,54,0.16)]">
                 <div className="flex w-full items-center">
                     <h2 className="text-[15px] leading-[22.5px] font-bold text-[#0F172A]">
@@ -163,20 +176,20 @@ export default function CreateWorkspaceModal({ closeModal }: { closeModal: () =>
                     </div>
                 </div>
 
-                {!state.success && state.message && (
+                {createError && (
                     <p
                         className={`mt-3 text-[12px] text-red-500`}
                     >
-                        {state.message}
+                        {createError}
                     </p>
                 )}
 
                 <button
-                    disabled={isPending}
-                    className="mt-3.5 h-10 w-full rounded-[8px] bg-[#0F172A]/40 text-[13px] leading-[19.5px] font-medium text-white"
+                    disabled={createWorkspaceMutation.isPending}
+                    className={`mt-3.5 h-10 w-full rounded-[8px] ${createWorkspaceMutation.isPending ? 'bg-[#0F172A]/40' : 'bg-[#1D2639]'} text-[13px] leading-[19.5px] font-medium text-white`}
                     type="submit"
                 >
-                    {isPending ? "생성 중..." : "워크스페이스 생성"}
+                    {createWorkspaceMutation.isPending ? "생성 중..." : "워크스페이스 생성"}
                 </button>
             </form>
         </div>

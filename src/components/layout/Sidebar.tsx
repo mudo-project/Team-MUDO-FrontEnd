@@ -80,7 +80,6 @@ export default function Sidebar() {
     }, []);
 
     const menuItems: MenuItem[] = [
-        { label: "홈", href: "/", icon: 'Home' },
         { label: "메신저", href: "/messenger", icon: 'MessageSquare', count: 3 },
         { label: "공지사항", href: "/notice", icon: 'Bell', count: 2 },
         { label: "전자결재", href: "/approval/my", icon: 'FileCheck2', count: approvalPendingCount },
