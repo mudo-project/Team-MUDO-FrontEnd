@@ -15,7 +15,7 @@ import { getMyPermissionListAction } from "@/feature/auth/actions";
 type MenuItem = {
     label: string;
     href: string;
-    icon: 'Home' | "PanelTop" | "MessageSquare" | "Bell" | "FileCheck2" | "Grid2X2" | "Clock3" | "WalletCards" | "GraduationCap" | "CalendarDays" | "Users" | "Shield" | "Settings" | "Book" | "Folder" | "TrendingUp",
+    icon: 'Home' | "PanelTop" | "MessageSquare" | "Bell" | "BellRing" | "FileCheck2" | "Grid2X2" | "Clock3" | "WalletCards" | "GraduationCap" | "CalendarDays" | "Users" | "Shield" | "Settings" | "Book" | "Folder" | "TrendingUp",
     count?: number;
     active?: boolean;
     dividerAfter?: boolean;
@@ -80,6 +80,7 @@ export default function Sidebar() {
     }, []);
 
     const menuItems: MenuItem[] = [
+        { label: "알림", href: "/alarm", icon: 'BellRing' },
         { label: "메신저", href: "/messenger", icon: 'MessageSquare', count: 3 },
         { label: "공지사항", href: "/notice", icon: 'Bell', count: 2 },
         { label: "전자결재", href: "/approval/my", icon: 'FileCheck2', count: approvalPendingCount },
