@@ -1,7 +1,7 @@
 # Alarm(알림) Domain — CONTEXT
 > 배치 경로: `src/feature/alarm/CONTEXT.md`
 > 목적: 이 문서를 읽은 사람 또는 AI 에이전트가 알림 도메인이 **무엇을 하는 도메인이고, 어떤 기능이 있으며, 어떤 조각으로 이루어져 있는지** 파악할 수 있게 한다.
-> 구현 상태: UI 단계 완료(정적, 목업 데이터) — Sidebar 진입점, `/alarm` 목록 화면, 안읽음 표시, 삭제 버튼 UI까지 구현됨. 클릭 이벤트·읽음 처리·삭제·무한 스크롤·API 연동·WebSocket 실시간 수신은 아직 미구현. 순차 구현 계획(CONTEXT → UI → 기능 → API 연결 준비 → API 연동)에 따라 각 단계가 끝날 때마다 갱신한다.
+> 구현 상태: 기능 단계 완료(목업 데이터 + 로컬 state) — Sidebar 진입점, `/alarm` 목록 화면, 읽음 처리·개별 삭제·읽은 알림 일괄 삭제 클릭 이벤트까지 구현됨(`AlarmContainer`의 React state로 동작, 실제 API 호출 없음). 무한 스크롤·API 연동(type/action/service)·WebSocket 실시간 수신은 아직 미구현. 순차 구현 계획(CONTEXT → UI → 기능 → API 연결 준비 → API 연동)에 따라 각 단계가 끝날 때마다 갱신한다.
 
 ---
 
@@ -88,28 +88,26 @@ Sidebar에 신규 추가할 알림 메뉴(`src/components/layout/Sidebar.tsx`, `
 
 | 기능 | 트리거 | 동작 | 상태 |
 |---|---|---|---|
-| 뱃지 표시 | Sidebar 렌더링 | 안읽은 개수 조회 후 알림 메뉴에 뱃지로 표시(0이면 숨김) | 미구현 |
+| 뱃지 표시 | Sidebar 렌더링 | 안읽은 개수 조회 후 알림 메뉴에 뱃지로 표시(0이면 숨김) | 미구현(API 연동 필요) |
 
-### 4.3 읽음 처리 — 미구현(UI만 구현)
-
-| 기능 | 트리거 | 동작 | 상태 |
-|---|---|---|---|
-| 읽음/안읽음 표시 | 목록 렌더링 | 안읽은 항목은 초록 도트 + 굵은 텍스트로 구분 | UI 구현 완료(정적) |
-| 알림 읽음 처리 | 목록의 알림 항목 클릭 | 읽음 처리 API 호출, 성공 시 해당 항목 읽음 표시로 전환 + 안읽은 개수 갱신 | 미구현(클릭 이벤트 없음) |
-
-### 4.4 개별 삭제 — 미구현(UI만 구현)
+### 4.3 읽음 처리
 
 | 기능 | 트리거 | 동작 | 상태 |
 |---|---|---|---|
-| 삭제 버튼 표시 | 목록 렌더링 | 각 항목에 삭제(x) 아이콘 버튼 표시 | UI 구현 완료(정적) |
-| 알림 삭제 | 항목의 삭제(x) 아이콘 클릭 | 해당 알림 삭제, 성공 시 목록에서 제거 | 미구현(클릭 이벤트 없음) |
+| 읽음/안읽음 표시 | 목록 렌더링 | 안읽은 항목은 초록 도트 + 굵은 텍스트로 구분 | 구현 완료 |
+| 알림 읽음 처리 | 목록의 알림 항목 클릭 | `AlarmContainer`의 `handleItemClick`이 해당 알림의 `read`를 로컬 state에서 `true`로 변경 | 구현 완료(로컬 state) — 읽음 처리 API 호출은 미구현 |
 
-### 4.5 읽은 알림 일괄 삭제 — 미구현(UI만 구현)
+### 4.4 개별 삭제
 
 | 기능 | 트리거 | 동작 | 상태 |
 |---|---|---|---|
-| 버튼 표시 | Header 렌더링 | `읽은 알림 삭제` 버튼 표시 | UI 구현 완료(정적) |
-| 일괄 삭제 | Header `읽은 알림 삭제` 클릭 | `status=READ` 일괄 삭제 API 호출, 성공 시 목록 재조회 | 미구현(클릭 이벤트 없음) |
+| 알림 삭제 | 항목의 삭제(x) 아이콘 클릭 | `AlarmContainer`의 `handleDelete`가 해당 알림을 로컬 state에서 제거 | 구현 완료(로컬 state) — 삭제 API 호출은 미구현 |
+
+### 4.5 읽은 알림 일괄 삭제
+
+| 기능 | 트리거 | 동작 | 상태 |
+|---|---|---|---|
+| 일괄 삭제 | Header `읽은 알림 삭제` 클릭 | `AlarmContainer`의 `handleDeleteRead`가 `read`가 `true`인 알림을 로컬 state에서 모두 제거(안읽은 알림은 제외) | 구현 완료(로컬 state) — 일괄 삭제 API 호출은 미구현 |
 
 ### 4.6 실시간 알림 수신 — 미구현
 
@@ -163,17 +161,19 @@ Sidebar 뱃지 표시에 사용.
 
 | 컴포넌트 | 책임 | 상태 |
 |---|---|---|
-| **(page.tsx)** | 목록 화면 셸(서버 컴포넌트). `/alarm`에서 알림 목록 렌더링(현재는 목업 데이터) | 구현 완료(정적) |
-| **AlarmHeader** | 화면 타이틀 + `읽은 알림 삭제` 버튼 | 구현 완료(정적, 클릭 이벤트 없음) |
-| **AlarmList** | 알림 목록. 항목별 읽음/안읽음 표시, 삭제 버튼, 빈 상태 표시 | 구현 완료(정적) — 무한 스크롤, 항목 클릭 시 읽음 처리, 삭제 아이콘 클릭 동작은 미구현 |
+| **(page.tsx)** | 목록 화면 셸(서버 컴포넌트). `/alarm`에서 `AlarmContainer`에 목업 데이터를 초기값으로 전달 | 구현 완료(목업 데이터) |
+| **AlarmContainer** | 클라이언트 컴포넌트. `alarms` state를 소유하고 `handleItemClick`(읽음 처리)/`handleDelete`(개별 삭제)/`handleDeleteRead`(일괄 삭제)를 `AlarmHeader`/`AlarmList`에 내려줌 | 구현 완료(로컬 state) |
+| **AlarmHeader** | 화면 타이틀 + `읽은 알림 삭제` 버튼. `onDeleteRead` prop 호출 | 구현 완료 |
+| **AlarmList** | 알림 목록. 항목별 읽음/안읽음 표시, 항목 클릭 시 `onItemClick`, 삭제 버튼 클릭 시 `onDelete` 호출, 빈 상태 표시 | 구현 완료(로컬 state) — 무한 스크롤은 미구현 |
 | **AlarmRealtimeProvider** | WebSocket 연결/구독 Provider(예정). `src/app/layout.tsx` 또는 상위 레이아웃에 상시 마운트해 로그인 중에는 항상 구독 유지. 이벤트 수신 시 토스트 표시 + 안읽은 개수 갱신 콜백 호출 | 미구현 |
 
 ### 관계
 
 ```
-alarm/page.tsx                     (목록 화면, /alarm)
-├── AlarmHeader                    (읽은 알림 삭제 버튼)
-└── AlarmList                      (무한 스크롤, 항목 클릭 시 읽음 처리, 삭제 아이콘 — 동작은 미구현)
+alarm/page.tsx                     (목록 화면, /alarm, 목업 데이터 전달)
+└── AlarmContainer                 (alarms state, handleItemClick/handleDelete/handleDeleteRead)
+    ├── AlarmHeader                (읽은 알림 삭제 버튼 → onDeleteRead)
+    └── AlarmList                  (항목 클릭 → onItemClick, 삭제 아이콘 → onDelete. 무한 스크롤은 미구현)
 
 layout.tsx (전역, 예정)
 └── AlarmRealtimeProvider          (WebSocket 구독, Sidebar 뱃지와 연결)
@@ -183,7 +183,7 @@ layout.tsx (전역, 예정)
 
 | 조각 | 역할 | 상태 |
 |---|---|---|
-| 알림 데이터 | 목록 조회·읽음 처리·삭제 | 미구현(현재 목업 데이터) |
+| 알림 데이터 | 목록 조회·읽음 처리·삭제 | 미구현(현재 `AlarmContainer`의 로컬 state + 목업 데이터로만 동작, 실제 API 없음) |
 | 안읽은 개수 상태 | Sidebar 뱃지에 반영 | 미구현 |
 | 무한 스크롤 상태 | 현재 page, 더 불러올 수 있는지(`hasNext`) | 미구현 |
 | WebSocket 구독 상태 | 알림 도메인 전용 STOMP 연결/구독 관리 | 미구현 |
