@@ -2,29 +2,57 @@
 
 import useModal from "@/components/hooks/useModal";
 import TwoButtonModal from "@/components/ui/TwoButtonModal";
+import { deleteMessageTemplateAction } from "@/feature/message/actions";
 import EditMessageTemplateModal from "@/feature/message/components/modals/EditMessageTemplateModal";
+import { MessageTemplateData } from "@/feature/message/type";
+import { format, parseISO } from "date-fns";
 import { Pencil, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { toast } from "sonner";
 
-export interface MessageTemplateItemData {
-    name: string;
-    status: string;
-    content: string;
-    updatedAt: string;
-    createdAt: string;
-    dotClassName: string;
+const STATUS_STYLES: Record<MessageTemplateData["status"], {
     badgeClassName: string;
-}
+    dotClassName: string;
+    label: string;
+}> = {
+    PRESENT: { badgeClassName: "bg-[#F0FDF4] text-[#16A34A]", dotClassName: "bg-[#16A34A]", label: "출석" },
+    ABSENT: { badgeClassName: "bg-[#FEF2F2] text-[#DC2626]", dotClassName: "bg-[#DC2626]", label: "결석" },
+    LATE: { badgeClassName: "bg-[#FFFBEB] text-[#D97706]", dotClassName: "bg-[#D97706]", label: "지각" },
+    ONLINE: { badgeClassName: "bg-[#EFF6FF] text-[#2563EB]", dotClassName: "bg-[#2563EB]", label: "온라인" },
+    ETC: { badgeClassName: "bg-[#F1F5F9] text-[#64748B]", dotClassName: "bg-[#64748B]", label: "기타" },
+};
 
-export default function MessageTemplateItem({ template }: { template: MessageTemplateItemData }) {
+export default function MessageTemplateItem({ template }: { template: MessageTemplateData }) {
+    const router = useRouter();
     const editTemplateModal = useModal();
     const deleteTemplateModal = useModal();
+    const [isDeleting, setIsDeleting] = useState(false);
+    const statusStyle = STATUS_STYLES[template.status];
+
+    const deleteTemplate = async () => {
+        if (isDeleting) return;
+
+        setIsDeleting(true);
+        const response = await deleteMessageTemplateAction(template.id);
+        setIsDeleting(false);
+
+        if (!response.success) {
+            toast.error(response.message);
+            return;
+        }
+
+        toast.success(response.message);
+        deleteTemplateModal.closeModal();
+        router.refresh();
+    };
 
     return (
         <>
             <article className="flex h-[199px] flex-col gap-3 rounded-[14px] border border-[#E8EDF2] bg-white p-5 shadow-[0_1px_1.5px_rgba(0,0,0,0.04)]">
                 <div>
                     <div className="flex h-[25px] items-center gap-2 pb-1">
-                        <span className={`size-[7px] shrink-0 rounded-full ${template.dotClassName}`} />
+                        <span className={`size-[7px] shrink-0 rounded-full ${statusStyle.dotClassName}`} />
                         <h2 className="text-[14px] leading-[21px] font-bold text-[#0F172A]">
                             {template.name}
                         </h2>
@@ -39,6 +67,7 @@ export default function MessageTemplateItem({ template }: { template: MessageTem
                         <button
                             aria-label={`${template.name} 삭제`}
                             className="flex size-7 items-center justify-center rounded-[6px] border border-[#DCE8E2] bg-white text-[#64748B]"
+                            disabled={isDeleting}
                             onClick={deleteTemplateModal.openModal}
                             type="button"
                         >
@@ -46,8 +75,8 @@ export default function MessageTemplateItem({ template }: { template: MessageTem
                         </button>
                     </div>
                     <div className="h-6 pt-1">
-                        <span className={`inline-flex h-5 items-center rounded-full px-2 text-[11px] leading-[16.5px] font-semibold ${template.badgeClassName}`}>
-                            {template.status}
+                        <span className={`inline-flex h-5 items-center rounded-full px-2 text-[11px] leading-[16.5px] font-semibold ${statusStyle.badgeClassName}`}>
+                            {statusStyle.label}
                         </span>
                     </div>
                 </div>
@@ -57,8 +86,8 @@ export default function MessageTemplateItem({ template }: { template: MessageTem
                 </p>
 
                 <div className="flex items-center text-[11px] leading-[16.5px] text-[#B0B8C1]">
-                    <span>수정 {template.updatedAt}</span>
-                    <span className="ml-auto">생성 {template.createdAt}</span>
+                    <span>수정 {format(parseISO(template.updatedAt), "yyyy.MM.dd")}</span>
+                    <span className="ml-auto">생성 {format(parseISO(template.createdAt), "yyyy.MM.dd")}</span>
                 </div>
             </article>
             {editTemplateModal.isModal && (
@@ -66,13 +95,15 @@ export default function MessageTemplateItem({ template }: { template: MessageTem
                     closeModal={editTemplateModal.closeModal}
                     content={template.content}
                     name={template.name}
+                    templateId={template.id}
                 />
             )}
             {deleteTemplateModal.isModal && (
                 <TwoButtonModal
-                    activeModal={deleteTemplateModal.activeModal}
+                    activeModal={deleteTemplate}
                     closeModal={deleteTemplateModal.closeModal}
                     content="삭제하시겠습니까?"
+                    isPending={isDeleting}
                     title="템플릿 삭제"
                 />
             )}
