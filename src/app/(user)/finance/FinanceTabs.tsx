@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 export default function FinanceTabs() {
     const pathname = usePathname();
     const isCorporateCardActive = pathname.startsWith("/finance/corporate-card");
+    const isPayrollActive = pathname.startsWith("/finance/payroll");
 
     return (
         <nav
@@ -22,9 +23,16 @@ export default function FinanceTabs() {
             >
                 법인카드
             </Link>
-            <span className="cursor-not-allowed px-3 pb-3 text-[#94A3B8]">
+            <Link
+                className={
+                    isPayrollActive
+                        ? "border-b-2 border-[#4D9560] px-5 pb-3 text-[#172033]"
+                        : "px-5 pb-3 text-[#94A3B8]"
+                }
+                href="/finance/payroll"
+            >
                 급여명세서
-            </span>
+            </Link>
         </nav>
     );
 }
