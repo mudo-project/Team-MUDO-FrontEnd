@@ -17,19 +17,19 @@ export interface LectureApiResponse<T> {
     data: T;
 }
 
-export interface LectureScheduleData {
+export interface LectureScheduleRequest {
     dayOfWeek: LectureDayOfWeek;
     startTime: string;
     endTime: string;
 }
 
+export type LectureScheduleData = LectureScheduleRequest;
+
 export interface CreateLectureRequest {
     name: string;
     classType: LectureClassType;
-    dayOfWeek: LectureDayOfWeek;
     classroomCode: string;
-    startTime: string;
-    endTime: string;
+    schedules: LectureScheduleRequest[];
     grade?: LectureGrade | null;
     teacherName?: string | null;
     subjectName?: string | null;
