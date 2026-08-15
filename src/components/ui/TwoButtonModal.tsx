@@ -1,6 +1,6 @@
 import { X } from "lucide-react";
 
-export default function TwoButtonModal({ title, content, closeModal, activeModal, isPending = false }: { title: string, content: string, closeModal: () => void, activeModal: () => void, isPending?: boolean }) {
+export default function TwoButtonModal({ title, content, closeModal, activeModal, isPending = false, confirmLabel = "확인" }: { title: string, content: string, closeModal: () => void, activeModal: () => void, isPending?: boolean, confirmLabel?: string }) {
     return (
         <div onClick={closeModal} className="fixed top-0 left-0 z-1001 flex h-screen w-screen items-center justify-center bg-[#162236]/30">
             <section
@@ -39,7 +39,7 @@ export default function TwoButtonModal({ title, content, closeModal, activeModal
                             type="button"
                             onClick={activeModal}
                         >
-                            {isPending ? "처리 중..." : "확인"}
+                            {isPending ? "처리 중..." : confirmLabel}
                         </button>
                     </div>
                 </div>
