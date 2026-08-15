@@ -35,8 +35,15 @@ export const getMessageTemplateListAction = async (): Promise<MessageActionResul
 };
 
 export const createMessageTemplateAction = async (
-    payload: CreateMessageTemplateRequest,
+    _prevState: MessageActionResult<CreateMessageTemplateData>,
+    formData: FormData,
 ): Promise<MessageActionResult<CreateMessageTemplateData>> => {
+    const payload: CreateMessageTemplateRequest = {
+        name: String(formData.get("name") ?? "").trim(),
+        status: String(formData.get("status") ?? "") as MessageTemplateStatus,
+        content: String(formData.get("content") ?? "").trim(),
+    };
+
     if (!payload.name.trim() || !payload.content.trim()) {
         return { success: false, message: "템플릿 이름과 문자 내용을 입력해주세요." };
     }
@@ -54,8 +61,14 @@ export const createMessageTemplateAction = async (
 
 export const changeMessageTemplateAction = async (
     templateId: number,
-    payload: ChangeMessageTemplateRequest,
+    _prevState: MessageActionResult,
+    formData: FormData,
 ): Promise<MessageActionResult> => {
+    const payload: ChangeMessageTemplateRequest = {
+        name: String(formData.get("name") ?? "").trim(),
+        content: String(formData.get("content") ?? "").trim(),
+    };
+
     if (!isPositiveInteger(templateId)) return { success: false, message: "문자 템플릿 번호가 올바르지 않습니다." };
     if (!payload.name.trim() || !payload.content.trim()) {
         return { success: false, message: "템플릿 이름과 문자 내용을 입력해주세요." };
