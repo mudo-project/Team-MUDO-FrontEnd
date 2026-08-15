@@ -2,40 +2,27 @@
 
 import { ChevronsLeft, ChevronsRight } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { getWorkspaceListAction, WorkspaceActionResult } from "../actions";
-import { WorkspaceListData } from "../type";
+import { useState } from "react";
+import { getWorkspaceListAction } from "../actions";
 import WorkspaceNavLink from "./WorkspaceNavLink";
 import useModal from "@/components/hooks/useModal";
 import CreateWorkspaceModal from "./modals/CreateWorkspaceModal";
+import { useQuery } from "@tanstack/react-query";
 
 
 export default function WorkspaceSidebar() {
     const [open, setOpen] = useState<boolean>(true);
     const modal = useModal();
-    const [workspaceList, setWorkspaceList] = useState<{
-        loading: boolean;
-        error: string;
-        data: WorkspaceListData[];
-    }>({
-        loading: true,
-        error: '',
-        data: []
-    })
+    const {
+        data: workspaceListData,
+        isPending: workspaceListPending,
+        isError: workspaceListError,
+    } = useQuery({
+        queryKey: ["workspace-list", "MINE"],
+        queryFn: () => getWorkspaceListAction("MINE"),
+    });
 
-    useEffect(() => {
-        const fetchWorkspace = async () => {
-            const response: WorkspaceActionResult<WorkspaceListData[]> = await getWorkspaceListAction();
-            setWorkspaceList({
-                loading: false,
-                error: response.success ? '' : response.message,
-                data: response.data ?? []
-            })
-
-        }
-
-        fetchWorkspace();
-    }, [])
+    const workspaceList = workspaceListData?.data ?? [];
 
     return (
         <aside className={`${open ? 'w-[230px]' : 'w-[50px]'}  shrink-0 border-r border-[#E7EAF0] bg-white`}>
@@ -60,7 +47,7 @@ export default function WorkspaceSidebar() {
 
             <nav className={`${!open && 'hidden'} p-2`}>
                 <Link
-                    href="/workspace"
+                    href="/workspace/my-works"
                     className="flex h-9 items-center rounded-[7px] px-3 text-[13px] leading-[19.5px] text-[#6F7988]"
                 >
                     <span className="mr-[9px] flex h-[13px] w-[13px] items-center justify-center rounded-[2px] border border-[#AAB3C0] text-[9px]">
@@ -71,12 +58,22 @@ export default function WorkspaceSidebar() {
 
                 <div className="mx-1 mt-1.5 border-t border-[#EFF1F4]" />
                 <div className="h-[calc(100dvh-170px)] scrollbar-hide overflow-auto pt-2">
-                    {workspaceList.data.map((workspace) => {
+                    {workspaceListPending && (
+                        <div className="text-center mt-4 py-3 leading-6 text-[12px] text-[#AEB6C2]">
+                            워크스페이스를 불러오는 중입니다.
+                        </div>
+                    )}
+                    {!workspaceListPending && (workspaceListError || !workspaceListData?.success) && (
+                        <div className="text-center mt-4 py-3 leading-6 text-[12px] text-red-500">
+                            {workspaceListData?.message ?? "워크스페이스 목록 조회에 실패했습니다."}
+                        </div>
+                    )}
+                    {!workspaceListPending && !workspaceListError && workspaceListData?.success && workspaceList.map((workspace) => {
                         return (
                             <WorkspaceNavLink key={workspace.workspaceId} workspace={workspace} />
                         )
                     })}
-                    {workspaceList.data.length === 0 && (
+                    {!workspaceListPending && !workspaceListError && workspaceListData?.success && workspaceList.length === 0 && (
                         <div className="text-center mt-4 py-3 leading-6 text-[12px] text-[#AEB6C2]">
                             생성된 워크스페이스가 없습니다
                         </div>

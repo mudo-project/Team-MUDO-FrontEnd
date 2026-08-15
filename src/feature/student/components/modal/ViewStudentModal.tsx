@@ -6,16 +6,21 @@ import AddStudentLectureModal from "./AddStudentLectureModal";
 import UpdateStudentModal from "./UpdateStudentModal";
 import { Pencil } from "lucide-react";
 import { useEffect, useState } from "react";
-import { getStudentDetailAction } from "../../actions";
+import { endStudentEnrollmentAction, getStudentDetailAction } from "../../actions";
 import { StudentDetailData } from "../../type";
 import { STUDENT_GRADE_LABEL } from "../../constants";
 import StudentDeleteButton from "../StudentDeleteButton";
 import StudentUpdateButton from "../StudentUpdateButton";
+import StudentAttendLectureItem from "../StudentAttendLectureItem";
+import StudentNoteItem from "../StudentNoteItem";
+import { toast } from "sonner";
 
 
 export default function ViewStudentModal({ closeModal, studentId }: { closeModal: () => void; studentId: number }) {
     const addLectureModal = useModal();
     const endLectureModal = useModal();
+    const [endingEnrollmentId, setEndingEnrollmentId] = useState<number>();
+    const [isEndingEnrollment, setIsEndingEnrollment] = useState(false);
     const [studentState, setStudentState] = useState<{
         student?: StudentDetailData;
         error: string;
@@ -41,6 +46,36 @@ export default function ViewStudentModal({ closeModal, studentId }: { closeModal
             error: response.message,
             isLoading: false,
         }));
+    };
+
+    const openEndLectureModal = (enrollmentId: number) => {
+        setEndingEnrollmentId(enrollmentId);
+        endLectureModal.openModal();
+    };
+
+    const closeEndLectureModal = () => {
+        if (isEndingEnrollment) return;
+
+        setEndingEnrollmentId(undefined);
+        endLectureModal.closeModal();
+    };
+
+    const endStudentEnrollment = async () => {
+        if (!endingEnrollmentId || isEndingEnrollment) return;
+
+        setIsEndingEnrollment(true);
+        const response = await endStudentEnrollmentAction(studentId, endingEnrollmentId);
+        setIsEndingEnrollment(false);
+
+        if (!response.success) {
+            toast.error(response.message);
+            return;
+        }
+
+        toast.success(response.message);
+        endLectureModal.closeModal();
+        setEndingEnrollmentId(undefined);
+        await refreshStudent();
     };
 
 
@@ -127,10 +162,7 @@ export default function ViewStudentModal({ closeModal, studentId }: { closeModal
                             <p className="text-[11px] leading-[16.5px] text-[#94A3B8]">학년</p>
                             <p className="mt-[3px] text-[13px] leading-[19.5px] font-medium text-[#1D2B3A]">{STUDENT_GRADE_LABEL[student?.grade || 'ELEMENTARY_1']}</p>
                         </div>
-                        <div>
-                            <p className="text-[11px] leading-[16.5px] text-[#94A3B8]">특이사항</p>
-                            <p className="mt-[3px] text-[13px] leading-[19.5px] font-medium text-[#1D2B3A]">{student?.note ?? "-"}</p>
-                        </div>
+                        <StudentNoteItem note={student?.note} />
                     </div>
                 </section>
 
@@ -142,16 +174,11 @@ export default function ViewStudentModal({ closeModal, studentId }: { closeModal
                         <p className="mt-3 rounded-[10px] border border-[#E8F0EB] bg-[#F7FAF8] px-3.5 py-3 text-center text-xs text-[#94A3B8]">수강 중인 강의가 없습니다.</p>
                     ) : (
                         student?.enrollments.map((enrollment) => (
-                            <div className="mt-3 flex items-center justify-between rounded-[10px] border border-[#E8F0EB] bg-[#F7FAF8] px-3.5 py-3" key={enrollment.enrollmentId}>
-                                <div>
-                                    <p className="text-[13px] leading-[19.5px] font-semibold text-[#1D2B3A]">{enrollment.lectureName}</p>
-                                    <p className="pt-0.5 text-[11px] leading-[16.5px] text-[#64748B]">{enrollment.teacherName ?? "담당자 미등록"} · {enrollment.enrolledAt}</p>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <span className="rounded-full bg-[#D1EAE4] px-2 py-[3px] text-[10px] leading-[15px] font-semibold text-[#3D7A6A]">수강중</span>
-                                    <button className="rounded-[6px] border border-[#DCE8E2] bg-white px-2 py-1 text-[11px] leading-[16.5px] text-[#64748B]" onClick={endLectureModal.openModal} type="button">수강 종료</button>
-                                </div>
-                            </div>
+                            <StudentAttendLectureItem
+                                enrollment={enrollment}
+                                key={enrollment.enrollmentId}
+                                onEndLecture={openEndLectureModal}
+                            />
                         ))
                     )}
                     <button className="mt-2 flex h-[43px] w-full items-center justify-center gap-1.5 rounded-[10px] border border-dashed border-[#DCE8E2] text-[13px] leading-[19.5px] font-medium text-[#3D7A6A]" onClick={addLectureModal.openModal} type="button">
@@ -163,13 +190,20 @@ export default function ViewStudentModal({ closeModal, studentId }: { closeModal
 
 
             {addLectureModal.isModal && (
-                <AddStudentLectureModal closeModal={addLectureModal.closeModal} />
+                <AddStudentLectureModal
+                    closeModal={addLectureModal.closeModal}
+                    enrolledLectureIds={student?.enrollments.map((enrollment) => enrollment.lectureId) ?? []}
+                    refreshStudent={refreshStudent}
+                    studentId={studentId}
+                    studentName={student?.name ?? ""}
+                />
             )}
             {endLectureModal.isModal && (
                 <TwoButtonModal
-                    activeModal={endLectureModal.activeModal}
-                    closeModal={endLectureModal.closeModal}
+                    activeModal={endStudentEnrollment}
+                    closeModal={closeEndLectureModal}
                     content="해당 강의 수강을 종료하시겠습니까?"
+                    isPending={isEndingEnrollment}
                     title="수강 종료"
                 />
             )}

@@ -1,0 +1,26 @@
+export const payrollBatchResultMock: PayrollEmailBatchResultData = {
+    batchId: 701,
+    yearMonth: "2026-08",
+    status: "COMPLETED",
+    summary: {
+        totalCount: 8,
+        pendingCount: 0,
+        sendingCount: 0,
+        sentCount: 2,
+        retryWaitCount: 0,
+        unknownCount: 0,
+        deliveredCount: 0,
+        failedCount: 0,
+        skippedCount: 6,
+    },
+    deliveries: [
+        { deliveryId: 1, employeeId: 1, employeeName: "이민준", recipientEmailMasked: "mi***@mudo.academy", status: "SENT", failureReason: null },
+        { deliveryId: 2, employeeId: 2, employeeName: "한소율", recipientEmailMasked: "so***@mudo.academy", status: "SENT", failureReason: null },
+        { deliveryId: 3, employeeId: 3, employeeName: "윤재하", recipientEmailMasked: "-", status: "SKIPPED", failureReason: "명세서가 준비되지 않았습니다" },
+        { deliveryId: 4, employeeId: 4, employeeName: "김서연", recipientEmailMasked: "-", status: "SKIPPED", failureReason: "급여가 확정되지 않았습니다" },
+        { deliveryId: 5, employeeId: 5, employeeName: "박도윤", recipientEmailMasked: "-", status: "SKIPPED", failureReason: "급여가 확정되지 않았습니다" },
+        { deliveryId: 6, employeeId: 6, employeeName: "최지우", recipientEmailMasked: "-", status: "SKIPPED", failureReason: "급여가 확정되지 않았습니다" },
+        { deliveryId: 7, employeeId: 7, employeeName: "정하람", recipientEmailMasked: "-", status: "SKIPPED", failureReason: "급여가 확정되지 않았습니다" },
+        { deliveryId: 8, employeeId: 8, employeeName: "오세훈", recipientEmailMasked: "-", status: "SKIPPED", failureReason: "급여가 확정되지 않았습니다" },
+    ],
+};

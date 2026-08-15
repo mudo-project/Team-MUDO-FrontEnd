@@ -8,6 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getWorkspaceDetailAction } from "../actions";
 import TaskCreateButton from "./TaskCreateButton";
 import TaskTemplateCreateButton from "./TaskTemplateCreateButton";
+import Attend from "./Attend";
 
 export default function WorkspaceHeader({ workspaceId }: { workspaceId: string }) {
     const {
@@ -36,12 +37,9 @@ export default function WorkspaceHeader({ workspaceId }: { workspaceId: string }
                         <WorkspaceEditButton workspaceId={workspaceId} />
                     </div>
                     <p className="mt-0.5 text-[10px] text-[#B0B7C2] lg:mt-1 lg:text-[11px]">
-                        참여자: {workspaceData?.data?.members.
-                            map((member, i) => (
-                                <span key={member.userId}>
-                                    {member.name}{i + 1 !== workspaceData.data?.members.length ? ', ' : ' '}
-                                </span>
-                            ))}({workspaceData?.data?.memberCount}명)
+                        참여자: {workspaceData?.data?.members.map((member, i) =>
+                            <Attend workspaceData={workspaceData} member={member} i={i} key={member.userId} />
+                        )}({workspaceData?.data?.memberCount}명)
                     </p>
                 </div>
                 <div className="ml-auto flex items-center gap-1 ">

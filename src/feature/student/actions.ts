@@ -127,8 +127,11 @@ export const deleteStudentAction = async (
 
 export const createStudentEnrollmentAction = async (
     studentId: number,
-    lectureId: number,
+    _prevState: StudentActionResult<CreateStudentEnrollmentData>,
+    formData: FormData,
 ): Promise<StudentActionResult<CreateStudentEnrollmentData>> => {
+    const lectureId = Number(formData.get("lectureId"));
+
     if (!isPositiveInteger(studentId) || !isPositiveInteger(lectureId)) {
         return { success: false, message: "학생 또는 강의 번호가 올바르지 않습니다." };
     }
