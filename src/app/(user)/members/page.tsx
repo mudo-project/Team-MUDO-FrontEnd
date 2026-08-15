@@ -40,7 +40,7 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
                 </div>
 
                 <div className="mt-4 overflow-auto h-[calc(100vh-170px)] rounded-[12px] border border-[#D7E8DB] bg-white md:min-w-[680px]">
-                    <div className="stiky top-0 left-0 grid h-10 grid-cols-5 items-center bg-[#FAFBFC] px-5 text-[11px] font-semibold tracking-[0.44px] text-[#64748B] sm:grid-cols-7">
+                    <div className="sticky top-0 left-0 grid h-10 grid-cols-5 items-center bg-[#FAFBFC] px-5 text-[11px] font-semibold tracking-[0.44px] text-[#64748B] sm:grid-cols-7">
                         <span className="col-span-3 md:pl-11">이름</span>
                         <span className="col-span-1">역할</span>
                         <span className="col-span-1">연락처</span>
