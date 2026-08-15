@@ -1,7 +1,7 @@
 # Alarm(알림) Domain — CONTEXT
 > 배치 경로: `src/feature/alarm/CONTEXT.md`
 > 목적: 이 문서를 읽은 사람 또는 AI 에이전트가 알림 도메인이 **무엇을 하는 도메인이고, 어떤 기능이 있으며, 어떤 조각으로 이루어져 있는지** 파악할 수 있게 한다.
-> 구현 상태: 기능 단계 완료(목업 데이터 + 로컬 state) — Sidebar 진입점, `/alarm` 목록 화면, 읽음 처리·개별 삭제·읽은 알림 일괄 삭제 클릭 이벤트까지 구현됨(`AlarmContainer`의 React state로 동작, 실제 API 호출 없음). 무한 스크롤·API 연동(type/action/service)·WebSocket 실시간 수신은 아직 미구현. 순차 구현 계획(CONTEXT → UI → 기능 → API 연결 준비 → API 연동)에 따라 각 단계가 끝날 때마다 갱신한다.
+> 구현 상태: API 연결 준비 완료(type/service/actions) — Sidebar 진입점, `/alarm` 목록 화면, 읽음 처리·개별 삭제·읽은 알림 일괄 삭제 클릭 이벤트는 `AlarmContainer`의 로컬 state로 동작 중이며, `src/feature/alarm/type.ts`·`src/service/alarm.service.ts`·`src/feature/alarm/actions.ts`가 작성되어 실제 API 호출 준비는 끝났지만 아직 컴포넌트에 연결되지 않았다(화면은 여전히 목업 데이터 기준). 무한 스크롤·실제 API 연동·WebSocket 실시간 수신은 아직 미구현. 순차 구현 계획(CONTEXT → UI → 기능 → API 연결 준비 → API 연동)에 따라 각 단계가 끝날 때마다 갱신한다.
 
 ---
 
@@ -17,7 +17,7 @@
 ### 핵심 제약
 
 - 알림 "생성" REST API는 없다. 저장은 백엔드 이벤트 발생 시 서버가 직접 수행한다.
-- 실시간 WebSocket 수신 페이로드(`TASK_COMMENT_MENTIONED`, `APPROVAL_LINE_ACTIVATED`)는 알림함 REST 응답(`NotificationItemResponse`)과 필드 구조가 다르다. 실시간 수신은 토스트 표시와 안읽은 개수 증가에만 사용하고, 알림함 목록 자체는 REST 재조회로 갱신한다(실시간 payload를 목록 아이템으로 직접 변환해 끼워 넣지 않는다).
+- 실시간 WebSocket 수신 페이로드(`TASK_COMMENT_MENTIONED`, `APPROVAL_LINE_ACTIVATED`)는 알림함 REST 응답(`NotificationItemData`)과 필드 구조가 다르다. 실시간 수신은 토스트 표시와 안읽은 개수 증가에만 사용하고, 알림함 목록 자체는 REST 재조회로 갱신한다(실시간 payload를 목록 아이템으로 직접 변환해 끼워 넣지 않는다).
 - 결재 승인/반려/취소는 실시간 push가 없다. 알림함 REST 조회로만 확인 가능하다.
 - 읽음/안읽음 필터는 없다 — 알림함 목록은 항상 섞어서 반환된다(API 스펙).
 - 알림 클릭 시 `targetId` 기반 화면 이동(라우팅)은 이번 구현 범위에 포함하지 않는다. 클릭 시 읽음 처리만 수행한다.
@@ -29,13 +29,13 @@ Sidebar에 신규 추가할 알림 메뉴(`src/components/layout/Sidebar.tsx`, `
 
 `공지사항` 메뉴가 이미 `Bell` 아이콘을 쓰고 있어, 알림 메뉴는 `NavLink`/`Sidebar`의 아이콘 유니언에 `BellRing`을 추가해 구분한다.
 
-### 데이터 연동 계층 (예정)
+### 데이터 연동 계층
 
-- `src/feature/alarm/type.ts` — 요청/응답 인터페이스.
-- `src/service/alarm.service.ts` — `fetchWithAuth` 기반 API 호출(목록 조회, 안읽은 개수 조회, 읽음 처리, 개별 삭제, 일괄 삭제).
-- `src/feature/alarm/actions.ts` — 위 service를 감싼 Server Action. 컴포넌트는 이 액션만 호출하고 service를 직접 부르지 않는다.
-- `src/feature/alarm/components/AlarmRealtimeProvider.tsx` — WebSocket 연결/구독 Provider(`src/feature/messenger/components/MessengerRealtimeProvider.tsx`와 유사한 구조로, 알림 도메인 전용 STOMP 클라이언트를 별도로 둔다). 구독 주소는 `/topic/workspaces/users/{userId}`(멘션), `/topic/approvals/users/{userId}`(결재 차례 도달).
-- API 응답이 없거나 실패하면 목록은 "알림을 불러오지 못했습니다"를 보여준다(페이지 자체는 죽지 않음).
+- `src/feature/alarm/type.ts` — 요청/응답 인터페이스(`NotificationListParams`, `NotificationItemData`, `NotificationListData`, `NotificationListResponse`, `NotificationUnreadCountData`, `NotificationUnreadCountResponse`). `export` 없이 선언되어 프로젝트 전역에서 import 없이 바로 참조된다(notice 등 다른 도메인 `type.ts`와 같은 스타일) — 구현 완료.
+- `src/service/alarm.service.ts` — `fetchWithAuth` 기반 API 호출(`getNotificationList`, `getUnreadNotificationCount`, `readNotification`, `deleteNotification`, `deleteReadNotifications`) — 구현 완료.
+- `src/feature/alarm/actions.ts` — 위 service를 감싼 Server Action(`getNotificationListAction`, `getUnreadNotificationCountAction`, `readNotificationAction`, `deleteNotificationAction`, `deleteReadNotificationsAction`). 컴포넌트는 이 액션만 호출하고 service를 직접 부르지 않는다 — 구현 완료. 단, 아직 어떤 컴포넌트도 이 액션들을 호출하지 않는다(다음 단계인 API 연동에서 연결 예정).
+- `src/feature/alarm/components/AlarmRealtimeProvider.tsx` — WebSocket 연결/구독 Provider(예정, `src/feature/messenger/components/MessengerRealtimeProvider.tsx`와 유사한 구조로, 알림 도메인 전용 STOMP 클라이언트를 별도로 둔다). 구독 주소는 `/topic/workspaces/users/{userId}`(멘션), `/topic/approvals/users/{userId}`(결재 차례 도달) — 미구현.
+- API 응답이 없거나 실패하면 목록은 "알림을 불러오지 못했습니다"를 보여준다(페이지 자체는 죽지 않음) — 이 실패 처리는 아직 화면에 연결되지 않음(목업 데이터라 실패 경로 자체가 없음).
 
 ---
 
