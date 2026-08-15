@@ -1,5 +1,6 @@
 'use client'
 import { getUserListAction } from "@/feature/auth/actions";
+import { useUserStore } from "@/store/useUserStore";
 import { ChevronDown } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -8,14 +9,15 @@ interface ApprovalLine {
     approverId: number | "";
 }
 
-const approverOptions = [
-    { id: 1, name: "김지수", role: "원장" },
-    { id: 2, name: "이민준", role: "강사" },
-    { id: 3, name: "박서연", role: "직원" },
-];
+interface ApprovalLineItemProps {
+    line: ApprovalLine;
+    selectedApproverIds?: number[];
+    removeApprovalLine: (stepOrder: number) => void;
+    changeApprover: (stepOrder: number, approverId: number | "") => void;
+}
 
-
-export default function ApprovalLineItem({ line, removeApprovalLine, changeApprover }: { line: ApprovalLine, removeApprovalLine: (stepOrder: number) => void, changeApprover: (stepOrder: number, approverId: number | "") => void }) {
+export default function ApprovalLineItem({ line, selectedApproverIds = [], removeApprovalLine, changeApprover }: ApprovalLineItemProps) {
+    const userId = Number(useUserStore((state) => state.user.sub));
 
     const [userList, setUserList] = useState<{
         loading: boolean;
@@ -63,7 +65,14 @@ export default function ApprovalLineItem({ line, removeApprovalLine, changeAppro
                 >
                     <option hidden disabled value="">결재자를 선택해 주세요</option>
                     {userList.data.map((user: UserListResponse) => (
-                        <option key={user.userId} value={user.userId}>
+                        <option
+                            disabled={
+                                user.userId === userId ||
+                                (selectedApproverIds.includes(user.userId) && user.userId !== line.approverId)
+                            }
+                            key={user.userId}
+                            value={user.userId}
+                        >
                             {user.name} ({user.username})
                         </option>
                     ))}

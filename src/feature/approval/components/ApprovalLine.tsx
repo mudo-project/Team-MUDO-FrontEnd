@@ -4,6 +4,7 @@ import { Dispatch, SetStateAction, useEffect } from "react";
 import { ApprovalTemplateLineData, ApprovalTemplateListData } from "../type";
 import { getApprovalTemplateListAction } from "../actions";
 import { getUserListAction } from "@/feature/auth/actions";
+import { useUserStore } from "@/store/useUserStore";
 import { ChevronDown, Plus } from "lucide-react";
 
 interface TemplateDatas {
@@ -25,6 +26,7 @@ interface Props {
 }
 
 export default function ApprovalLine({ setSelectedTemplateId, setApprovalLines, setHasChangedApprovalLine, approvalLines, selectedTemplateId, templateDatas, setTemplateDatas }: Props) {
+    const userId = Number(useUserStore((state) => state.user.sub));
 
     useEffect(() => {
         let cancelled = false;
@@ -82,7 +84,7 @@ export default function ApprovalLine({ setSelectedTemplateId, setApprovalLines, 
     const approverIds = approvalLines.map(({ approverId }) => approverId);
 
     const availableUser = templateDatas.users.find(
-        ({ userId }) => !approverIds.includes(userId),
+        (user) => user.userId !== userId && !approverIds.includes(user.userId),
     );
 
     // 결재 라인 변경
@@ -111,8 +113,10 @@ export default function ApprovalLine({ setSelectedTemplateId, setApprovalLines, 
         setHasChangedApprovalLine(true);
     };
 
-    const changeApprover = (stepOrder: number, userId: number) => {
-        const user = templateDatas.users.find(({ userId: id }) => id === userId);
+    const changeApprover = (stepOrder: number, approverId: number) => {
+        if (approverId === userId) return;
+
+        const user = templateDatas.users.find(({ userId: id }) => id === approverId);
         if (!user) return;
 
         setApprovalLines((current) =>
@@ -171,7 +175,14 @@ export default function ApprovalLine({ setSelectedTemplateId, setApprovalLines, 
                                         <option value={line.approverId}>{line.approverName}</option>
                                     )}
                                     {templateDatas.users.map((user) => (
-                                        <option disabled={approverIds.includes(user.userId) && user.userId !== line.approverId} key={user.userId} value={user.userId}>
+                                        <option
+                                            disabled={
+                                                user.userId === userId ||
+                                                (approverIds.includes(user.userId) && user.userId !== line.approverId)
+                                            }
+                                            key={user.userId}
+                                            value={user.userId}
+                                        >
                                             {user.name} ({user.username})
                                         </option>
                                     ))}

@@ -2,7 +2,10 @@
 
 "use client";
 
-import { getApprovalDetailAction } from "@/feature/approval/actions";
+import {
+    getApprovalDetailAction,
+    summarizeApprovalAttachmentAction,
+} from "@/feature/approval/actions";
 import ApprovalAttachmentDownloadButton from "../ApprovalAttachmentDownloadButton";
 import {
     ApprovalDetailData,
@@ -41,6 +44,7 @@ interface ReceivedApprovalModalProps {
 export default function ReceivedApprovalModal({ closeModal, activeModal, noneActiveModal, id }: ReceivedApprovalModalProps) {
     const [approval, setApproval] = useState<ApprovalDetailData>();
     const [error, setError] = useState("");
+    const [summaryError, setSummaryError] = useState("");
 
     useEffect(() => {
         let cancelled = false;
@@ -55,7 +59,33 @@ export default function ReceivedApprovalModal({ closeModal, activeModal, noneAct
                 return;
             }
 
-            setApproval(response.data);
+            const approvalDetail = response.data;
+            setApproval(approvalDetail);
+
+            const attachmentsWithoutSummary = approvalDetail.attachments.filter(
+                ({ aiSummary, fileId }) => !aiSummary && fileId > 0,
+            );
+
+            if (attachmentsWithoutSummary.length === 0) return;
+
+            const summaryResponses = await Promise.all(
+                attachmentsWithoutSummary.map(({ fileId }) =>
+                    summarizeApprovalAttachmentAction(approvalDetail.id, fileId),
+                ),
+            );
+
+            if (cancelled) return;
+
+            const failedSummary = summaryResponses.find(({ success }) => !success);
+            if (failedSummary) setSummaryError(failedSummary.message);
+
+            const refreshedResponse = await getApprovalDetailAction(id);
+
+            if (cancelled) return;
+
+            if (refreshedResponse.success && refreshedResponse.data) {
+                setApproval(refreshedResponse.data);
+            }
         };
 
         void loadApproval();
@@ -113,7 +143,7 @@ export default function ReceivedApprovalModal({ closeModal, activeModal, noneAct
                             <section className="pt-5">
                                 <h3 className="text-[11px] font-semibold leading-[16.5px] tracking-[0.55px] text-[#64748B]">요약</h3>
                                 <div className="mt-2 w-full rounded-[8px] border border-[#D7E8DB] bg-[#FAFBFC] px-4 py-3.5">
-                                    <p className="text-[13px] leading-[22.1px] text-[#3D4A5A]">{summary || "생성된 AI 요약이 없습니다."}</p>
+                                    <p className="text-[13px] leading-[22.1px] text-[#3D4A5A]">{summary || summaryError || "생성된 AI 요약이 없습니다."}</p>
                                 </div>
                             </section>
                             <section className="pt-5">
