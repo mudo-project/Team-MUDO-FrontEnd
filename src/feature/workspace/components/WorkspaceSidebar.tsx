@@ -8,9 +8,12 @@ import WorkspaceNavLink from "./WorkspaceNavLink";
 import useModal from "@/components/hooks/useModal";
 import CreateWorkspaceModal from "./modals/CreateWorkspaceModal";
 import { useQuery } from "@tanstack/react-query";
+import { useUserStore } from "@/store/useUserStore";
 
 
 export default function WorkspaceSidebar() {
+    const permissions = useUserStore((state) => state.permissions)
+
     const [open, setOpen] = useState<boolean>(true);
     const modal = useModal();
     const {
@@ -19,7 +22,7 @@ export default function WorkspaceSidebar() {
         isError: workspaceListError,
     } = useQuery({
         queryKey: ["workspace-list", "MINE"],
-        queryFn: () => getWorkspaceListAction("MINE"),
+        queryFn: () => getWorkspaceListAction(permissions.includes('WORKSPACE:READ_ALL') ? 'ALL' : "MINE"),
     });
 
     const workspaceList = workspaceListData?.data ?? [];
