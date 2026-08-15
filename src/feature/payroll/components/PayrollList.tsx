@@ -9,13 +9,17 @@ import PayrollListItem from "./PayrollListItem";
 
 interface PayrollListProps {
     items: PayrollListItemData[];
+    onToggleAll: () => void;
+    onToggleItem: (employeeId: number) => void;
+    selectedItemIds: number[];
 }
 
-export default function PayrollList({ items }: PayrollListProps) {
+export default function PayrollList({ items, onToggleAll, onToggleItem, selectedItemIds }: PayrollListProps) {
     const [selectedPayrollId, setSelectedPayrollId] = useState<number | null>(null);
     const [calculatingItem, setCalculatingItem] = useState<PayrollListItemData | null>(null);
     const calculateModal = useModal();
     const selectedDetail = selectedPayrollId !== null ? payrollDetailMock[selectedPayrollId] ?? null : null;
+    const isAllSelected = items.length > 0 && items.every((item) => selectedItemIds.includes(item.employeeId));
 
     const handleCalculate = (item: PayrollListItemData) => {
         setCalculatingItem(item);
@@ -39,7 +43,7 @@ export default function PayrollList({ items }: PayrollListProps) {
                 <thead className="border-b border-[#E1EBE3] text-[11px] font-medium text-[#94A3B8]">
                     <tr className="h-[50px]">
                         <th className="px-5 text-center">
-                            <input aria-label="전체 선택" className="size-4 accent-[#172033]" type="checkbox" />
+                            <input aria-label="전체 선택" checked={isAllSelected} className="size-4 accent-[#172033]" onChange={onToggleAll} type="checkbox" />
                         </th>
                         <th className="px-3">직원명</th>
                         <th className="px-3">고용형태</th>
@@ -55,8 +59,22 @@ export default function PayrollList({ items }: PayrollListProps) {
                 </thead>
                 <tbody>
                     {items.map((item) => (
-                        <PayrollListItem item={item} key={item.employeeId} onCalculate={handleCalculate} onPreview={setSelectedPayrollId} />
+                        <PayrollListItem
+                            isSelected={selectedItemIds.includes(item.employeeId)}
+                            item={item}
+                            key={item.employeeId}
+                            onCalculate={handleCalculate}
+                            onPreview={setSelectedPayrollId}
+                            onToggleSelect={onToggleItem}
+                        />
                     ))}
+                    {items.length === 0 && (
+                        <tr>
+                            <td className="px-5 py-10 text-center text-[13px] text-[#94A3B8]" colSpan={9}>
+                                조건에 맞는 직원이 없습니다.
+                            </td>
+                        </tr>
+                    )}
                 </tbody>
             </table>
 
