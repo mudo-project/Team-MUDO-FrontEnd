@@ -2,15 +2,17 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { PERIOD_OPTIONS } from "../constants";
-import { DashboardPeriod, DashboardScope } from "../type";
+import { AcademyData, DashboardPeriod, DashboardScope } from "../type";
 
 interface SuperAdminFilterProps {
+    academies: AcademyData[];
     academyCode?: string;
+    academyListError: string;
     period: DashboardPeriod;
     scope: DashboardScope;
 }
 
-export default function SuperAdminFilter({ academyCode, period, scope }: SuperAdminFilterProps) {
+export default function SuperAdminFilter({ academies, academyCode, academyListError, period, scope }: SuperAdminFilterProps) {
     const pathname = usePathname();
     const router = useRouter();
 
@@ -27,7 +29,7 @@ export default function SuperAdminFilter({ academyCode, period, scope }: SuperAd
     };
 
     const changeScope = (nextScope: DashboardScope) => {
-        replaceFilters(nextScope, period, nextScope === "ACADEMY" ? academyCode ?? "academy-a" : undefined);
+        replaceFilters(nextScope, period, nextScope === "ACADEMY" ? academyCode ?? academies[0]?.code : undefined);
     };
 
     return (
@@ -40,15 +42,17 @@ export default function SuperAdminFilter({ academyCode, period, scope }: SuperAd
                 <select
                     aria-label="학원 선택"
                     className="h-9 w-[150px] rounded-[8px] border border-[#D7E8DB] bg-white px-3 text-[13px] text-[#0F172A] outline-none"
+                    disabled={academies.length === 0}
                     onChange={(event) => replaceFilters(scope, period, event.target.value)}
-                    value={academyCode}
+                    value={academyCode ?? ""}
                 >
-                    <option value="academy-a">academy-a</option>
-                    <option value="academy-b">academy-b</option>
-                    <option value="academy-c">academy-c</option>
-                    <option value="academy-d">academy-d</option>
+                    {academies.length === 0 && <option value="">조회된 학원 없음</option>}
+                    {academies.map((academy) => (
+                        <option key={academy.code} value={academy.code}>{academy.code}</option>
+                    ))}
                 </select>
             )}
+            {academyListError && <p className="text-[12px] text-red-500" role="alert">{academyListError}</p>}
             <span className="h-5 w-px bg-[#D7E8DB]" />
             {PERIOD_OPTIONS.map((option) => (
                 <button
