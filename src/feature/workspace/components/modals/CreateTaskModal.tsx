@@ -4,9 +4,11 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createWorkspaceTaskAction } from "../../actions";
 import { toast } from "sonner";
 import { useState } from "react";
+import { format } from "date-fns";
+import { useUserStore } from "@/store/useUserStore";
 
 export default function CreateTaskModal({ closeModal, workspaceId }: { closeModal: () => void, workspaceId: string }) {
-
+    const user = useUserStore((state) => state.user)
     const queryClient = useQueryClient();
     const [error, setError] = useState<string>('')
 
@@ -80,8 +82,8 @@ export default function CreateTaskModal({ closeModal, workspaceId }: { closeModa
                 </div>
 
                 <div className="mt-4 rounded-[8px] bg-[#F7F8FA] px-3 py-3 text-[12px] leading-6 text-[#A1AAB8]">
-                    등록자: <strong className="font-semibold">김지수</strong> · 등록일시:{" "}
-                    <strong className="font-semibold">2026.08.03 12:10</strong> · 초기 상태:{" "}
+                    등록자: <strong className="font-semibold">{user.username}</strong> · 등록일시:{" "}
+                    <strong className="font-semibold">{format(new Date(), "yyyy.MM.dd HH:mm")}</strong> · 초기 상태:{" "}
                     <strong className="font-semibold">대기</strong> — 자동 기록
                 </div>
                 {error &&
@@ -92,7 +94,7 @@ export default function CreateTaskModal({ closeModal, workspaceId }: { closeModa
 
 
                 <button
-                    className="mt-4 h-11 w-full rounded-[8px] bg-[#A9ADB5] text-[14px] font-semibold text-white"
+                    className="mt-4 h-11 w-full rounded-[8px] bg-[#1D2639] text-[14px] font-semibold text-white"
                     type="submit"
                 >
                     업무 등록

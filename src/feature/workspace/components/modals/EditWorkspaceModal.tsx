@@ -1,15 +1,13 @@
 "use client";
 
 import { X } from "lucide-react";
-import { useActionState, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { toast } from "sonner";
 import {
     changeWorkspaceNameAction,
     getWorkspaceDetailAction,
-    WorkspaceActionResult,
 } from "../../actions";
-import { WorkspaceDetailData } from "../../type";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 interface EditWorkspaceModalProps {
     closeModal: () => void;
@@ -20,46 +18,48 @@ export default function EditWorkspaceModal({
     closeModal,
     workspaceId,
 }: EditWorkspaceModalProps) {
-    const router = useRouter();
-    const id = Number(workspaceId);
-    const actionWithId = changeWorkspaceNameAction.bind(null, id);
-    const [state, formAction, isPending] = useActionState(actionWithId, {
-        success: false,
-        message: "",
-        data: undefined,
+    const queryClient = useQueryClient();
+    const [changeError, setChangeError] = useState("");
+    const {
+        data: workspaceData,
+        isPending: workspacePending,
+        isError: workspaceError,
+    } = useQuery({
+        queryKey: ["workspace", workspaceId],
+        queryFn: () => getWorkspaceDetailAction(Number(workspaceId)),
     });
-    const [workspaceDetail, setWorkspaceDetail] = useState<{
-        loading: boolean;
-        error: string;
-        data?: WorkspaceDetailData;
-    }>({
-        loading: true,
-        error: "",
-        data: undefined,
-    });
+    const changeWorkspaceMutation = useMutation({
+        mutationFn: (formData: FormData) =>
+            changeWorkspaceNameAction(
+                Number(workspaceId),
+                { success: false, message: "" },
+                formData,
+            ),
+        onSuccess: (result) => {
+            if (!result.success) {
+                setChangeError(result.message);
+                return;
+            }
 
-    useEffect(() => {
-        const fetchWorkspaceDetail = async () => {
-            const response: WorkspaceActionResult<WorkspaceDetailData> =
-                await getWorkspaceDetailAction(id);
-
-            setWorkspaceDetail({
-                loading: false,
-                error: response.success ? "" : response.message,
-                data: response.data,
+            void queryClient.invalidateQueries({
+                queryKey: ["workspace", workspaceId],
             });
-        };
+            void queryClient.invalidateQueries({
+                queryKey: ["workspace-list", "MINE"],
+            });
+            closeModal();
+            toast.success(result.message);
+        },
+        onError: (error) => {
+            setChangeError(error.message);
+        },
+    });
 
-        fetchWorkspaceDetail();
-    }, [id]);
-
-    useEffect(() => {
-        if (!state.success) return;
-
-        toast.success(state.message);
-        closeModal();
-        router.refresh();
-    }, [state, closeModal, router]);
+    const workspaceDetailError = workspaceError
+        ? "워크스페이스 상세 조회에 실패했습니다."
+        : !workspacePending && !workspaceData?.success
+          ? workspaceData?.message
+          : "";
 
     return (
         <div
@@ -67,9 +67,15 @@ export default function EditWorkspaceModal({
             onClick={closeModal}
         >
             <form
-                action={formAction}
                 className="fixed top-1/2 left-1/2 z-1000 w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-[12px] bg-white p-6 shadow-[0_8px_16px_rgba(22,34,54,0.16)]"
                 onClick={(event) => event.stopPropagation()}
+                onSubmit={(event) => {
+                    event.preventDefault();
+                    setChangeError("");
+                    changeWorkspaceMutation.mutate(
+                        new FormData(event.currentTarget),
+                    );
+                }}
             >
                 <div className="flex w-full items-center">
                     <h2 className="text-[15px] leading-[22.5px] font-bold text-[#0F172A]">
@@ -94,36 +100,38 @@ export default function EditWorkspaceModal({
                     </label>
                     <input
                         className="mt-1.5 h-[37px] w-full rounded-[8px] border border-[#D7E8DB] px-3 text-[13px] text-[#0F172A] placeholder:text-[#0F172A]/50 focus:outline-none disabled:bg-[#F7F9F8]"
-                        defaultValue={workspaceDetail.data?.name}
-                        disabled={workspaceDetail.loading || Boolean(workspaceDetail.error)}
+                        defaultValue={workspaceData?.data?.name}
+                        disabled={workspacePending || Boolean(workspaceDetailError)}
                         id="workspace-name"
-                        key={workspaceDetail.data?.workspaceId}
+                        key={workspaceData?.data?.workspaceId}
                         name="name"
                         placeholder="워크스페이스 이름"
                         required
                     />
                 </div>
-                {workspaceDetail.error && (
+                {workspaceDetailError && (
                     <p className="mt-3 text-[12px] text-red-500" role="alert">
-                        {workspaceDetail.error}
+                        {workspaceDetailError}
                     </p>
                 )}
-                {!state.success && state.message && (
+                {changeError && (
                     <p className="mt-3 text-[12px] text-red-500" role="alert">
-                        {state.message}
+                        {changeError}
                     </p>
                 )}
 
                 <button
                     className="mt-3.5 h-10 w-full rounded-[8px] bg-[#0F172A] text-[13px] leading-[19.5px] font-medium text-white disabled:bg-[#0F172A]/40"
                     disabled={
-                        isPending ||
-                        Boolean(workspaceDetail.error) ||
-                        workspaceDetail.loading
+                        changeWorkspaceMutation.isPending ||
+                        Boolean(workspaceDetailError) ||
+                        workspacePending
                     }
                     type="submit"
                 >
-                    {isPending ? "수정 중..." : "워크스페이스 수정"}
+                    {changeWorkspaceMutation.isPending
+                        ? "수정 중..."
+                        : "워크스페이스 수정"}
                 </button>
             </form>
         </div>
