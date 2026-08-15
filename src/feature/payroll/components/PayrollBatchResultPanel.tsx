@@ -17,8 +17,8 @@ export default function PayrollBatchResultPanel({ onClose, result }: PayrollBatc
             <aside className="absolute inset-y-0 right-0 flex w-full max-w-[520px] flex-col bg-white shadow-[-12px_0_28px_rgba(23,32,51,0.12)]">
                 <header className="flex items-center justify-between border-b border-[#E1EBE3] px-7 py-5">
                     <div>
-                        <h1 className="text-[16px] font-bold text-[#172033]">{formatYearMonth(result.yearMonth)} 명세서 일괄 발송 결과</h1>
-                        <p className="mt-1 text-[12px] text-[#94A3B8]">배치 #{result.batchId} · 완료됨</p>
+                        <h1 className="text-[16px] font-bold text-[#172033]">{formatYearMonth(result.yearMonth)} 명세서 발송 결과</h1>
+                        <p className="mt-1 text-[12px] text-[#94A3B8]">{result.batchId > 0 ? `배치 #${result.batchId} · ` : ""}완료됨</p>
                     </div>
                     <button aria-label="닫기" onClick={onClose} type="button">
                         <X className="size-[18px] text-[#718096]" />
@@ -47,7 +47,7 @@ export default function PayrollBatchResultPanel({ onClose, result }: PayrollBatc
                                     <div className="min-w-0 flex-1">
                                         <strong className="block font-semibold text-[#172033]">{delivery.employeeName}</strong>
                                         <span className="mt-0.5 block text-[11px] text-[#94A3B8]">
-                                            {delivery.status === "SKIPPED" ? delivery.failureReason : delivery.recipientEmailMasked}
+                                            {delivery.failureReason ?? delivery.recipientEmailMasked}
                                         </span>
                                     </div>
                                     <span className={`inline-flex shrink-0 rounded-full px-2.5 py-1 text-[10px] font-semibold ${PAYROLL_EMAIL_STATUS_BADGE_CLASS[delivery.status]}`}>
