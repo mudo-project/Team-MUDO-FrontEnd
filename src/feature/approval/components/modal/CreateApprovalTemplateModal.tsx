@@ -23,6 +23,7 @@ export default function CreateApprovalTemplateModal({
     const [approvalLines, setApprovalLines] = useState<ApprovalLine[]>([
         { stepOrder: 1, approverId: "" },
     ]);
+
     const [state, createTemplateFormAction, ispending] = useActionState(createApprovalTemplateAction, {
         success: false,
         message: '',
@@ -38,6 +39,9 @@ export default function CreateApprovalTemplateModal({
         }
     }, [state])
 
+    const selectedApproverIds = approvalLines
+        .map(({ approverId }) => approverId)
+        .filter((approverId): approverId is number => typeof approverId === "number");
 
     const addApprovalLine = () => {
         setApprovalLines([
@@ -114,7 +118,13 @@ export default function CreateApprovalTemplateModal({
                         </p>
                         <div className="pt-1.5">
                             {approvalLines.map((line) => (
-                                <ApprovalLineItem key={line.stepOrder} line={line} removeApprovalLine={removeApprovalLine} changeApprover={changeApprover} />
+                                <ApprovalLineItem
+                                    changeApprover={changeApprover}
+                                    key={line.stepOrder}
+                                    line={line}
+                                    removeApprovalLine={removeApprovalLine}
+                                    selectedApproverIds={selectedApproverIds}
+                                />
                             ))}
                             <button
                                 className="flex h-8 w-full items-center gap-1.5 rounded-[7px] border border-dashed border-[#D7E8DB] px-2.5 text-[12px] font-normal leading-[18px] text-[#B0B8C1]"
