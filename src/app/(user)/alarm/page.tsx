@@ -1,5 +1,4 @@
-import AlarmHeader from "@/feature/alarm/components/AlarmHeader";
-import AlarmList from "@/feature/alarm/components/AlarmList";
+import AlarmContainer from "@/feature/alarm/components/AlarmContainer";
 
 const mockAlarms = [
     {
@@ -25,8 +24,7 @@ const mockAlarms = [
 export default function AlarmPage() {
     return (
         <main className="mx-auto w-full max-w-[930px] px-5 py-6">
-            <AlarmHeader />
-            <AlarmList alarms={mockAlarms} />
+            <AlarmContainer initialAlarms={mockAlarms} />
         </main>
     );
 }

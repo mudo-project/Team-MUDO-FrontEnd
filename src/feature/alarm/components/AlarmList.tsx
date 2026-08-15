@@ -8,7 +8,13 @@ interface AlarmListItem {
     createdAt: string;
 }
 
-export default function AlarmList({ alarms }: { alarms: AlarmListItem[] }) {
+interface AlarmListProps {
+    alarms: AlarmListItem[];
+    onItemClick: (notificationId: number) => void;
+    onDelete: (notificationId: number) => void;
+}
+
+export default function AlarmList({ alarms, onItemClick, onDelete }: AlarmListProps) {
     if (alarms.length === 0) {
         return (
             <div className="flex h-[200px] items-center justify-center rounded-xl border border-[#DCE9DF] bg-white text-[13px] text-[#64748B] shadow-[0_1px_2px_rgba(15,23,42,0.02)]">
@@ -24,7 +30,11 @@ export default function AlarmList({ alarms }: { alarms: AlarmListItem[] }) {
                     className="grid min-h-[52px] grid-cols-[minmax(0,1fr)_68px_20px] items-center gap-3 border-b border-[#E5EEE7] px-6 last:border-b-0"
                     key={alarm.notificationId}
                 >
-                    <div className="flex min-w-0 items-center gap-3">
+                    <button
+                        className="flex min-w-0 items-center gap-3 py-2 text-left hover:cursor-pointer"
+                        onClick={() => onItemClick(alarm.notificationId)}
+                        type="button"
+                    >
                         {alarm.read
                             ? <span className="w-1.5 shrink-0" />
                             : <span aria-label="안읽음" className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#4D9560]" />
@@ -34,13 +44,14 @@ export default function AlarmList({ alarms }: { alarms: AlarmListItem[] }) {
                         >
                             {alarm.message}
                         </span>
-                    </div>
+                    </button>
                     <time className="text-right text-[11px] text-[#64748B]">
                         {format(new Date(alarm.createdAt), "MM.dd")}
                     </time>
                     <button
                         aria-label="알림 삭제"
                         className="flex size-[20px] items-center justify-center text-[#C0C8D0] hover:cursor-pointer"
+                        onClick={() => onDelete(alarm.notificationId)}
                         type="button"
                     >
                         <X className="size-3.5" strokeWidth={1.6} />
