@@ -17,6 +17,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { getUserListAction } from "@/feature/auth/actions";
+import { useUserStore } from "@/store/useUserStore";
 
 interface EditApprovalModalProps {
     closeModal: () => void;
@@ -38,6 +39,7 @@ export default function EditApprovalModal({
     approval
 }: EditApprovalModalProps) {
     const router = useRouter();
+    const userId = Number(useUserStore((state) => state.user.sub));
     const isMounted = useRef(true);
 
     const [templateDatas, setTemplateDatas] = useState<TemplateDatas>({
@@ -78,7 +80,7 @@ export default function EditApprovalModal({
 
     const approverIds = approvalLines.map(({ approverId }) => approverId);
     const availableUser = templateDatas.users.find(
-        ({ userId }) => !approverIds.includes(userId),
+        (user) => user.userId !== userId && !approverIds.includes(user.userId),
     );
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -128,8 +130,10 @@ export default function EditApprovalModal({
         );
     };
 
-    const changeApprover = (stepOrder: number, userId: number) => {
-        const user = templateDatas.users.find(({ userId: id }) => id === userId);
+    const changeApprover = (stepOrder: number, approverId: number) => {
+        if (approverId === userId) return;
+
+        const user = templateDatas.users.find(({ userId: id }) => id === approverId);
         if (!user) return;
 
         setApprovalLines((current) =>
@@ -193,7 +197,14 @@ export default function EditApprovalModal({
                                                 <option value={line.approverId}>{line.approverName}</option>
                                             )}
                                             {templateDatas.users.map((user) => (
-                                                <option disabled={approverIds.includes(user.userId) && user.userId !== line.approverId} key={user.userId} value={user.userId}>
+                                                <option
+                                                    disabled={
+                                                        user.userId === userId ||
+                                                        (approverIds.includes(user.userId) && user.userId !== line.approverId)
+                                                    }
+                                                    key={user.userId}
+                                                    value={user.userId}
+                                                >
                                                     {user.name} ({user.username})
                                                 </option>
                                             ))}
