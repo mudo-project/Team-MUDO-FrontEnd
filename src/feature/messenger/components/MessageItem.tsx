@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Avatar from "./Avatar";
 import MessageMenu from "./MessageMenu";
 import TaskMessageCard from "./TaskMessageCard";
-import { FeedItem, formatChatTime, getInitials } from "../utils";
+import { FeedItem, formatTimeOnly, getInitials } from "../utils";
 import { deleteMessageAction, updateMessageAction } from "../actions";
 
 type MessageItemProps = {
@@ -110,7 +110,7 @@ export default function MessageItem({ item, currentUserId, roomId, onMessagesCha
                         {item.editedAt && <span className="ml-1 text-[9px] text-white/70">(수정됨)</span>}
                     </div>
                 )}
-                <p className="text-[9px] text-[#64748B]">{formatChatTime(item.createdAt)}</p>
+                <p className="text-[9px] text-[#64748B]">{formatTimeOnly(item.createdAt)}</p>
                 {isMenuOpen && <MessageMenu onClose={() => setIsMenuOpen(false)} onEdit={handleEdit} onDelete={handleDelete} />}
             </article>
         );
@@ -125,7 +125,7 @@ export default function MessageItem({ item, currentUserId, roomId, onMessagesCha
                     {item.content}
                 </div>
                 <p className="mt-1 flex items-center gap-1 text-[9px] text-[#64748B]">
-                    <span>{formatChatTime(item.createdAt)}</span>
+                    <span>{formatTimeOnly(item.createdAt)}</span>
                     {item.unreadCount > 0 && <span>· 안읽음 {item.unreadCount}</span>}
                 </p>
             </div>

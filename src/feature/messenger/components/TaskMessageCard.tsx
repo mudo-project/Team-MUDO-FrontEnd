@@ -4,7 +4,7 @@ import { useState } from "react";
 import { CheckSquare } from "lucide-react";
 import Avatar from "./Avatar";
 import TaskDetailModal from "./TaskDetailModal";
-import { formatChatTime, getInitials } from "../utils";
+import { formatTimeOnly, getInitials } from "../utils";
 
 type TaskMessageCardProps = {
     card: MessengerTaskCardItemData;
@@ -28,7 +28,7 @@ export default function TaskMessageCard({ card, own, currentUserId, roomId, onTa
                     <CheckSquare className="size-3" />
                     업무지시
                 </span>
-                <span>{card.assignerName} · {formatChatTime(card.createdAt)}</span>
+                <span>{card.assignerName} · {formatTimeOnly(card.createdAt)}</span>
             </div>
             <p className="mt-2 text-[11px] leading-5">{card.content}</p>
             <div className="mt-2 flex justify-between text-[9px] text-[#64748B]">
