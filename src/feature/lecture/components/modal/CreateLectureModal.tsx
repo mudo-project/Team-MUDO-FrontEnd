@@ -1,14 +1,16 @@
 "use client";
 
-import { Trash2, X } from "lucide-react";
+import { X } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { createLectureAction, LectureActionResult } from "../../actions";
-import { LECTURE_CLASS_TYPE_LABEL, LECTURE_DAY_LABEL, LECTURE_FEE_TYPE_LABEL, LECTURE_GRADE_LABEL } from "../../constants";
+import { LECTURE_CLASS_TYPE_LABEL, LECTURE_FEE_TYPE_LABEL, LECTURE_GRADE_LABEL } from "../../constants";
 import { CreateLectureData, LectureTermData } from "../../type";
 import { createLectureSchema, CreateLectureFormValues } from "@/lib/lectureSchema";
+import LectureScheduleFields from "../LectureScheduleFields";
 
 interface CreateLectureModalProps {
     classrooms: string[];
@@ -24,6 +26,7 @@ const labelClassName = "block pb-[5px] text-[12px] leading-[18px] font-medium te
 
 export default function CreateLectureModal({ classrooms, closeModal, subjects, teachers, terms }: CreateLectureModalProps) {
     const router = useRouter();
+    const [formElement, setFormElement] = useState<HTMLFormElement | null>(null);
     const {
         register,
         handleSubmit,
@@ -34,10 +37,7 @@ export default function CreateLectureModal({ classrooms, closeModal, subjects, t
         defaultValues: {
             name: "",
             classType: "CLASS",
-            dayOfWeek: "MONDAY",
             classroomCode: "",
-            startTime: "",
-            endTime: "",
             grade: "HIGH_1",
             teacherName: "",
             subjectName: "",
@@ -47,20 +47,10 @@ export default function CreateLectureModal({ classrooms, closeModal, subjects, t
         },
     });
 
-    const onSubmit = async (data: CreateLectureFormValues) => {
-        const formData = new FormData();
-        formData.set("name", data.name);
-        formData.set("classType", data.classType);
-        formData.set("dayOfWeek", data.dayOfWeek);
-        formData.set("classroomCode", data.classroomCode);
-        formData.set("startTime", `${data.startTime}:00`);
-        formData.set("endTime", `${data.endTime}:00`);
-        formData.set("grade", data.grade);
-        formData.set("teacherName", data.teacherName);
-        formData.set("subjectName", data.subjectName);
-        formData.set("termName", data.termName);
-        formData.set("feeType", data.feeType);
-        formData.set("feeAmount", data.feeAmount);
+    const onSubmit = async () => {
+        if (!formElement) return;
+
+        const formData = new FormData(formElement);
 
         const response = await createLectureAction(initialState, formData);
         if (!response.success) {
@@ -75,7 +65,7 @@ export default function CreateLectureModal({ classrooms, closeModal, subjects, t
 
     return (
         <div className="fixed top-0 left-0 z-999 h-screen w-screen bg-[#162236]/45" onClick={closeModal}>
-            <form className="fixed top-1/2 left-1/2 z-1000 flex max-h-[calc(100dvh-48px)] w-[580px] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-[14px] bg-white shadow-[0_8px_40px_rgba(0,0,0,0.18)]" onClick={(event) => event.stopPropagation()} onSubmit={handleSubmit(onSubmit)}>
+            <form className="fixed top-1/2 left-1/2 z-1000 flex max-h-[calc(100dvh-48px)] w-[580px] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-[14px] bg-white shadow-[0_8px_40px_rgba(0,0,0,0.18)]" onClick={(event) => event.stopPropagation()} onSubmit={handleSubmit(onSubmit)} ref={setFormElement}>
                 <header className="flex shrink-0 items-center px-7 pt-[22px] pb-[18px]">
                     <h2 className="text-[17px] font-bold text-[#0F172A]">강의 등록</h2>
                     <button aria-label="강의 등록 모달 닫기" className="ml-auto text-[#94A3B8]" onClick={closeModal} type="button"><X className="size-[18px]" strokeWidth={1.5} /></button>
@@ -113,13 +103,7 @@ export default function CreateLectureModal({ classrooms, closeModal, subjects, t
 
                     <section className="mt-[18px]">
                         <h3 className="text-[12px] font-semibold tracking-[0.6px] text-[#94A3B8]">시간표 *</h3>
-                        <div className="mt-3.5 flex items-center gap-2">
-                            <select {...register("dayOfWeek")} aria-label="수업 요일" className={inputClassName}>{Object.entries(LECTURE_DAY_LABEL).map(([value, label]) => <option key={value} value={value}>{label}요일</option>)}</select>
-                            <input {...register("startTime")} aria-label="수업 시작 시간" className={inputClassName} type="time" />
-                            <input {...register("endTime")} aria-label="수업 종료 시간" className={inputClassName} type="time" />
-                            <button aria-label="시간표 삭제" className="flex size-9 shrink-0 items-center justify-center rounded-[7px] border border-[#F1D0CE] bg-[#FEF2F2] text-[#C0483F] opacity-40" disabled type="button"><Trash2 className="size-[13px]" strokeWidth={1.5} /></button>
-                        </div>
-                        {errors.endTime?.message && <p className="mt-1 text-[11px] text-[#C0483F]">{errors.endTime.message}</p>}
+                        <LectureScheduleFields />
                     </section>
                 </div>
 

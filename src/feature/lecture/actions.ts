@@ -38,14 +38,18 @@ const lectureGrades = [
     "MIDDLE_1", "MIDDLE_2", "MIDDLE_3", "HIGH_1", "HIGH_2", "HIGH_3", "RETAKE",
 ];
 const lectureFeeTypes = ["PER_SESSION", "PER_MONTH"];
+const timePattern = /^([01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/;
 
 const validateLectureRequest = (payload: CreateLectureRequest) => {
     if (!payload.name.trim()) return "강의명을 입력해주세요.";
     if (!lectureClassTypes.includes(payload.classType)) return "강의 유형이 올바르지 않습니다.";
-    if (!lectureDays.includes(payload.dayOfWeek)) return "강의 요일이 올바르지 않습니다.";
     if (!payload.classroomCode.trim()) return "강의실 코드를 입력해주세요.";
-    if (!payload.startTime || !payload.endTime) return "강의 시간을 입력해주세요.";
-    if (payload.startTime >= payload.endTime) return "시작 시간은 종료 시간보다 빨라야 합니다.";
+    if (payload.schedules.length === 0) return "강의 시간을 한 개 이상 입력해주세요.";
+    for (const schedule of payload.schedules) {
+        if (!lectureDays.includes(schedule.dayOfWeek)) return "강의 요일이 올바르지 않습니다.";
+        if (!timePattern.test(schedule.startTime) || !timePattern.test(schedule.endTime)) return "강의 시간을 입력해주세요.";
+        if (schedule.startTime >= schedule.endTime) return "시작 시간은 종료 시간보다 빨라야 합니다.";
+    }
     if (payload.grade && !lectureGrades.includes(payload.grade)) return "강의 학년이 올바르지 않습니다.";
     if (payload.feeType && !lectureFeeTypes.includes(payload.feeType)) return "수강료 유형이 올바르지 않습니다.";
     if (
@@ -62,16 +66,27 @@ const getOptionalString = (formData: FormData, name: string) => {
     return value || undefined;
 };
 
+const normalizeTime = (value: FormDataEntryValue | undefined) => {
+    const time = String(value ?? "");
+    return time.length === 5 ? `${time}:00` : time;
+};
+
 const getLectureRequest = (formData: FormData): CreateLectureRequest => {
     const feeAmountValue = getOptionalString(formData, "feeAmount");
+    const days = formData.getAll("dayOfWeek");
+    const startTimes = formData.getAll("startTime");
+    const endTimes = formData.getAll("endTime");
+    const schedules = days.map((dayOfWeek, index) => ({
+        dayOfWeek: String(dayOfWeek) as CreateLectureRequest["schedules"][number]["dayOfWeek"],
+        startTime: normalizeTime(startTimes[index]),
+        endTime: normalizeTime(endTimes[index]),
+    }));
 
     return {
         name: String(formData.get("name") ?? "").trim(),
         classType: String(formData.get("classType") ?? "") as CreateLectureRequest["classType"],
-        dayOfWeek: String(formData.get("dayOfWeek") ?? "") as CreateLectureRequest["dayOfWeek"],
         classroomCode: String(formData.get("classroomCode") ?? "").trim(),
-        startTime: String(formData.get("startTime") ?? ""),
-        endTime: String(formData.get("endTime") ?? ""),
+        schedules,
         grade: getOptionalString(formData, "grade") as CreateLectureRequest["grade"],
         teacherName: getOptionalString(formData, "teacherName"),
         subjectName: getOptionalString(formData, "subjectName"),

@@ -3,12 +3,14 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { X } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { createLectureSchema, CreateLectureFormValues } from "@/lib/lectureSchema";
 import { updateLectureAction, LectureActionResult } from "../../actions";
-import { LECTURE_CLASS_TYPE_LABEL, LECTURE_DAY_LABEL, LECTURE_FEE_TYPE_LABEL, LECTURE_GRADE_LABEL } from "../../constants";
+import { LECTURE_CLASS_TYPE_LABEL, LECTURE_FEE_TYPE_LABEL, LECTURE_GRADE_LABEL } from "../../constants";
 import { LectureDetailData } from "../../type";
+import LectureScheduleFields from "../LectureScheduleFields";
 
 interface EditLectureModalProps {
     closeModal: () => void;
@@ -25,7 +27,7 @@ export default function EditLectureModal({
     closeModal, lecture, lectureId, onUpdated,
 }: EditLectureModalProps) {
     const router = useRouter();
-    const schedule = lecture.schedules[0];
+    const [formElement, setFormElement] = useState<HTMLFormElement | null>(null);
     const {
         register,
         handleSubmit,
@@ -36,10 +38,7 @@ export default function EditLectureModal({
         defaultValues: {
             name: lecture.name,
             classType: lecture.classType,
-            dayOfWeek: schedule?.dayOfWeek ?? "MONDAY",
             classroomCode: lecture.classroomCode,
-            startTime: schedule?.startTime.slice(0, 5) ?? "",
-            endTime: schedule?.endTime.slice(0, 5) ?? "",
             grade: lecture.grade ?? "",
             teacherName: lecture.teacherName ?? "",
             subjectName: lecture.subjectName ?? "",
@@ -49,20 +48,10 @@ export default function EditLectureModal({
         },
     });
 
-    const onSubmit = async (data: CreateLectureFormValues) => {
-        const formData = new FormData();
-        formData.set("name", data.name);
-        formData.set("classType", data.classType);
-        formData.set("dayOfWeek", data.dayOfWeek);
-        formData.set("classroomCode", data.classroomCode);
-        formData.set("startTime", `${data.startTime}:00`);
-        formData.set("endTime", `${data.endTime}:00`);
-        formData.set("grade", data.grade);
-        formData.set("teacherName", data.teacherName);
-        formData.set("subjectName", data.subjectName);
-        formData.set("termName", data.termName);
-        formData.set("feeType", data.feeType);
-        formData.set("feeAmount", data.feeAmount);
+    const onSubmit = async () => {
+        if (!formElement) return;
+
+        const formData = new FormData(formElement);
 
         const response = await updateLectureAction(lectureId, initialState, formData);
         if (!response.success) {
@@ -78,7 +67,7 @@ export default function EditLectureModal({
 
     return (
         <div className="fixed top-0 left-0 z-1001 flex h-screen w-screen items-center justify-center bg-black/35 p-5" onClick={closeModal}>
-            <form className="z-1002 flex max-h-[calc(100dvh-48px)] w-[580px] flex-col overflow-hidden rounded-[10px] bg-white shadow-[0_8px_20px_rgba(0,0,0,0.18)]" onClick={(event) => event.stopPropagation()} onSubmit={handleSubmit(onSubmit)}>
+            <form className="z-1002 flex max-h-[calc(100dvh-48px)] w-[580px] flex-col overflow-hidden rounded-[10px] bg-white shadow-[0_8px_20px_rgba(0,0,0,0.18)]" onClick={(event) => event.stopPropagation()} onSubmit={handleSubmit(onSubmit)} ref={setFormElement}>
                 <header className="flex h-[56px] shrink-0 items-center px-7">
                     <h2 className="text-[16px] font-bold text-[#1D2B3A]">강의 수정</h2>
                     <button aria-label="강의 수정 모달 닫기" className="ml-auto text-[#94A3B8]" onClick={closeModal} type="button"><X className="size-4" strokeWidth={1.5} /></button>
@@ -116,12 +105,7 @@ export default function EditLectureModal({
 
                     <section className="mt-5">
                         <h3 className="text-[12px] font-semibold tracking-[0.6px] text-[#94A3B8]">시간표 *</h3>
-                        <div className="mt-3.5 grid grid-cols-3 gap-2">
-                            <select {...register("dayOfWeek")} aria-label="수업 요일" className={inputClassName}>{Object.entries(LECTURE_DAY_LABEL).map(([value, label]) => <option key={value} value={value}>{label}요일</option>)}</select>
-                            <input {...register("startTime")} aria-label="수업 시작 시간" className={inputClassName} type="time" />
-                            <input {...register("endTime")} aria-label="수업 종료 시간" className={inputClassName} type="time" />
-                        </div>
-                        {errors.endTime?.message && <p className="mt-1 text-[11px] text-[#C0483F]">{errors.endTime.message}</p>}
+                        <LectureScheduleFields initialSchedules={lecture.schedules} />
                     </section>
                 </div>
 
