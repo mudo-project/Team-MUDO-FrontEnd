@@ -3,8 +3,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getWorkspaceListAction } from "../actions";
+import { useUserStore } from "@/store/useUserStore";
 
 export default function MyWorkHeader({ workspaceId }: { workspaceId?: number }) {
+
+    const permissions = useUserStore((state) => state.permissions)
 
     const searchParams = useSearchParams();
     const router = useRouter();
@@ -26,7 +29,7 @@ export default function MyWorkHeader({ workspaceId }: { workspaceId?: number }) 
         data: workspaceListData,
     } = useQuery({
         queryKey: ["workspace-list", "MINE"],
-        queryFn: () => getWorkspaceListAction("MINE"),
+        queryFn: () => getWorkspaceListAction(permissions.includes('WORKSPACE:READ_ALL') ? 'ALL' : "MINE"),
     });
 
 
