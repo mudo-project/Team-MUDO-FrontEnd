@@ -72,34 +72,6 @@ export interface SendAttendanceMessageData {
 
 export type SendAttendanceMessageResponse = RollbookApiResponse<SendAttendanceMessageData[]>;
 
-export interface MessageTemplateData {
-    id: number;
-    name: string;
-    status: AttendanceStatus;
-    content: string;
-    createdAt: string;
-    updatedAt: string;
-}
-
-export type MessageTemplateListResponse = RollbookApiResponse<MessageTemplateData[]>;
-
-export interface CreateMessageTemplateRequest {
-    name: string;
-    status: AttendanceStatus;
-    content: string;
-}
-
-export interface CreateMessageTemplateData {
-    templateId: number;
-}
-
-export type CreateMessageTemplateResponse = RollbookApiResponse<CreateMessageTemplateData>;
-
-export interface ChangeMessageTemplateRequest {
-    name: string;
-    content: string;
-}
-
 export interface RollbookExportData {
     file: string;
     fileName: string;
