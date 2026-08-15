@@ -2,8 +2,11 @@
 
 import { Pin, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
+import useModal from "@/components/hooks/useModal";
+import TwoButtonModal from "@/components/ui/TwoButtonModal";
+import { getCurrentUserIdAction } from "@/feature/messenger/actions";
 import { deleteNoticeAction, pinNoticeAction, unpinNoticeAction } from "../actions";
 import NoticeEditForm from "./NoticeEditForm";
 
@@ -13,6 +16,13 @@ export default function NoticeDetailToolbar({ notice }: { notice: NoticeDetailDa
     const [syncedPinned, setSyncedPinned] = useState(notice.pinned);
     const [isPinning, startPinTransition] = useTransition();
     const [isDeleting, startDeleteTransition] = useTransition();
+    const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+    const isAuthor = currentUserId !== null && currentUserId === notice.authorUserId;
+    const deleteModal = useModal();
+
+    useEffect(() => {
+        getCurrentUserIdAction().then(setCurrentUserId);
+    }, []);
 
     if (notice.pinned !== syncedPinned) {
         setSyncedPinned(notice.pinned);
@@ -39,8 +49,8 @@ export default function NoticeDetailToolbar({ notice }: { notice: NoticeDetailDa
 
             if (result.success) {
                 toast.success(result.message);
+                deleteModal.closeModal();
                 router.push("/notice");
-                router.refresh();
             } else {
                 toast.error(result.message);
             }
@@ -56,27 +66,38 @@ export default function NoticeDetailToolbar({ notice }: { notice: NoticeDetailDa
                 </span>
             )}
             <div className="ml-auto flex items-center gap-3 text-[#94A3B8]">
-                <button
-                    aria-label={pinned ? "상단 고정 해제" : "상단 고정"}
-                    aria-pressed={pinned}
-                    className={`hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 ${pinned ? "text-[#4D9560]" : ""}`}
-                    disabled={isPinning}
-                    onClick={togglePinned}
-                    type="button"
-                >
-                    <Pin className="size-4" strokeWidth={1.6} />
-                </button>
+                {isAuthor && (
+                    <button
+                        aria-label={pinned ? "상단 고정 해제" : "상단 고정"}
+                        aria-pressed={pinned}
+                        className={`hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 ${pinned ? "text-[#4D9560]" : ""}`}
+                        disabled={isPinning}
+                        onClick={togglePinned}
+                        type="button"
+                    >
+                        <Pin className="size-4" strokeWidth={1.6} />
+                    </button>
+                )}
                 <NoticeEditForm notice={notice} />
                 <button
                     aria-label="공지 삭제"
                     className="hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
                     disabled={isDeleting}
-                    onClick={handleDelete}
+                    onClick={deleteModal.openModal}
                     type="button"
                 >
                     <Trash2 className="size-4" strokeWidth={1.6} />
                 </button>
             </div>
+            {deleteModal.isModal && (
+                <TwoButtonModal
+                    activeModal={handleDelete}
+                    closeModal={deleteModal.closeModal}
+                    content="공지를 삭제하시겠습니까?"
+                    isPending={isDeleting}
+                    title="공지 삭제"
+                />
+            )}
         </div>
     );
 }
