@@ -226,6 +226,55 @@ export const deleteSharedFolderContent = async (itemId: string): Promise<void> =
     }
 }
 
+function decodeQEncodedWord(text: string): string {
+    const bytes: number[] = [];
+
+    for (let i = 0; i < text.length; i++) {
+        if (text[i] === "_") {
+            bytes.push(0x20);
+        } else if (text[i] === "=" && i + 2 < text.length) {
+            bytes.push(parseInt(text.slice(i + 1, i + 3), 16));
+            i += 2;
+        } else {
+            bytes.push(text.charCodeAt(i));
+        }
+    }
+
+    return Buffer.from(bytes).toString("utf-8");
+}
+
+function decodeContentDispositionFilename(contentDisposition: string | null): string | null {
+    if (!contentDisposition) return null;
+
+    const filenameStarMatch = contentDisposition.match(/filename\*=UTF-8''([^;]+)/i);
+    if (filenameStarMatch) {
+        try {
+            return decodeURIComponent(filenameStarMatch[1]);
+        } catch {
+        }
+    }
+
+    const filenameMatch = contentDisposition.match(/filename="?([^";]+)"?/i);
+    if (!filenameMatch) return null;
+
+    const rawFilename = filenameMatch[1];
+    const encodedWordMatch = rawFilename.match(/^=\?([^?]+)\?([BbQq])\?([^?]*)\?=$/);
+
+    if (encodedWordMatch) {
+        const [, , encoding, encodedText] = encodedWordMatch;
+
+        return encoding.toUpperCase() === "B"
+            ? Buffer.from(encodedText, "base64").toString("utf-8")
+            : decodeQEncodedWord(encodedText);
+    }
+
+    try {
+        return decodeURIComponent(rawFilename);
+    } catch {
+        return rawFilename;
+    }
+}
+
 // 원본·변환 다운로드 API (공통 응답 포맷이 아닌 바이너리 응답)
 export const downloadSharedFolderContent = async (
     itemId: string,
@@ -249,11 +298,10 @@ export const downloadSharedFolderContent = async (
     }
 
     const contentDisposition = response.headers.get("content-disposition");
-    const fileNameMatch = contentDisposition?.match(/filename="?([^"]+)"?/);
 
     return {
         blob: await response.blob(),
         mimeType: response.headers.get("content-type") ?? "application/octet-stream",
-        fileName: fileNameMatch ? decodeURIComponent(fileNameMatch[1]) : null,
+        fileName: decodeContentDispositionFilename(contentDisposition),
     };
 }

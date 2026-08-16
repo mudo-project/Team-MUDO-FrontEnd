@@ -14,10 +14,11 @@ import {
   updateSharedFolderContentAction,
   uploadSharedFolderFileAction,
 } from "../actions";
-import { getSharedFolderItemKind } from "../sharedFolderFormat";
+import { getSharedFolderDownloadFormats, getSharedFolderItemKind } from "../sharedFolderFormat";
 import SharedFolderCreateGoogleModal from "./SharedFolderCreateGoogleModal";
 import SharedFolderCreateNewFolderModal from "./SharedFolderCreateNewFolderModal";
 import SharedFolderDeleteCheckModal from "./SharedFolderDeleteCheckModal";
+import SharedFolderDownloadFormatModal from "./SharedFolderDownloadFormatModal";
 import SharedFolderEditNameModal from "./SharedFolderEditNameModal";
 import SharedFolderList from "./SharedFolderList";
 import SharedFolderListHeader from "./SharedFolderListHeader";
@@ -39,6 +40,7 @@ const CREATE_OPTION_TO_GOOGLE_DOC_TYPE: Record<SharedFolderGoogleCreateOption, S
 
 export default function SharedFolderBoard() {
   const [rootStatus, setRootStatus] = useState<"loading" | "ready" | "not-ready">("loading");
+  const [rootId, setRootId] = useState<string | null>(null);
   const [isRecreatingRoot, setIsRecreatingRoot] = useState(false);
   const [recreateRootError, setRecreateRootError] = useState<string | null>(null);
 
@@ -62,17 +64,22 @@ export default function SharedFolderBoard() {
   const [renamingItem, setRenamingItem] = useState<SharedFolderDriveItemData | null>(null);
   const [movingItem, setMovingItem] = useState<SharedFolderDriveItemData | null>(null);
   const [deletingItem, setDeletingItem] = useState<SharedFolderDriveItemData | null>(null);
+  const [downloadFormatItem, setDownloadFormatItem] = useState<SharedFolderDriveItemData | null>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const currentParentId = path.at(-1)?.id;
+  const currentParentId = path.at(-1)?.id ?? rootId ?? undefined;
 
   useEffect(() => {
     let ignore = false;
 
     getSharedFolderRootStatusAction()
       .then((data) => {
-        if (!ignore) setRootStatus(data.ready ? "ready" : "not-ready");
+        if (!ignore) {
+          setRootStatus(data.ready ? "ready" : "not-ready");
+          setRootId(data.rootId);
+        }
       })
       .catch(() => {
         if (!ignore) setRootStatus("not-ready");
@@ -350,10 +357,8 @@ export default function SharedFolderBoard() {
     window.open(item.viewUrl, "_blank", "noopener,noreferrer");
   };
 
-  const handleDownload = async (item: SharedFolderDriveItemData) => {
-    setOpenItemMenuId(null);
-
-    const result = await downloadSharedFolderContentAction(item.id);
+  const handleDownload = async (item: SharedFolderDriveItemData, format?: SharedFolderDownloadFormat) => {
+    const result = await downloadSharedFolderContentAction(item.id, format ? { format } : undefined);
 
     if (!result.success || !result.file) {
       toast.error(result.message);
@@ -370,6 +375,32 @@ export default function SharedFolderBoard() {
     link.click();
 
     URL.revokeObjectURL(url);
+  };
+
+  // Google Workspace 파일(Docs/Sheets/Slides)은 원본 바이너리가 없어 항상 변환 형식을 선택해야 한다.
+  // 일반 업로드 파일은 형식 선택 없이 바로 원본을 다운로드한다.
+  const handleDownloadRequest = (item: SharedFolderDriveItemData) => {
+    setOpenItemMenuId(null);
+
+    if (getSharedFolderDownloadFormats(item).length === 0) {
+      void handleDownload(item);
+      return;
+    }
+
+    setDownloadFormatItem(item);
+  };
+
+  const handleDownloadFormatSelect = async (format: SharedFolderDownloadFormat) => {
+    if (!downloadFormatItem) return;
+
+    setIsDownloading(true);
+
+    try {
+      await handleDownload(downloadFormatItem, format);
+      setDownloadFormatItem(null);
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   const handleFolderOpen = (item: SharedFolderDriveItemData) => {
@@ -467,11 +498,10 @@ export default function SharedFolderBoard() {
             items={filteredItems}
             openItemMenuId={openItemMenuId}
             onDelete={handleDeleteRequest}
-            onDownload={handleDownload}
+            onDownload={handleDownloadRequest}
             onFileUploadRequest={() => fileInputRef.current?.click()}
             onFolderCreateRequest={() => setIsNewFolderModalOpen(true)}
             onFolderOpen={handleFolderOpen}
-            onItemMenuSelect={() => setOpenItemMenuId(null)}
             onItemMenuToggle={handleItemMenuToggle}
             onItemMove={handleMoveRequest}
             onItemRename={handleRenameRequest}
@@ -535,6 +565,7 @@ export default function SharedFolderBoard() {
         <SharedFolderMoveModal
           isSubmitting={isSubmitting}
           item={movingItem}
+          rootId={rootId}
           onClose={() => setMovingItem(null)}
           onMove={handleMove}
         />
@@ -546,6 +577,16 @@ export default function SharedFolderBoard() {
           item={deletingItem}
           onClose={() => setDeletingItem(null)}
           onDelete={handleDelete}
+        />
+      )}
+
+      {downloadFormatItem && (
+        <SharedFolderDownloadFormatModal
+          formats={getSharedFolderDownloadFormats(downloadFormatItem)}
+          isSubmitting={isDownloading}
+          itemName={downloadFormatItem.name}
+          onClose={() => setDownloadFormatItem(null)}
+          onSelect={handleDownloadFormatSelect}
         />
       )}
     </main>

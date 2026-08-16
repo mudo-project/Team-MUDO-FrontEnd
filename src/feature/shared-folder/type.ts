@@ -19,6 +19,7 @@ interface SharedFolderItemData {
 // 공유파일 시스템 루트 상태 데이터값
 interface SharedFolderRootStatusData {
     ready: boolean;
+    rootId: string | null;
 }
 
 // 시스템 루트 상태 조회 응답값

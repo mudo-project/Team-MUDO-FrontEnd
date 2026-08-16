@@ -13,7 +13,6 @@ type SharedFolderListProps = {
   onFolderOpen: (item: SharedFolderDriveItemData) => void;
   onItemMove: (item: SharedFolderDriveItemData) => void;
   onItemRename: (item: SharedFolderDriveItemData) => void;
-  onItemMenuSelect: () => void;
   onItemMenuToggle: (itemId: string) => void;
   onLoadMore: () => void;
   onPreviewOpen: (item: SharedFolderDriveItemData) => void;
@@ -32,7 +31,6 @@ export default function SharedFolderList({
   onFolderOpen,
   onItemMove,
   onItemRename,
-  onItemMenuSelect,
   onItemMenuToggle,
   onLoadMore,
   onPreviewOpen,
@@ -69,7 +67,6 @@ export default function SharedFolderList({
           onDelete={() => onDelete(item)}
           onDownload={() => onDownload(item)}
           onFolderOpen={() => onFolderOpen(item)}
-          onMenuSelect={onItemMenuSelect}
           onMenuToggle={() => onItemMenuToggle(item.id)}
           onMove={() => onItemMove(item)}
           onOpenPreview={() => onPreviewOpen(item)}
