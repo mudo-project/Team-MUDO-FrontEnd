@@ -1,16 +1,28 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import MessengerSidebar from "./MessengerSidebar";
 
-jest.mock("./ChatSidebar", () => () => <div>채팅 목록 영역</div>);
-jest.mock("./TaskSidebar", () => ({ view }: { view: "received" | "sent" }) => <div>업무 목록 영역: {view}</div>);
-jest.mock("./ChatCreateModal", () => ({ onClose }: { onClose: () => void }) => (
-    <div>
-        새 채팅 모달
-        <button onClick={onClose} type="button">
-            닫기
-        </button>
-    </div>
-));
+function MockChatSidebar() {
+    return <div>채팅 목록 영역</div>;
+}
+
+function MockTaskSidebar({ view }: { view: "received" | "sent" }) {
+    return <div>업무 목록 영역: {view}</div>;
+}
+
+function MockChatCreateModal({ onClose }: { onClose: () => void }) {
+    return (
+        <div>
+            새 채팅 모달
+            <button onClick={onClose} type="button">
+                닫기
+            </button>
+        </div>
+    );
+}
+
+jest.mock("./ChatSidebar", () => MockChatSidebar);
+jest.mock("./TaskSidebar", () => MockTaskSidebar);
+jest.mock("./ChatCreateModal", () => MockChatCreateModal);
 
 describe("MessengerSidebar", () => {
     it("기본 상태에서는 채팅 탭이 선택되어 채팅 목록을 보여준다", () => {
