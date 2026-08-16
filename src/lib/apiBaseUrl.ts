@@ -1,11 +1,15 @@
 import "server-only";
+import { headers } from "next/headers";
+import { resolveApiBaseUrl } from "./tenantApiResolver";
 
-export function getApiBaseUrl(): string {
-    const apiBaseUrl = process.env.API_BASE_URL?.trim().replace(/\/+$/, "");
+export async function getApiBaseUrl(): Promise<string> {
+    const requestHeaders = await headers();
+    const host =
+        requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host");
 
-    if (!apiBaseUrl) {
-        throw new Error("API_BASE_URL is required");
+    if (!host) {
+        throw new Error("요청 Host를 확인할 수 없습니다.");
     }
 
-    return apiBaseUrl;
+    return resolveApiBaseUrl(host);
 }
