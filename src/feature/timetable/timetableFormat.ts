@@ -51,10 +51,12 @@ export function toTimetableTemplate(
   detail: TimetableSetDetailData,
   slots: TimetableSlotData[]
 ): TimetableTemplate {
-  const classroomGroups: FloorConfig[] = detail.classrooms.map((group) => ({
-    floor: group.floor,
-    rooms: [...group.codes],
-  }));
+  const classroomGroups: FloorConfig[] = [...detail.classrooms]
+    .sort((a, b) => parseInt(b.floor, 10) - parseInt(a.floor, 10))
+    .map((group) => ({
+      floor: group.floor,
+      rooms: [...group.codes],
+    }));
   const rooms = classroomGroups.flatMap((group) => group.rooms);
   const roomsByDay = weekDayNames.map((name) => ({ name, rooms: [...rooms] }));
   const baseMinutes = parseTimeToMinutes(detail.operatingStartTime);

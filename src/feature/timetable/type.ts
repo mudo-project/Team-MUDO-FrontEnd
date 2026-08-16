@@ -7,11 +7,12 @@ type TimetableSetStatus = "PLANNED" | "ACTIVE" | "ENDED";
 // 수업 슬롯 종류
 type TimetableClassType = "CLASS" | "SPECIAL" | "CLINIC" | "STANDING" | "EXAM";
 
-// 학년 (초1~고3 고정 12단계)
+// 학년 (초1~고3 고정 12단계 + 공통)
 type Grade =
     | "ELEMENTARY_1" | "ELEMENTARY_2" | "ELEMENTARY_3" | "ELEMENTARY_4" | "ELEMENTARY_5" | "ELEMENTARY_6"
     | "MIDDLE_1" | "MIDDLE_2" | "MIDDLE_3"
-    | "HIGH_1" | "HIGH_2" | "HIGH_3";
+    | "HIGH_1" | "HIGH_2" | "HIGH_3"
+    | "COMMON";
 
 // 수업 슬롯 수정·삭제 적용 범위 (현재는 ALL만 처리됨)
 type TimetableSlotUpdateScope = "THIS_OCCURRENCE" | "FROM_NOW" | "ALL";
