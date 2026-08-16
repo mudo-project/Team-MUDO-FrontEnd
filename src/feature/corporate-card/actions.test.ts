@@ -9,7 +9,7 @@ import {
     submitCorporateCardExpenseAction,
 } from "./actions";
 
-jest.mock("@/service/corporate-card.service");
+jest.mock("../../service/corporate-card.service");
 
 const mockedSave = saveCorporateCardExpense as jest.Mock;
 const mockedSubmit = submitCorporateCardExpense as jest.Mock;

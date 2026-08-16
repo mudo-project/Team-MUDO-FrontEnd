@@ -7,7 +7,7 @@ import {
     submitCorporateCardExpense,
 } from "./corporate-card.service";
 
-jest.mock("@/lib/fetch");
+jest.mock("../lib/fetch");
 
 const mockedFetch = fetchWithAuth as jest.Mock;
 
