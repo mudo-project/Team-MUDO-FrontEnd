@@ -5,7 +5,8 @@ import { CheckSquare, FileText, Image as ImageIcon, Plus, Send } from "lucide-re
 import { toast } from "sonner";
 import TaskCreateModal from "./TaskCreateModal";
 import { sendFileMessageAction, sendMessageAction } from "../actions";
-import { createFileMetadataAction, createFilePresignedUrlAction, getFileDownloadUrlAction } from "@/feature/file/actions";
+import { getFileDownloadUrlAction } from "@/feature/file/actions";
+import { uploadFiles } from "@/feature/file/uploadFiles";
 
 type MessageInputProps = {
     roomId: number;
@@ -58,33 +59,8 @@ export default function MessageInput({ roomId, onMessageSent, onTaskCreated }: M
         setIsUploading(true);
 
         try {
-            const contentType = file.type || "application/octet-stream";
-            const presigned = await createFilePresignedUrlAction({ fileName: file.name, contentType });
-
-            if (!presigned.success || !presigned.data) {
-                toast.error(presigned.message);
-                return;
-            }
-
-            const uploadResponse = await fetch(presigned.data.uploadUrl, {
-                method: "PUT",
-                headers: { "Content-Type": contentType },
-                body: file,
-            });
-
-            if (!uploadResponse.ok) {
-                toast.error(`${file.name} 업로드에 실패했습니다.`);
-                return;
-            }
-
-            const metadata = await createFileMetadataAction({ objectKey: presigned.data.objectKey, contentType });
-
-            if (!metadata.success || !metadata.data) {
-                toast.error(metadata.message);
-                return;
-            }
-
-            const downloadUrl = await getFileDownloadUrlAction(metadata.data.fileId);
+            const { fileIds } = await uploadFiles([file], {});
+            const downloadUrl = await getFileDownloadUrlAction(fileIds[0]);
 
             if (!downloadUrl.success || !downloadUrl.data) {
                 toast.error(downloadUrl.message);
@@ -98,6 +74,8 @@ export default function MessageInput({ roomId, onMessageSent, onTaskCreated }: M
             } else {
                 toast.error(result.message);
             }
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : "파일 전송에 실패했습니다.");
         } finally {
             setIsUploading(false);
         }
