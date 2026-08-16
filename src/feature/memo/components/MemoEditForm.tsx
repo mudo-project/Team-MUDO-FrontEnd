@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { memoCreateSchema, type MemoCreateFormValues } from "@/lib/memoCreateSchema";
-import MemoColorPicker, { MEMO_COLORS, type MemoColor } from "./MemoColorPicker";
+import MemoColorPicker, { resolveMemoColor, type MemoColor } from "./MemoColorPicker";
 
 type MemoEditFormProps = {
   memo: MemoData;
@@ -13,9 +13,7 @@ type MemoEditFormProps = {
 };
 
 export default function MemoEditForm({ memo, onCancel, onSave }: MemoEditFormProps) {
-  const [selectedColor, setSelectedColor] = useState<MemoColor>(
-    () => MEMO_COLORS.find((color) => color.code === memo.color) ?? MEMO_COLORS[0],
-  );
+  const [selectedColor, setSelectedColor] = useState<MemoColor>(() => resolveMemoColor(memo.color));
   const {
     register,
     handleSubmit,

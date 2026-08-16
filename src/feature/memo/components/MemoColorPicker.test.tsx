@@ -12,9 +12,9 @@ describe("MemoColorPicker", () => {
   it("다른 색상을 클릭하면 선택 상태를 변경한다", () => {
     render(<MemoColorPickerHarness />);
 
-    fireEvent.click(screen.getByRole("button", { name: "메모 색상 BLUE" }));
+    fireEvent.click(screen.getByRole("button", { name: "메모 색상 7894C2" }));
 
-    expect(screen.getByRole("button", { name: "메모 색상 BLUE" })).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByRole("button", { name: "메모 색상 ROSE" })).toHaveAttribute("aria-pressed", "false");
+    expect(screen.getByRole("button", { name: "메모 색상 7894C2" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "메모 색상 B9827F" })).toHaveAttribute("aria-pressed", "false");
   });
 });

@@ -5,7 +5,7 @@ import { EllipsisVertical } from "lucide-react";
 import { toast } from "sonner";
 import { changeMemoColorAction, deleteMemoAction, updateMemoAction } from "../actions";
 import MemoCardMenu from "./MemoCardMenu";
-import MemoColorPicker, { MEMO_COLORS, type MemoColor } from "./MemoColorPicker";
+import MemoColorPicker, { resolveMemoColor, type MemoColor } from "./MemoColorPicker";
 import MemoEditForm from "./MemoEditForm";
 
 type MemoCardProps = {
@@ -16,10 +16,6 @@ type MemoCardProps = {
 };
 
 type MenuMode = "menu" | "color" | "delete";
-
-function getPaletteColor(code: MemoColorCode): MemoColor {
-  return MEMO_COLORS.find((color) => color.code === code) ?? MEMO_COLORS[0];
-}
 
 function formatMemoDate(isoDate: string): string {
   const date = new Date(isoDate);
@@ -112,7 +108,7 @@ export default function MemoCard({ memos, createForm, isLoading, onRefresh }: Me
 
     setOpenedMenuId(memo.id);
     setMenuMode("menu");
-    setSelectedColor(getPaletteColor(memo.color));
+    setSelectedColor(resolveMemoColor(memo.color));
   };
 
   return (
@@ -136,7 +132,7 @@ export default function MemoCard({ memos, createForm, isLoading, onRefresh }: Me
           );
         }
 
-        const paletteColor = getPaletteColor(memo.color);
+        const paletteColor = resolveMemoColor(memo.color);
 
         return (
           <article

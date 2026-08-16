@@ -19,7 +19,7 @@ const memo: MemoData = {
   id: 1,
   title: "프로젝트 회의",
   content: "논의할 안건",
-  color: "ROSE",
+  color: "B9827F",
   positionX: null,
   positionY: null,
   width: null,
