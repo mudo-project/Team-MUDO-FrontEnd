@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, X } from "lucide-react";
+import { Check } from "lucide-react";
 import { useState } from "react";
 
 type Permission = {
@@ -67,7 +67,7 @@ export default function AuthoritySelectGroup({ group, role }: AuthoritySelectGro
                     전체 선택
                     <input
                         checked={isAllSelected}
-                        className="sr-only"
+                        className="inset-0 sr-only cursor-pointer opacity-0"
                         id={`resource-${resource}`}
                         onChange={(event) => toggleResource(event.target.checked)}
                         ref={(element) => {
@@ -112,7 +112,7 @@ export default function AuthoritySelectGroup({ group, role }: AuthoritySelectGro
                             <Check className="size-4 " strokeWidth={1.7} />
                         </div>
                         <div className="block peer-checked:hidden">
-                            <X className="size-3.5" strokeWidth={1.5} />
+                            <Check className="size-3.5" strokeWidth={1.5} />
                         </div>
 
                     </div>

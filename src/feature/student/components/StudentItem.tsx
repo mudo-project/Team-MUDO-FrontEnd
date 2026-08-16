@@ -7,9 +7,10 @@ import ViewStudentModal from "./modal/ViewStudentModal";
 
 interface StudentItemProps {
     student: StudentListItemData;
+    index: number;
 }
 
-export default function StudentItem({ student }: StudentItemProps) {
+export default function StudentItem({ student, index }: StudentItemProps) {
     const viewStudentModal = useModal();
 
     return (
@@ -20,7 +21,7 @@ export default function StudentItem({ student }: StudentItemProps) {
                 onClick={viewStudentModal.openModal}
                 type="button"
             >
-                <p className="col-span-1 text-[#CBD5E1]">{student.studentId}</p>
+                <p className="col-span-1 text-[#CBD5E1]">{index + 1}</p>
                 <div className="col-span-6 flex items-center gap-[9px]">
                     <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#D7E8DB] text-[10px] font-semibold text-[#0F172A]">
                         {student.name.slice(0, 2)}

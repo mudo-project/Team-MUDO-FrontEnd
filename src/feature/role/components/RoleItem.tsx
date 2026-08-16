@@ -33,9 +33,10 @@ export default function RoleItem({ isSelected, role }: RoleItemProps) {
         toast.success(response.message);
 
         if (isSelected) {
-            router.replace("/role");
+            router.push("/role");
+        } else {
+            router.refresh();
         }
-        router.refresh();
     }
 
     const openEditModal = () => {
