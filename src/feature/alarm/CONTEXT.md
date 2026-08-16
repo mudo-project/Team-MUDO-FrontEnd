@@ -35,7 +35,7 @@ Sidebar의 알림 메뉴(`src/components/layout/Sidebar.tsx`, `href: "/alarm"`, 
 - `src/feature/alarm/type.ts` — 요청/응답 인터페이스(`NotificationListParams`, `NotificationItemData`, `NotificationListData`, `NotificationListResponse`, `NotificationUnreadCountData`, `NotificationUnreadCountResponse`). `export` 없이 선언되어 프로젝트 전역에서 import 없이 바로 참조된다(notice 등 다른 도메인 `type.ts`와 같은 스타일).
 - `src/service/alarm.service.ts` — `fetchWithAuth` 기반 API 호출(`getNotificationList`, `getUnreadNotificationCount`, `readNotification`, `deleteNotification`, `deleteReadNotifications`).
 - `src/feature/alarm/actions.ts` — 위 service를 감싼 Server Action(`getNotificationListAction`, `getUnreadNotificationCountAction`, `readNotificationAction`, `deleteNotificationAction`, `deleteReadNotificationsAction`). 컴포넌트는 이 액션만 호출하고 service를 직접 부르지 않는다.
-- `src/feature/alarm/components/AlarmRealtimeProvider.tsx` — WebSocket 연결/구독 Provider. `src/app/(user)/layout.tsx`에 `<MemoContainer />`와 형제로 상시 마운트되어 로그인 중에는 항상 구독을 유지한다. `src/feature/messenger/components/MessengerRealtimeProvider.tsx`와 별개의 자체 STOMP 클라이언트를 사용하며, 사용자 id는 `src/feature/messenger/actions.ts`의 `getCurrentUserIdAction`(JWT 디코딩)으로 얻어 재사용한다. 구독 주소는 `/topic/workspaces/users/{userId}`(멘션), `/topic/approvals/users/{userId}`(결재 차례 도달).
+- `src/feature/alarm/components/AlarmRealtimeProvider.tsx` — WebSocket 연결/구독 Provider. `src/app/(user)/layout.tsx`에 `<MemoContainer />`와 형제로 상시 마운트되어 로그인 중에는 항상 구독을 유지한다. Server Layout이 런타임 `API_BASE_URL`을 읽어 `apiBaseUrl` prop으로 전달하며, Provider는 `${apiBaseUrl}/ws`에 연결한다. `src/feature/messenger/components/MessengerRealtimeProvider.tsx`와 별개의 자체 STOMP 클라이언트를 사용하며, 사용자 id는 `src/feature/messenger/actions.ts`의 `getCurrentUserIdAction`(JWT 디코딩)으로 얻어 재사용한다. 구독 주소는 `/topic/workspaces/users/{userId}`(멘션), `/topic/approvals/users/{userId}`(결재 차례 도달).
 - `src/store/useAlarmStore.ts` — Zustand 스토어. 안읽은 개수(`unreadCount`)를 Sidebar와 `AlarmRealtimeProvider`가 공유한다(부모-자식 관계가 아니므로 메모 도메인의 `useMemoStore`와 동일하게 스토어로 연결).
 - API 응답이 없거나 실패하면(예: 인증 실패) 목록은 "알림을 불러오지 못했습니다"를 보여준다(페이지 자체는 죽지 않음). 이 경로는 실제로 401 상황에서 확인했다.
 
@@ -171,7 +171,7 @@ Sidebar 뱃지 표시에 사용. 최초 조회 이후에는 `useAlarmStore`에�
 | **AlarmContainer** | 클라이언트 컴포넌트. `alarms`/`page`/`hasNext`/`isLoadingMore` state를 소유하고 `handleItemClick`(읽음 처리)/`handleDelete`(개별 삭제)/`handleDeleteRead`(일괄 삭제)/`handleLoadMore`(다음 페이지 조회)를 각 action과 연결. 성공 시 로컬 state 갱신 + 필요 시 `useAlarmStore.decrementUnreadCount()`, 실패 시 `toast.error` |
 | **AlarmHeader** | 화면 타이틀 + `읽은 알림 삭제` 버튼. `onDeleteRead` prop 호출 |
 | **AlarmList** | 알림 목록(클라이언트 컴포넌트). 항목별 읽음/안읽음 표시, 항목 클릭 시 `onItemClick`, 삭제 버튼 클릭 시 `onDelete` 호출, 빈 상태 표시. `hasNext`가 참이면 목록 끝에 sentinel을 두고 `IntersectionObserver`로 `onLoadMore` 호출 |
-| **AlarmRealtimeProvider** | WebSocket 연결/구독 Provider. `getCurrentUserIdAction`으로 사용자 id를 얻어 STOMP 연결·구독하고, 이벤트 수신 시 toast 표시 + `useAlarmStore.incrementUnreadCount()` 호출. 화면에 아무것도 렌더링하지 않는다(`return null`) |
+| **AlarmRealtimeProvider** | Server Layout에서 런타임 API 주소를 전달받는 WebSocket 연결/구독 Provider. `getCurrentUserIdAction`으로 사용자 id를 얻어 STOMP 연결·구독하고, 이벤트 수신 시 toast 표시 + `useAlarmStore.incrementUnreadCount()` 호출. 화면에 아무것도 렌더링하지 않는다(`return null`) |
 
 ### 관계
 

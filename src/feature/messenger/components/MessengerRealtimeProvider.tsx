@@ -53,7 +53,13 @@ export function useMessengerRealtimeRoomList(roomIds: number[]) {
     }, [context, key]);
 }
 
-export default function MessengerRealtimeProvider({ children }: { children: ReactNode }) {
+export default function MessengerRealtimeProvider({
+    apiBaseUrl,
+    children,
+}: {
+    apiBaseUrl: string;
+    children: ReactNode;
+}) {
     const listenersRef = useRef<Set<Listener>>(new Set());
     const clientRef = useRef<Client | null>(null);
     const subscribedRoomIdsRef = useRef<Set<number>>(new Set());
@@ -91,10 +97,8 @@ export default function MessengerRealtimeProvider({ children }: { children: Reac
     }, [subscribeRoom]);
 
     useEffect(() => {
-        const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-
         const client = new Client({
-            webSocketFactory: () => new SockJS(`${baseUrl}/ws`),
+            webSocketFactory: () => new SockJS(`${apiBaseUrl}/ws`),
             reconnectDelay: 5000,
             onConnect: () => {
                 pendingRoomIdsRef.current.forEach((roomId) => subscribeRoom(roomId));
@@ -110,7 +114,7 @@ export default function MessengerRealtimeProvider({ children }: { children: Reac
             clientRef.current = null;
             subscribedRoomIdsRef.current.clear();
         };
-    }, [subscribeRoom]);
+    }, [apiBaseUrl, subscribeRoom]);
 
     return (
         <MessengerRealtimeContext.Provider value={{ addListener, ensureSubscribed }}>

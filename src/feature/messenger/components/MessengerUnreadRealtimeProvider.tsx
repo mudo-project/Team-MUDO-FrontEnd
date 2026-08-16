@@ -8,7 +8,7 @@ import { useMessengerUnreadStore } from "@/store/useMessengerUnreadStore";
 
 // 사이드바 메신저 뱃지용 전체 안읽음 합계를 구독한다.
 // MessengerRealtimeProvider와 별개로 루트 레이아웃에 상시 마운트되어, 메신저 화면 밖에서도 갱신된다.
-export default function MessengerUnreadRealtimeProvider() {
+export default function MessengerUnreadRealtimeProvider({ apiBaseUrl }: { apiBaseUrl: string }) {
     const setUnreadCount = useMessengerUnreadStore((state) => state.setUnreadCount);
 
     useEffect(() => {
@@ -35,10 +35,8 @@ export default function MessengerUnreadRealtimeProvider() {
             const userId = await getCurrentUserIdAction();
             if (!userId || cancelled) return;
 
-            const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-
             client = new Client({
-                webSocketFactory: () => new SockJS(`${baseUrl}/ws`),
+                webSocketFactory: () => new SockJS(`${apiBaseUrl}/ws`),
                 reconnectDelay: 5000,
                 onConnect: () => {
                     void refreshUnreadCount();
@@ -55,7 +53,7 @@ export default function MessengerUnreadRealtimeProvider() {
             cancelled = true;
             client?.deactivate();
         };
-    }, [setUnreadCount]);
+    }, [apiBaseUrl, setUnreadCount]);
 
     return null;
 }

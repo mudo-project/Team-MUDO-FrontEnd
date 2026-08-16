@@ -1,17 +1,17 @@
 import "server-only";
 import { cookies } from "next/headers";
+import { getApiBaseUrl } from "./apiBaseUrl";
 import { refreshGet } from "./stateError";
-
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 
 export async function fetchWithoutAuth(endpoint: string, options: RequestInit = {}): Promise<Response> {
+    const baseUrl = getApiBaseUrl();
     const headers = {
         'Content-Type': 'application/json',
         ...options.headers
     }
 
-    const response = await fetch(`${BASE_URL}${endpoint}`, {
+    const response = await fetch(`${baseUrl}${endpoint}`, {
         ...options,
         headers,
     });
@@ -20,6 +20,7 @@ export async function fetchWithoutAuth(endpoint: string, options: RequestInit = 
 }
 
 export async function fetchWithAuth(endpoint: string, options: RequestInit = {}): Promise<Response> {
+    const baseUrl = getApiBaseUrl();
     const cookieStore = await cookies();
     const accessToken = cookieStore.get('accessToken')?.value;
 
@@ -30,7 +31,7 @@ export async function fetchWithAuth(endpoint: string, options: RequestInit = {})
         ...options.headers
     }
 
-    const response = await fetch(`${BASE_URL}${endpoint}`, {
+    const response = await fetch(`${baseUrl}${endpoint}`, {
         ...options,
         headers,
     });
@@ -45,7 +46,7 @@ export async function fetchWithAuth(endpoint: string, options: RequestInit = {})
         return response;
     }
 
-    const newResponse = await fetch(`${BASE_URL}${endpoint}`, {
+    const newResponse = await fetch(`${baseUrl}${endpoint}`, {
         ...options,
         headers: {
             ...(!isFormData && { "Content-Type": "application/json" }),
@@ -60,6 +61,7 @@ export async function fetchWithAuth(endpoint: string, options: RequestInit = {})
 }
 
 export async function fetchWithAuthGet(endpoint: string, options: RequestInit = {}): Promise<Response> {
+    const baseUrl = getApiBaseUrl();
     const cookieStore = await cookies();
     const accessToken = cookieStore.get('accessToken')?.value;
 
@@ -69,7 +71,7 @@ export async function fetchWithAuthGet(endpoint: string, options: RequestInit = 
         ...options.headers
     }
 
-    const response = await fetch(`${BASE_URL}${endpoint}`, {
+    const response = await fetch(`${baseUrl}${endpoint}`, {
         ...options,
         headers,
     });
@@ -79,6 +81,7 @@ export async function fetchWithAuthGet(endpoint: string, options: RequestInit = 
 
 
 export async function fetchWithAuthAi(endpoint: string, options: RequestInit = {}): Promise<Response> {
+    const baseUrl = getApiBaseUrl();
     const cookieStore = await cookies();
     const accessToken = cookieStore.get('accessToken')?.value;
 
@@ -87,7 +90,7 @@ export async function fetchWithAuthAi(endpoint: string, options: RequestInit = {
         ...options.headers
     }
 
-    const response = await fetch(`${BASE_URL}${endpoint}`, {
+    const response = await fetch(`${baseUrl}${endpoint}`, {
         ...options,
         headers,
     });

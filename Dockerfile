@@ -16,16 +16,8 @@ RUN --mount=type=cache,target=/root/.npm \
 # .dockerignore에서 제외되지 않은 프로젝트 소스 전체를 작업 경로로 복사한다.
 COPY . .
 
-# Docker 빌드 명령에서 공개 API 주소를 전달받는다.
-ARG NEXT_PUBLIC_API_BASE_URL
-# 전달받은 주소를 Next.js 빌드가 읽을 수 있는 환경변수로 등록한다.
-ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
 # 빌드 중 Next.js 익명 사용 통계 수집을 비활성화한다.
 ENV NEXT_TELEMETRY_DISABLED=1
-
-# 공개 API 주소가 누락된 경우 잘못된 이미지를 만들지 않고 빌드를 중단한다.
-RUN test -n "${NEXT_PUBLIC_API_BASE_URL}" || \
-    (echo "NEXT_PUBLIC_API_BASE_URL is required" && exit 1)
 
 # standalone 설정을 적용한 Next.js 프로덕션 결과물을 생성한다.
 RUN npm run build

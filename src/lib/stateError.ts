@@ -1,10 +1,11 @@
 'use server'
 
 import { cookies } from "next/headers";
+import { getApiBaseUrl } from "./apiBaseUrl";
 import { ReissueResponse } from "./refreshType";
 
 export const refreshGet = async () => {
-    const base_url = process.env.NEXT_PUBLIC_API_BASE_URL;
+    const baseUrl = getApiBaseUrl();
 
     try {
         const cookieStore = await cookies();
@@ -14,7 +15,7 @@ export const refreshGet = async () => {
             throw new Error("로그인이 만료되었습니다. 다시 로그인해주세요.");
         }
 
-        const response = await fetch(`${base_url}/api/token/reissue`, {
+        const response = await fetch(`${baseUrl}/api/token/reissue`, {
             method: 'POST',
             body: JSON.stringify({}),
             headers: {
