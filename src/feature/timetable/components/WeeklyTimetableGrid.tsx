@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { gradeLabels } from "@/feature/timetable/constants";
 import type { ClassItem } from "@/feature/timetable/viewModel";
 
@@ -31,13 +32,25 @@ export default function WeeklyTimetableGrid({
   times,
   visibleRooms,
 }: WeeklyTimetableGridProps) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
   return (
     <section
       aria-label="주간 시간표"
       className="min-w-0 max-w-full overflow-hidden rounded-xl border border-[#DCE9DF] bg-white"
     >
-      <div data-testid="weekly-timetable-scroll" className="max-w-full overflow-x-auto overscroll-contain">
-        <div className="max-h-[calc(100dvh-14rem)] min-w-[2240px] overflow-y-auto scrollbar-hide" role="table" aria-label="2026년 8월 첫째 주 시간표">
+      <div
+        data-testid="weekly-timetable-scroll"
+        className="max-w-full overflow-x-auto overscroll-contain"
+        onWheel={(event) => {
+          if (!event.shiftKey || !scrollRef.current) return;
+
+          event.preventDefault();
+          scrollRef.current.scrollLeft += event.deltaY || event.deltaX;
+        }}
+        ref={scrollRef}
+      >
+        <div className="w-max min-w-[2240px] max-h-[calc(100dvh-14rem)] overflow-y-auto scrollbar-hide" role="table" aria-label="2026년 8월 첫째 주 시간표">
           <div 
             className="grid border-b border-[#DCE9DF]" 
             role="row" 

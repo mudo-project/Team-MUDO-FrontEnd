@@ -9,6 +9,7 @@ export const gradeValues = [
   "ELEMENTARY_1", "ELEMENTARY_2", "ELEMENTARY_3", "ELEMENTARY_4", "ELEMENTARY_5", "ELEMENTARY_6",
   "MIDDLE_1", "MIDDLE_2", "MIDDLE_3",
   "HIGH_1", "HIGH_2", "HIGH_3",
+  "COMMON",
 ] as const;
 
 export const gradeLabels: Record<Grade, string> = {
@@ -24,6 +25,7 @@ export const gradeLabels: Record<Grade, string> = {
   HIGH_1: "고1",
   HIGH_2: "고2",
   HIGH_3: "고3",
+  COMMON: "공통",
 };
 
 export const gradeOptions = gradeValues.map((value) => ({ value, label: gradeLabels[value] }));

@@ -46,11 +46,17 @@ export default function NewTimetableRoomSetupStep({
                 )}
               </div>
               <div className="mt-2 flex gap-2">
-                <input 
+                <input
                   aria-label={`${floor.floor} 호실 이름`}
                   className="h-8 min-w-0 flex-1 rounded-md border border-[#DCE9DF] bg-white px-2 text-[12px] text-[#526071] outline-none"
                   onChange={(event) => onChangeNewRoomName(floorIndex, event.target.value)}
-                  placeholder="예: 302" 
+                  onKeyDown={(event) => {
+                    if (event.key !== "Enter" || !newRoomName || isDuplicate) return;
+
+                    event.preventDefault();
+                    onAddRoom(floorIndex);
+                  }}
+                  placeholder="예: 302"
                   value={newRoomNames[floorIndex] ?? ""}
                 />
                   <button 
