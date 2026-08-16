@@ -22,7 +22,8 @@ export default function MyMenu({ setIsProfileMenuOpen }: { setIsProfileMenuOpen:
 
         clearPermissions();
         clearUser();
-        router.replace("/auth");
+        toast.success('로그아웃되었습니다')
+        router.push("/auth");
         router.refresh();
     };
 

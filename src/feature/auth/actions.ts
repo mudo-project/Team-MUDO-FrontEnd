@@ -102,7 +102,7 @@ export const getMyPermissionListAction = async (): Promise<AuthActionResult<MyPe
 
 export const logoutAction = async (): Promise<AuthActionResult> => {
     try {
-        const response = await logout();
+        await logout();
         const cookieStore = await cookies();
 
         cookieStore.delete("accessToken");
@@ -110,7 +110,7 @@ export const logoutAction = async (): Promise<AuthActionResult> => {
 
         return {
             success: true,
-            message: response.message,
+            message: '로그아웃되었습니다.',
         };
     } catch (error) {
         return {
