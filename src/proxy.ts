@@ -1,19 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { MyTokenPayload } from "./lib/decode";
 import { jwtDecode } from "jwt-decode";
-import { getApiBaseUrl } from "./lib/apiBaseUrl";
 import { getCookieDomain } from "./lib/cookieDomain";
 import { ReissueResponse } from "./lib/refreshType";
+import { resolveApiBaseUrl } from "./lib/tenantApiResolver";
 
 async function getRefreshToken(request: NextRequest) {
-    const baseUrl = getApiBaseUrl();
     const refreshToken = request.cookies.get('refreshToken')?.value;
+    const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
 
-    if (!refreshToken) {
+    if (!refreshToken || !host) {
         return null;
     }
 
     try {
+        const baseUrl = await resolveApiBaseUrl(host);
         const response = await fetch(`${baseUrl}/api/token/reissue`, {
             method: 'POST',
             body: JSON.stringify({}),

@@ -5,7 +5,7 @@ import { refreshGet } from "./stateError";
 
 
 export async function fetchWithoutAuth(endpoint: string, options: RequestInit = {}): Promise<Response> {
-    const baseUrl = getApiBaseUrl();
+    const baseUrl = await getApiBaseUrl();
     const headers = {
         'Content-Type': 'application/json',
         ...options.headers
@@ -20,7 +20,7 @@ export async function fetchWithoutAuth(endpoint: string, options: RequestInit = 
 }
 
 export async function fetchWithAuth(endpoint: string, options: RequestInit = {}): Promise<Response> {
-    const baseUrl = getApiBaseUrl();
+    const baseUrl = await getApiBaseUrl();
     const cookieStore = await cookies();
     const accessToken = cookieStore.get('accessToken')?.value;
 
@@ -61,7 +61,7 @@ export async function fetchWithAuth(endpoint: string, options: RequestInit = {})
 }
 
 export async function fetchWithAuthGet(endpoint: string, options: RequestInit = {}): Promise<Response> {
-    const baseUrl = getApiBaseUrl();
+    const baseUrl = await getApiBaseUrl();
     const cookieStore = await cookies();
     const accessToken = cookieStore.get('accessToken')?.value;
 
@@ -81,7 +81,7 @@ export async function fetchWithAuthGet(endpoint: string, options: RequestInit = 
 
 
 export async function fetchWithAuthAi(endpoint: string, options: RequestInit = {}): Promise<Response> {
-    const baseUrl = getApiBaseUrl();
+    const baseUrl = await getApiBaseUrl();
     const cookieStore = await cookies();
     const accessToken = cookieStore.get('accessToken')?.value;
 

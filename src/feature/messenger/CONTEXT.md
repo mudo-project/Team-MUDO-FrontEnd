@@ -21,7 +21,7 @@
 ### 진입점 및 라우팅
 
 - Sidebar의 메신저 메뉴(`src/components/layout/Sidebar.tsx`, `href: "/messenger"`). 메뉴 뱃지는 `useMessengerUnreadStore`(`src/store/useMessengerUnreadStore.ts`)의 `unreadCount`를 표시한다.
-- `src/app/(user)/messenger/layout.tsx`가 런타임 `API_BASE_URL`을 읽어 `MessengerRealtimeProvider`에 전달하고, Provider로 감싼 좌측 사이드바(`MessengerSidebar`)를 상시 렌더링하며 우측 `{children}`에 선택된 채팅방을 렌더링한다. 좌측 사이드바는 라우트 이동과 무관하게 리마운트되지 않는다.
+- `src/app/(user)/messenger/layout.tsx`가 현재 요청 Host로 테넌트 API Base URL을 결정해 `MessengerRealtimeProvider`에 전달하고, Provider로 감싼 좌측 사이드바(`MessengerSidebar`)를 상시 렌더링하며 우측 `{children}`에 선택된 채팅방을 렌더링한다. 좌측 사이드바는 라우트 이동과 무관하게 리마운트되지 않는다.
 - `src/app/(user)/messenger/page.tsx`: 서버 컴포넌트로 `getChatRoomsAction()`을 호출해 참여 중인 채팅방 목록을 가져오고, 첫 번째 채팅방으로 `redirect`한다. 참여 중인 채팅방이 없으면 안내 문구만 표시한다.
 - `src/app/(user)/messenger/[chatId]/page.tsx`: `chatId`(백엔드 `roomId`, number)를 숫자로 변환해 `ChatRoom roomId={...}`를 렌더링한다.
 
@@ -236,7 +236,7 @@
 
 `MessengerRealtimeProvider`(`src/feature/messenger/components/MessengerRealtimeProvider.tsx`)가 `(user)/messenger/layout.tsx`에서 사이드바·채팅방을 함께 감싸며, 메신저 화면에 머무는 동안 STOMP 연결 하나를 유지한다.
 
-- **연결**: Server Layout이 런타임 `API_BASE_URL`을 읽어 Client Provider에 `apiBaseUrl` prop으로 전달하고, `@stomp/stompjs` + `sockjs-client`로 `${apiBaseUrl}/ws`에 연결한다. 인증은 SockJS의 초기 핸드셰이크 HTTP 요청에 브라우저가 자동으로 실어 보내는 `accessToken` httpOnly 쿠키를 백엔드 `JwtHandshakeInterceptor`가 읽는 방식이라, 프론트가 토큰 값을 따로 다루지 않는다.
+- **연결**: Server Layout이 현재 요청 Host로 결정한 테넌트 API Base URL을 Client Provider에 `apiBaseUrl` prop으로 전달하고, `@stomp/stompjs` + `sockjs-client`로 `${apiBaseUrl}/ws`에 연결한다. 인증은 SockJS의 초기 핸드셰이크 HTTP 요청에 브라우저가 자동으로 실어 보내는 `accessToken` httpOnly 쿠키를 백엔드 `JwtHandshakeInterceptor`가 읽는 방식이라, 프론트가 토큰 값을 따로 다루지 않는다.
 - **구독 범위**: 내가 속한 모든 채팅방(`getChatRoomsAction` 결과)의 `/topic/messenger/rooms/{roomId}`를 동시에 구독한다. `ChatSidebar`가 목록을 조회할 때마다, `TaskSidebar`가 방을 순회할 때마다, `ChatRoom`이 현재 보고 있는 방마다 각각 `ensureSubscribed(roomId)`를 호출해 구독을 보장한다(이미 구독된 방은 다시 구독하지 않는다).
 - **이벤트 처리 방식**: 이벤트 payload가 화면을 그대로 그리기엔 정보가 부족해서(예: `MESSAGE_SENT`에 발신자 이름 없음), 이벤트를 "무언가 바뀌었다"는 신호로만 쓰고 실제 화면 갱신은 해당 화면이 다시 조회하는 방식으로 처리한다.
   - `ChatRoom`: 현재 방의 `MESSAGE_SENT`/`MESSAGE_EDITED`/`MESSAGE_DELETED`는 메시지 목록을, `TASK_CARD_*`는 업무지시 카드 목록을 다시 조회한다.

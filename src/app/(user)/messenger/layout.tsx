@@ -5,7 +5,7 @@ import { connection } from "next/server";
 
 export default async function MessengerLayout({ children }: { children: React.ReactNode }) {
     await connection();
-    const apiBaseUrl = getApiBaseUrl();
+    const apiBaseUrl = await getApiBaseUrl();
 
     return (
         <MessengerRealtimeProvider apiBaseUrl={apiBaseUrl}>

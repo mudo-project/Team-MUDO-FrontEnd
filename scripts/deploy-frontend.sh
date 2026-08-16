@@ -62,9 +62,9 @@ if [ ! -r "$ENV_FILE" ]; then
   exit 1
 fi
 
-# 실제 API 주소를 출력하지 않고 필수 런타임 환경변수의 존재 여부만 확인한다.
-if ! grep -qE '^API_BASE_URL=.+$' "$ENV_FILE"; then
-  echo "API_BASE_URL is missing from the frontend runtime environment." >&2
+# 실제 라우팅 API 주소를 출력하지 않고 필수 런타임 환경변수의 존재 여부만 확인한다.
+if ! grep -qE '^TENANT_ROUTING_ORIGIN=.+$' "$ENV_FILE"; then
+  echo "TENANT_ROUTING_ORIGIN is missing from the frontend runtime environment." >&2
   exit 1
 fi
 

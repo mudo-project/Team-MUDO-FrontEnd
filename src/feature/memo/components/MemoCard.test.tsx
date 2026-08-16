@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { deleteMemoAction } from "../actions";
+import { changeMemoColorAction, deleteMemoAction, updateMemoAction } from "../actions";
 import MemoCard from "./MemoCard";
 
 jest.mock("../actions", () => ({
@@ -28,7 +28,9 @@ const memo: MemoData = {
   updatedAt: "2026-08-09T00:00:00.000Z",
 };
 
+const mockedChangeMemoColorAction = changeMemoColorAction as jest.Mock;
 const mockedDeleteMemoAction = deleteMemoAction as jest.Mock;
+const mockedUpdateMemoAction = updateMemoAction as jest.Mock;
 
 describe("MemoCard", () => {
   afterEach(() => {
@@ -88,5 +90,40 @@ describe("MemoCard", () => {
       expect(onRefresh).toHaveBeenCalledTimes(1);
     });
     expect(screen.queryByText("삭제할까요?")).not.toBeInTheDocument();
+  });
+
+  it("색상을 클릭하면 색상 변경 액션을 호출하고 성공하면 메뉴를 닫는다", async () => {
+    const onRefresh = jest.fn();
+    mockedChangeMemoColorAction.mockResolvedValue({ success: true, message: "메모 색상이 변경되었습니다." });
+
+    render(<MemoCard createForm={null} isLoading={false} memos={[memo]} onRefresh={onRefresh} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "프로젝트 회의 더보기" }));
+    fireEvent.click(screen.getByRole("button", { name: "색상 변경" }));
+    fireEvent.click(screen.getByRole("button", { name: "메모 색상 7894C2" }));
+
+    await waitFor(() => {
+      expect(mockedChangeMemoColorAction).toHaveBeenCalledWith(memo.id, "7894C2");
+      expect(onRefresh).toHaveBeenCalledTimes(1);
+    });
+    expect(screen.queryByLabelText("메모 색상 선택")).not.toBeInTheDocument();
+  });
+
+  it("편집 폼에서 저장하면 수정 액션을 호출하고 성공하면 편집 모드를 종료한다", async () => {
+    const onRefresh = jest.fn();
+    mockedUpdateMemoAction.mockResolvedValue({ success: true, message: "메모가 수정되었습니다." });
+
+    render(<MemoCard createForm={null} isLoading={false} memos={[memo]} onRefresh={onRefresh} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "프로젝트 회의 더보기" }));
+    fireEvent.click(screen.getByRole("button", { name: "수정" }));
+    fireEvent.change(screen.getByLabelText("메모 제목"), { target: { value: "수정된 제목" } });
+    fireEvent.click(screen.getByRole("button", { name: "저장" }));
+
+    await waitFor(() => {
+      expect(mockedUpdateMemoAction).toHaveBeenCalledWith(memo.id, "수정된 제목", memo.content);
+      expect(onRefresh).toHaveBeenCalledTimes(1);
+    });
+    expect(screen.queryByLabelText("메모 제목")).not.toBeInTheDocument();
   });
 });
