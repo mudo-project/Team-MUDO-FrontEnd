@@ -1,20 +1,17 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { getRoleListAction } from "@/feature/role/actions";
-import {
-    changeMemberStatusAction,
-    updateMemberAction,
-} from "@/feature/members/actions";
+import { getRoleListAction } from "../../../role/actions";
+import { changeMemberStatusAction, updateMemberAction } from "../../actions";
 import { MemberListData } from "../../type";
 import ViewMembersModal from "./ViewMembersModal";
 import { toast } from "sonner";
 
 const refresh = jest.fn();
 
-jest.mock("@/feature/role/actions", () => ({
+jest.mock("../../../role/actions", () => ({
     getRoleListAction: jest.fn(),
 }));
 
-jest.mock("@/feature/members/actions", () => ({
+jest.mock("../../actions", () => ({
     changeMemberStatusAction: jest.fn(),
     updateMemberAction: jest.fn(),
 }));

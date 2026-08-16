@@ -1,12 +1,12 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { getRoleListAction } from "@/feature/role/actions";
+import { getRoleListAction } from "../../../role/actions";
 import { createEmployeeAccountAction } from "../../actions";
 import CreateMemberModal from "./CreateMemberModal";
 import { toast } from "sonner";
 
 const refresh = jest.fn();
 
-jest.mock("@/feature/role/actions", () => ({
+jest.mock("../../../role/actions", () => ({
     getRoleListAction: jest.fn(),
 }));
 
