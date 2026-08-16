@@ -7,6 +7,7 @@ import { LECTURE_CLASS_TYPE_LABEL, LECTURE_DAY_LABEL, LECTURE_FEE_TYPE_LABEL, LE
 import { LectureDetailData } from "../../type";
 import LectureDeleteButton from "../LectureDeleteButton";
 import LectureUpdateButton from "../LectureUpdateButton";
+import { useUserStore } from "@/store/useUserStore";
 
 interface ViewLectureModalProps {
     closeModal: () => void;
@@ -14,6 +15,8 @@ interface ViewLectureModalProps {
 }
 
 export default function ViewLectureModal({ closeModal, lectureId }: ViewLectureModalProps) {
+    const permissions = useUserStore((state) => state.permissions);
+
     const [detail, setDetail] = useState<LectureDetailData>();
     const [error, setError] = useState("");
 
@@ -59,8 +62,11 @@ export default function ViewLectureModal({ closeModal, lectureId }: ViewLectureM
                                 <h2 className="pt-1 text-[18px] leading-[27px] font-bold text-[#0F172A]" id="lecture-detail-title">{detail.name}</h2>
                             </div>
                             <div className="ml-auto flex items-center gap-1.5">
-                                <LectureUpdateButton lecture={detail} lectureId={lectureId} onUpdated={refreshLecture} />
-                                <LectureDeleteButton closeModal={closeModal} lectureId={lectureId} />
+                                {permissions.includes("LECTURE:MANAGE") && (
+                                    <>
+                                        <LectureUpdateButton lecture={detail} lectureId={lectureId} onUpdated={refreshLecture} />
+                                        <LectureDeleteButton closeModal={closeModal} lectureId={lectureId} />
+                                    </>)}
                                 <button aria-label="강의 상세 모달 닫기" className="flex size-[18px] items-center justify-center text-[#94A3B8]" onClick={closeModal} type="button"><X className="size-[18px]" strokeWidth={1.5} /></button>
                             </div>
                         </header>
@@ -69,7 +75,7 @@ export default function ViewLectureModal({ closeModal, lectureId }: ViewLectureM
                             <section>
                                 <h3 className="text-[11px] font-semibold tracking-[0.55px] text-[#94A3B8]">기본 정보</h3>
                                 <div className="grid grid-cols-2 gap-x-6 gap-y-2.5 pt-3.5">
-                                    {[ ["과목", detail.subjectName], ["학기", detail.termName], ["담당 선생님", detail.teacherName], ["강의실", `${detail.classroomName} (${detail.classroomCode})`], ["수강료 유형", detail.feeType ? LECTURE_FEE_TYPE_LABEL[detail.feeType] : null], ["수강료", detail.feeAmount === null ? null : `${detail.feeAmount.toLocaleString()}원`] ].map(([label, value]) => (
+                                    {[["과목", detail.subjectName], ["학기", detail.termName], ["담당 선생님", detail.teacherName], ["강의실", `${detail.classroomName} (${detail.classroomCode})`], ["수강료 유형", detail.feeType ? LECTURE_FEE_TYPE_LABEL[detail.feeType] : null], ["수강료", detail.feeAmount === null ? null : `${detail.feeAmount.toLocaleString()}원`]].map(([label, value]) => (
                                         <div key={label}><p className="text-[11px] text-[#94A3B8]">{label}</p><p className="pt-[3px] text-[13px] font-medium text-[#0F172A]">{value || "-"}</p></div>
                                     ))}
                                 </div>
