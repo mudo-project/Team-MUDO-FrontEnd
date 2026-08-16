@@ -9,7 +9,7 @@ import { connection } from "next/server";
 
 export default async function Layout({ children }: { children: React.ReactNode }) {
     await connection();
-    const apiBaseUrl = getApiBaseUrl();
+    const apiBaseUrl = await getApiBaseUrl();
 
     return (
         <QueryProvider>

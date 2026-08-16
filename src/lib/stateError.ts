@@ -4,9 +4,16 @@ import { cookies } from "next/headers";
 import { getApiBaseUrl } from "./apiBaseUrl";
 import { getCookieDomain } from "./cookieDomain";
 import { ReissueResponse } from "./refreshType";
+import { getErrorMessage as parseErrorMessage } from "./responseError";
 
+export async function getErrorMessage(
+    response: Response,
+    fallbackMessage: string,
+): Promise<string> {
+    return parseErrorMessage(response, fallbackMessage);
+}
 export const refreshGet = async () => {
-    const baseUrl = getApiBaseUrl();
+    const baseUrl = await getApiBaseUrl();
     const domain = getCookieDomain();
 
     try {
@@ -70,25 +77,5 @@ export const refreshGet = async () => {
         cookieStore.delete({ name: 'refreshToken', path: '/', domain });
 
         return null;
-    }
-}
-
-//에러 메세지가 json이 아닌 경우를 대비
-export async function getErrorMessage(
-    response: Response,
-    fallbackMessage: string
-) {
-    try {
-        const contentType = response.headers.get("content-type");
-
-        if (contentType?.includes("application/json")) {
-            const errorData = await response.json();
-            return errorData?.message || fallbackMessage;
-        }
-
-        const text = await response.text();
-        return text || fallbackMessage;
-    } catch {
-        return fallbackMessage;
     }
 }
