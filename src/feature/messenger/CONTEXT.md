@@ -230,7 +230,7 @@
 | 전송 옵션 열기 | 입력창 좌측 `+` 버튼 클릭, 또는 `/` 입력 | 업무지시/사진/파일 선택 옵션 노출 | 구현 완료 |
 | 사진 선택 | 첨부 메뉴에서 `사진` 클릭 | `accept="image/*"` 파일 선택 창(OS 네이티브 다이얼로그) 노출 | 구현 완료 |
 | 파일 선택 | 첨부 메뉴에서 `파일` 클릭 | 파일 선택 창(OS 네이티브 다이얼로그) 노출 | 구현 완료 |
-| 사진/파일 전송 | 파일 선택 후 | `createFilePresignedUrlAction` → 업로드 URL에 `fetch(PUT)`으로 업로드 → `createFileMetadataAction`으로 등록 → `getFileDownloadUrlAction`으로 받은 `downloadUrl`을 `sendFileMessageAction(roomId, "IMAGE"\|"FILE", downloadUrl, fileName)`으로 전송. 업로드 중엔 첨부 버튼이 비활성화된다 | 구현 완료 |
+| 사진/파일 전송 | 파일 선택 후 | 파일 모듈의 공용 `uploadFiles([file], {})`(presigned URL 발급 → 업로드 URL에 PUT 업로드 → 메타데이터 등록, 전자결재와 동일한 헬퍼)로 `fileId`를 얻고, `getFileDownloadUrlAction(fileId)`로 받은 `downloadUrl`을 `sendFileMessageAction(roomId, "IMAGE"\|"FILE", downloadUrl, fileName)`으로 전송. 업로드 중엔 첨부 버튼이 비활성화된다 | 구현 완료 |
 
 ### 4.9 실시간 반영
 
@@ -304,7 +304,7 @@
 | **MessageMenu** | 내 메시지 메뉴. `onEdit`/`onDelete` 콜백을 받아 수정/삭제를 트리거 |
 | **TaskMessageCard** | 채팅방 내 업무지시 카드(client). `card`·`own`·`currentUserId`·`roomId`를 받아 좌/우 정렬을 결정하고, 클릭 시 `TaskDetailModal` 오픈 |
 | **TaskCompletionCard** | 완료 알림 카드(중앙 정렬). 실시간 이벤트를 화면 갱신 신호로만 쓰는 현재 구조상 생성되지 않으나 컴포넌트는 남아 있다 |
-| **MessageInput** | 하단 입력 영역(client). `roomId`를 받아 `sendMessageAction`으로 텍스트 전송, `/` 입력 감지 및 `+` 버튼으로 첨부 메뉴 토글, `업무지시` 선택 시 `TaskCreateModal` 오픈. 숨겨진 `input[type=file]` 2개(사진/파일)는 선택 시 `@/feature/file/actions`의 presigned URL 발급 → 업로드 → 등록 → 다운로드 URL 조회를 거쳐 `sendFileMessageAction`으로 전송(업로드 중 첨부 버튼 비활성화) |
+| **MessageInput** | 하단 입력 영역(client). `roomId`를 받아 `sendMessageAction`으로 텍스트 전송, `/` 입력 감지 및 `+` 버튼으로 첨부 메뉴 토글, `업무지시` 선택 시 `TaskCreateModal` 오픈. 숨겨진 `input[type=file]` 2개(사진/파일)는 선택 시 `@/feature/file/uploadFiles`의 `uploadFiles`(전자결재와 공유하는 업로드 헬퍼)로 업로드한 뒤 `getFileDownloadUrlAction`으로 다운로드 URL을 받아 `sendFileMessageAction`으로 전송(업로드 중 첨부 버튼 비활성화) |
 | **TaskCreateModal** | 업무지시 작성/수정 모달(client). `roomId`로 채팅방 참여자를 조회해 담당자 후보로 쓴다. `editingCard` prop이 없으면 작성 모드(`createTaskCardAction`), 있으면 그 값으로 입력값을 미리 채운 수정 모드(`updateTaskCardAction`)로 동작. 성공/실패 토스트 표시 |
 | **TaskDetailModal** | 업무지시 상세조회 모달(client). 채팅방 업무지시 카드·받은 업무 목록·전달한 업무 목록 세 진입점이 공유하며, 로그인 사용자가 등록자면 수정/삭제, 미완료 담당자 본인이면 완료 처리 버튼을 보여준다. `수정` 선택 시 `TaskCreateModal`(수정 모드)로 전환, `삭제`는 `TwoButtonModal`로 확인 |
 | **Avatar** | 아바타 이니셜 공용 컴포넌트 |
