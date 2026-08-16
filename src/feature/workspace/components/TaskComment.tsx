@@ -66,6 +66,8 @@ export default function TaskComment({
         return () => document.removeEventListener("pointerdown", closeMenu);
     }, [isMenuOpen]);
 
+    const parts = comment.content.split(/(@\S+)/);
+
     return (
         <label
             htmlFor={String(comment.commentId)}
@@ -89,7 +91,15 @@ export default function TaskComment({
             </div>
             <div className="peer-checked:[&>p]:line-through [&>p]:text-[#0F172A] peer-checked:[&>p]:text-[#64748B]">
                 <p className="text-[12px] leading-[18px] ">
-                    {comment.content}
+                    {parts.map((part, index) =>
+                        part.startsWith("@") ? (
+                            <span key={index} className="bg-[#2C8D50]/10 text-[#2C8D50] p-1 rounded-[5px] font-medium">
+                                {part}
+                            </span>
+                        ) : (
+                            part
+                        )
+                    )}
                 </p>
                 <div className="mt-1 text-[10px] leading-[15px] text-[#C0C8D0]">
                     {comment.author.name} · {comment.createdAt}

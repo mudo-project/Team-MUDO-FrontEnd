@@ -37,7 +37,7 @@ export default function WorkspaceCt({ workspaceId, date }: { workspaceId: string
     }, [workspaceData])
 
 
-    if (!workspaceData?.success && workspaceData?.message || workspaceError) {
+    if (!workspaceData?.success || workspaceError) {
         return (
             <div>{workspaceData?.message || workspaceError}다시 시도해주세요.</div>
         )

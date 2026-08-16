@@ -1,6 +1,5 @@
 'use client'
 
-import Link from "next/link";
 import WorkspaceAttendAddButton from "./WorkspaceAttendAddButton";
 import WorkspaceDeleteButton from "./WorkspaceDeleteButton";
 import WorkspaceEditButton from "./WorkspaceEditButton";
@@ -9,6 +8,7 @@ import { getWorkspaceDetailAction } from "../actions";
 import TaskCreateButton from "./TaskCreateButton";
 import TaskTemplateCreateButton from "./TaskTemplateCreateButton";
 import Attend from "./Attend";
+import TaskNavLink from "./TaskNavLink";
 
 export default function WorkspaceHeader({ workspaceId }: { workspaceId: string }) {
     const {
@@ -22,7 +22,7 @@ export default function WorkspaceHeader({ workspaceId }: { workspaceId: string }
 
 
 
-    if (!workspaceData?.success && workspaceData?.message || workspaceError) {
+    if (!workspaceData?.success || workspaceError) {
         return (
             <div>{workspaceData?.message || workspaceError}다시 시도해주세요.</div>
         )
@@ -51,18 +51,12 @@ export default function WorkspaceHeader({ workspaceId }: { workspaceId: string }
             </div>
 
             <nav className="mt-2 flex h-8 items-end gap-2 sm:gap-3 md:mt-3 md:h-[34px] md:gap-5 lg:mt-4 lg:h-[36px] lg:gap-7">
-                <Link
-                    href={`/workspace/${workspaceId}/daily`}
-                    className="h-full border-b border-[#596273] px-2 text-[10px] font-semibold leading-[35px] md:px-3 md:text-[12px] lg:px-4 lg:text-[13px]"
-                >
+                <TaskNavLink href={`/workspace/${workspaceId}/daily`}>
                     일별
-                </Link>
-                <Link
-                    href={`/workspace/${workspaceId}/repeat`}
-                    className="h-full px-1 text-[10px] leading-[35px] text-[#A9B0BC] md:text-[12px] lg:text-[13px]"
-                >
+                </TaskNavLink>
+                <TaskNavLink href={`/workspace/${workspaceId}/repeat`}>
                     반복 템플릿
-                </Link>
+                </TaskNavLink>
             </nav>
         </header>
 
