@@ -1,5 +1,7 @@
 import { Menu, Search } from "lucide-react";
 import OpenSidebar from "./OpenSidebar";
+import { format } from "date-fns";
+import { ko } from "date-fns/locale";
 
 export default function Header() {
     return (
@@ -7,15 +9,7 @@ export default function Header() {
             <OpenSidebar />
 
 
-            <span className="ml-auto text-[12px] text-[#64748B]">2026년 8월 4일 화요일</span>
-
-            <button
-                className="ml-3 flex h-[30px] items-center rounded-[6px] border border-[#D7E8DB] bg-white px-3 text-[10px] text-[#64748B]"
-                type="button"
-            >
-                <Search className="mr-1.5 h-3.5 w-3.5" strokeWidth={1.8} />
-                검색
-            </button>
+            <span className="ml-auto text-[12px] text-[#64748B]">{format(new Date(), 'yyyy년 MM월 dd일 E요일', { locale: ko })}</span>
         </header>
     );
 }

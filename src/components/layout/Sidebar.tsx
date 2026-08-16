@@ -16,9 +16,30 @@ import { useAlarmStore } from "@/store/useAlarmStore";
 import { useMessengerUnreadStore } from "@/store/useMessengerUnreadStore";
 import Image from "next/image";
 
-type MenuItem = {
+export type MenuHref =
+    | "/alarm"
+    | "/notice"
+    | "/messenger"
+    | "/approval/my"
+    | "/workspace/my-works"
+    | "/shared-folder"
+    | "/schedule"
+    | "/attendance"
+    | "/finance"
+    | "/student"
+    | "/lecture"
+    | "/rollbook"
+    | "/message"
+    | "/timetable"
+    | "/revenue-report"
+    | "/members"
+    | "/role"
+    | "/initial"
+    | "/setting";
+
+interface MenuItem {
     label: string;
-    href: string;
+    href: MenuHref;
     icon: 'Home' | "PanelTop" | "MessageSquare" | "Bell" | "BellRing" | "FileCheck2" | "Grid2X2" | "Clock3" | "WalletCards" | "GraduationCap" | "CalendarDays" | "Users" | "Shield" | "Settings" | "Book" | "Folder" | "TrendingUp" | "Mail" | 'UserRoundPen' | 'HardDriveDownload',
     count?: number;
     dividerAfter?: boolean;
@@ -31,7 +52,6 @@ export default function Sidebar() {
     const profileMenuRef = useRef<HTMLDivElement>(null);
     const user = useUserStore((state) => state.user);
     const setUser = useUserStore((state) => state.setUser);
-    const permissions = useUserStore((state) => state.permissions);
     const setPermissions = useUserStore((state) => state.setPermissions);
     const unreadNotificationCount = useAlarmStore((state) => state.unreadCount);
     const setUnreadNotificationCount = useAlarmStore((state) => state.setUnreadCount);

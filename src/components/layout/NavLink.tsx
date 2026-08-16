@@ -1,5 +1,6 @@
 'use client'
 
+import { useUserStore } from "@/store/useUserStore";
 import {
     Bell,
     BellRing,
@@ -25,9 +26,10 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { MenuHref } from "./Sidebar";
 
 interface NavLinkProps {
-    href: string,
+    href: MenuHref,
     children: string,
     icon: 'Home' | "PanelTop" | "MessageSquare" | "Bell" | "BellRing" | "FileCheck2" | "Grid2X2" | "Clock3" | "WalletCards" | "GraduationCap" | "CalendarDays" | "Users" | "Shield" | "Settings" | "Book" | "Folder" | "TrendingUp" | 'Mail' | 'UserRoundPen' | 'HardDriveDownload',
     count?: number;
@@ -36,18 +38,30 @@ interface NavLinkProps {
 
 const Icon = { Home: Home, PanelTop: PanelTop, MessageSquare: MessageSquare, Bell: Bell, BellRing: BellRing, FileCheck2: FileCheck2, Grid2X2: Grid2X2, Clock3: Clock3, WalletCards: WalletCards, GraduationCap: GraduationCap, CalendarDays: CalendarDays, Users: Users, Shield: Shield, Settings: Settings, Book: Book, Folder: Folder, TrendingUp: TrendingUp, Mail: Mail, UserRoundPen: UserRoundPen, HardDriveDownload: HardDriveDownload }
 
+const checkPermission: Partial<Record<MenuHref, string>> = {
+    '/role': 'ROLE:MANAGE',
+    '/members': 'ACCOUNT:MANAGE',
+    '/lecture': 'LECTURE:READ',
+    '/rollbook': 'ROLLCALL:MANAGE',
+    '/message': 'ROLLCALL:TEMPLATE_MANAGE',
+    '/student': 'STUDENT:MANAGE',
+    '/approval/my': 'APPROVAL:SUBMIT',
+}
+
 export default function NavLink({ href, children, icon, count, border }: NavLinkProps) {
     const SidebarIcon = Icon[icon]
     const pathName = usePathname().split('/')[1];
     const purehref = href.split('?')[0].split('/')[1]
+    const permissions = useUserStore((state) => state.permissions);
 
-    let isActive
-    if (href === '/') {
-        isActive = pathName === purehref;
-    } else {
-        isActive = pathName.startsWith(purehref);
 
-    }
+    const isActive = pathName.startsWith(purehref);
+    const requiredPermission = checkPermission[href];
+    const hasPermission = requiredPermission
+        ? permissions.includes(requiredPermission)
+        : true;
+
+    if (!hasPermission) return null;
 
     return (
         <>
