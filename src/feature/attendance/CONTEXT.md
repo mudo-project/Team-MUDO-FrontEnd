@@ -289,7 +289,7 @@ Sidebar의 근태 메뉴(`href: "/attendance"`). 라우트는 `src/app/(user)/at
 | `type.ts` | API 요청/응답 타입 전체. notice/schedule과 동일하게 `export` 없는 전역 스크립트 스타일 |
 | `attendanceFormat.ts` | 시각·날짜 포맷 헬퍼(`formatClockTime`/`formatDateLabel`/`formatDateTimeLabel`/`formatElapsed`/`formatDuration`), 상태·요청유형 라벨/배지 클래스 맵, `generateTimeOptions`, `formatCorrectionChangeSummary` |
 | `actions.ts` | `'use server'`. 조회 액션은 데이터를 바로 반환(실패 시 예외 throw), 등록/승인/반려 등 변경 액션은 `{ success, message, data? }` 반환(notice와 동일 패턴) |
-| `src/service/attendance.service.ts` | `fetchWithAuth` + `getErrorMessage` 기반 API 호출. 다른 도메인처럼 `src/service/`에 위치(도메인 안이 아니라 프로젝트 공통 위치) |
+| `src/service/attendance.service.ts` | `fetchWithAuth` + `getErrorMessage` 기반 API 호출. 다른 도메인처럼 `src/service/`에 위치(도메인 안이 아니라 프로젝트 공통 위치). `checkIn`/`checkOut`은 `buildSignedClientIpHeaders`(`src/lib/clientIpHeaders.ts`)로 각자의 경로(`/api/attendance/check-ins`, `/api/attendance/check-outs`) 기준 IP 서명 헤더(`X-Client-IP*`)를 만들어 요청에 붙인다 |
 
 ### 상태값 (백엔드가 준 이름을 그대로 씀)
 
