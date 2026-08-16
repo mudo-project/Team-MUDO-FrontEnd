@@ -16,7 +16,7 @@
 - 받은/전달 업무 목록도 같은 이유로 실제 집계 API가 없다. 내가 속한 모든 채팅방을 순회 조회해 프론트에서 합친 결과다.
 - 업무지시 수정/삭제, 완료 처리 버튼은 각각 등록자 본인·미완료 담당자 본인에게만 노출되어야 한다 — 실제로 그렇게 구현되어 있다(노출 조건은 로그인 사용자 id와 `assignerId`/`assignees[].userId` 비교).
 - 로그인 사용자 id는 `accessToken`의 JWT payload를 디코딩해 얻는다(`getCurrentUserIdAction`). payload의 사용자 id claim명(`userId`/`sub`/`id` 순으로 시도)은 백엔드에 공식 확인받지 않은 상태다 — 실제 로그인 계정 기준으로는 정상 동작을 확인했다.
-- 사진·파일 첨부는 전송 로직이 없다. 첨부 업로드에 필요한 presigned URL 발급 계약이 아직 없다.
+- 사진·파일 첨부는 `src/feature/file`(파일 모듈)의 presigned URL 발급/등록/다운로드 URL 조회 3개 액션을 그대로 사용해 전송한다. 메신저 자체의 fileId 개념은 없고, 업로드 후 발급받은 `downloadUrl`을 메시지의 `fileUrl`로 그대로 저장한다(백엔드 계약이 `fileUrl`/`fileName` 문자열만 받고 `fileId`는 받지 않음). 이 `downloadUrl`이 파일 모듈에서 만료 없이 유지되는지는 별도로 확인되지 않았다 — 시간이 지나 링크가 끊기면 이 부분을 의심할 것.
 
 ### 진입점 및 라우팅
 
@@ -121,13 +121,13 @@
 
 - **검색**: 헤더의 검색 아이콘을 클릭하면 제목 영역이 검색 입력창으로 바뀐다. 입력한 검색어로 현재 채팅방의 통합 피드(텍스트 메시지 + 업무지시 카드 내용)를 실시간 필터링하고, 결과가 없으면 "검색 결과가 없습니다"를 표시한다. X 버튼을 누르면 검색어를 지우고 원래 헤더로 돌아온다.
 - **참여자 목록**: 헤더의 참여자 아이콘(사람 그룹 아이콘)을 클릭하면 `getChatRoomMembersAction(roomId)`으로 조회한 참여자 목록이 채팅방 우측 사이드바(전체 높이, `w-72`)로 열린다. 참여자 수(헤더에 표시되는 "참여자 N명")도 같은 조회 결과를 사용한다.
-- **메시지 표시**: 상대방 메시지는 이름·내용·시간·안읽은 인원 수, 내 메시지는 내용·시간만 표시. "내 메시지" 여부는 메시지의 `senderId`를 로그인 사용자 id와 비교해 판단한다. 시간은 날짜 없이 시:분만 표시하며(`formatTimeOnly`), 통합 피드에서 날짜가 바뀌는 지점마다 그 앞에 중앙 정렬된 날짜 구분선("YYYY년 M월 D일 (요일)", `formatFeedDateDivider`)이 표시된다.
+- **메시지 표시**: 상대방 메시지는 이름·내용·시간·안읽은 인원 수, 내 메시지는 내용·시간만 표시. "내 메시지" 여부는 메시지의 `senderId`를 로그인 사용자 id와 비교해 판단한다. 시간은 날짜 없이 시:분만 표시하며(`formatTimeOnly`), 통합 피드에서 날짜가 바뀌는 지점마다 그 앞에 중앙 정렬된 날짜 구분선("YYYY년 M월 D일 (요일)", `formatFeedDateDivider`)이 표시된다. `messageType`이 `IMAGE`면 이미지를, `FILE`이면 파일명 + 다운로드 링크를 표시하고, 그 외(`TEXT`)엔 `content`를 표시한다(`MessageContent`).
 - **자동 스크롤**: `MessageList`는 피드 목록 맨 아래에 sentinel을 두고, `feed`가 바뀔 때마다(메시지 전송·수신, 업무지시 등록 등) 그 위치로 스크롤을 이동시켜 항상 최신 항목이 보이게 한다.
-- **내 메시지 수정/삭제**: 내 메시지를 **우클릭**하면 그 자리에 수정/삭제 메뉴가 뜨고, 메뉴 바깥을 클릭하면 자동으로 닫힌다(호버로는 뜨지 않는다). `수정`은 말풍선을 인라인 textarea로 바꿔 `updateMessageAction`으로 저장하고, 수정된 메시지는 "(수정됨)" 표시가 붙는다. `삭제`는 `deleteMessageAction`(소프트 삭제)을 호출하며, 삭제된 메시지는 "삭제된 채팅입니다"로 대체 표시된다.
+- **내 메시지 수정/삭제**: 내 메시지를 **우클릭**하면 그 자리에 수정/삭제 메뉴가 뜨고, 메뉴 바깥을 클릭하면 자동으로 닫힌다(호버로는 뜨지 않는다). `수정`은 `messageType`이 `TEXT`인 메시지에만 노출된다(백엔드가 TEXT만 수정 허용). 말풍선을 인라인 textarea로 바꿔 `updateMessageAction`으로 저장하고, 수정된 메시지는 "(수정됨)" 표시가 붙는다. `삭제`는 메시지 타입과 무관하게 노출되며 `deleteMessageAction`(소프트 삭제)을 호출하고, 삭제된 메시지는 "삭제된 채팅입니다"로 대체 표시된다.
 - **업무지시 카드**: 채팅방 내 업무지시는 본인이 등록한 경우 다른 내 메시지와 같은 오른쪽 정렬선에 맞춰 표시되고, 다른 사람이 등록한 경우 아바타·이름과 함께 좌측 정렬로 표시된다. 클릭하면 업무지시 상세조회 모달이 뜬다.
 - **입력창 첨부 메뉴**: 입력창에 `/`를 입력하거나 좌측 `+` 버튼을 클릭하면 입력창 바로 위, 입력창과 같은 너비로 업무지시/사진/파일 메뉴가 뜬다.
   - `업무지시` 클릭 → 업무지시 작성 모달
-  - `사진`/`파일` 클릭 → 네이티브 파일 선택 창만 노출된다(핵심 제약 참고).
+  - `사진`/`파일` 클릭 → 네이티브 파일 선택 창이 뜨고, 파일을 고르면 업로드 후 자동으로 전송된다(4.8 참고). 업로드 중엔 첨부(`+`) 버튼이 비활성화된다.
 
 ### 업무지시 작성/수정 모달
 
@@ -230,7 +230,7 @@
 | 전송 옵션 열기 | 입력창 좌측 `+` 버튼 클릭, 또는 `/` 입력 | 업무지시/사진/파일 선택 옵션 노출 | 구현 완료 |
 | 사진 선택 | 첨부 메뉴에서 `사진` 클릭 | `accept="image/*"` 파일 선택 창(OS 네이티브 다이얼로그) 노출 | 구현 완료 |
 | 파일 선택 | 첨부 메뉴에서 `파일` 클릭 | 파일 선택 창(OS 네이티브 다이얼로그) 노출 | 구현 완료 |
-| 파일 전송 | 파일 선택 후 | 선택한 파일을 채팅방에 전송 | 미구현 — presigned URL 발급 계약이 없음 |
+| 사진/파일 전송 | 파일 선택 후 | `createFilePresignedUrlAction` → 업로드 URL에 `fetch(PUT)`으로 업로드 → `createFileMetadataAction`으로 등록 → `getFileDownloadUrlAction`으로 받은 `downloadUrl`을 `sendFileMessageAction(roomId, "IMAGE"\|"FILE", downloadUrl, fileName)`으로 전송. 업로드 중엔 첨부 버튼이 비활성화된다 | 구현 완료 |
 
 ### 4.9 실시간 반영
 
@@ -300,11 +300,11 @@
 | **ChatRoomHeader** | 채팅방 헤더(client). `roomId`로 참여자 목록을 조회해 참여자 수를 표시하고, 평시엔 제목·검색/참여자 아이콘, 검색 모드일 땐 검색 입력창으로 전환. 참여자 아이콘으로 `ChatMemberList` 토글 |
 | **ChatMemberList** | 전달받은 참여자 목록을 렌더링하는 우측 사이드바(전체 높이, `w-72`) |
 | **MessageList** | 전달받은 `feed`를 매핑해 `MessageItem` 렌더링, `roomId`·`currentUserId`·변경 콜백을 그대로 전달. 이전 항목과 날짜가 다른 지점마다 날짜 구분선을 함께 렌더링하고, `feed` 변경 시 맨 아래로 자동 스크롤 |
-| **MessageItem** | 피드 항목 1건(client). `kind`가 `task`면 `TaskMessageCard`로 위임하고, 그 외엔 삭제됨/본인/상대방 상태를 렌더링. 본인 메시지는 우클릭(`onContextMenu`)으로 `MessageMenu`를 열어 인라인 수정(`updateMessageAction`) 또는 삭제(`deleteMessageAction`)를 수행 |
+| **MessageItem** | 피드 항목 1건(client). `kind`가 `task`면 `TaskMessageCard`로 위임하고, 그 외엔 삭제됨/본인/상대방 상태를 렌더링(내부 `MessageContent`가 `messageType`에 따라 텍스트/이미지/파일 링크를 그림). 본인 메시지는 우클릭(`onContextMenu`)으로 `MessageMenu`를 열어 인라인 수정(`updateMessageAction`, TEXT만) 또는 삭제(`deleteMessageAction`)를 수행 |
 | **MessageMenu** | 내 메시지 메뉴. `onEdit`/`onDelete` 콜백을 받아 수정/삭제를 트리거 |
 | **TaskMessageCard** | 채팅방 내 업무지시 카드(client). `card`·`own`·`currentUserId`·`roomId`를 받아 좌/우 정렬을 결정하고, 클릭 시 `TaskDetailModal` 오픈 |
 | **TaskCompletionCard** | 완료 알림 카드(중앙 정렬). 실시간 이벤트를 화면 갱신 신호로만 쓰는 현재 구조상 생성되지 않으나 컴포넌트는 남아 있다 |
-| **MessageInput** | 하단 입력 영역(client). `roomId`를 받아 `sendMessageAction`으로 전송, `/` 입력 감지 및 `+` 버튼으로 첨부 메뉴 토글, 숨겨진 `input[type=file]` 2개(사진/파일, 전송 로직 없음), `업무지시` 선택 시 `TaskCreateModal` 오픈 |
+| **MessageInput** | 하단 입력 영역(client). `roomId`를 받아 `sendMessageAction`으로 텍스트 전송, `/` 입력 감지 및 `+` 버튼으로 첨부 메뉴 토글, `업무지시` 선택 시 `TaskCreateModal` 오픈. 숨겨진 `input[type=file]` 2개(사진/파일)는 선택 시 `@/feature/file/actions`의 presigned URL 발급 → 업로드 → 등록 → 다운로드 URL 조회를 거쳐 `sendFileMessageAction`으로 전송(업로드 중 첨부 버튼 비활성화) |
 | **TaskCreateModal** | 업무지시 작성/수정 모달(client). `roomId`로 채팅방 참여자를 조회해 담당자 후보로 쓴다. `editingCard` prop이 없으면 작성 모드(`createTaskCardAction`), 있으면 그 값으로 입력값을 미리 채운 수정 모드(`updateTaskCardAction`)로 동작. 성공/실패 토스트 표시 |
 | **TaskDetailModal** | 업무지시 상세조회 모달(client). 채팅방 업무지시 카드·받은 업무 목록·전달한 업무 목록 세 진입점이 공유하며, 로그인 사용자가 등록자면 수정/삭제, 미완료 담당자 본인이면 완료 처리 버튼을 보여준다. `수정` 선택 시 `TaskCreateModal`(수정 모드)로 전환, `삭제`는 `TwoButtonModal`로 확인 |
 | **Avatar** | 아바타 이니셜 공용 컴포넌트 |
@@ -355,7 +355,7 @@
 | 받은/전달 업무 집계 | 여러 채팅방을 가로지르는 업무지시 목록 | 구현 완료(핵심 제약 참고 — 프론트 순회 방식) |
 | 소속 인원 검색 | 새 채팅 모달의 검색 대상 인원 목록 | 구현 완료 |
 | 실시간 반영 | 상대방의 메시지/업무지시 변경을 즉시 반영 | 구현 완료(4.9 참고, 연결 끊김 UI 피드백은 없음) |
-| 사진·파일 전송 | 첨부 업로드 후 메시지로 전송 | 미구현 — presigned URL 발급 계약 없음 |
+| 사진·파일 전송 | 첨부 업로드 후 메시지로 전송 | 구현 완료(파일 모듈의 presigned URL 발급/등록/다운로드 URL 조회 액션 사용, 4.8 참고) |
 
 ---
 

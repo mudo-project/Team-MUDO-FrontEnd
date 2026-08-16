@@ -1,11 +1,38 @@
 'use client'
 
 import { useEffect, useRef, useState } from "react";
+import { FileText } from "lucide-react";
 import Avatar from "./Avatar";
 import MessageMenu from "./MessageMenu";
 import TaskMessageCard from "./TaskMessageCard";
-import { FeedItem, formatTimeOnly, getInitials } from "../utils";
+import { FeedItem, FeedTextItem, formatTimeOnly, getInitials } from "../utils";
 import { deleteMessageAction, updateMessageAction } from "../actions";
+
+function MessageContent({ item }: { item: FeedTextItem }) {
+    if (item.messageType === "IMAGE" && item.fileUrl) {
+        return (
+            <a href={item.fileUrl} rel="noopener noreferrer" target="_blank">
+                <img alt={item.fileName ?? "이미지"} className="max-h-60 max-w-full rounded-[8px]" src={item.fileUrl} />
+            </a>
+        );
+    }
+
+    if (item.messageType === "FILE" && item.fileUrl) {
+        return (
+            <a
+                className="flex items-center gap-1.5 underline"
+                href={item.fileUrl}
+                rel="noopener noreferrer"
+                target="_blank"
+            >
+                <FileText className="size-3.5 shrink-0" strokeWidth={1.5} />
+                {item.fileName ?? "첨부파일"}
+            </a>
+        );
+    }
+
+    return <>{item.content}</>;
+}
 
 type MessageItemProps = {
     item: FeedItem;
@@ -106,12 +133,18 @@ export default function MessageItem({ item, currentUserId, roomId, onMessagesCha
                     </div>
                 ) : (
                     <div className="rounded-[11px] bg-[#2C8D50] px-3 py-2 text-[11px] leading-[1.5] text-white">
-                        {item.content}
+                        <MessageContent item={item} />
                         {item.editedAt && <span className="ml-1 text-[9px] text-white/70">(수정됨)</span>}
                     </div>
                 )}
                 <p className="text-[9px] text-[#64748B]">{formatTimeOnly(item.createdAt)}</p>
-                {isMenuOpen && <MessageMenu onClose={() => setIsMenuOpen(false)} onEdit={handleEdit} onDelete={handleDelete} />}
+                {isMenuOpen && (
+                    <MessageMenu
+                        onClose={() => setIsMenuOpen(false)}
+                        onDelete={handleDelete}
+                        onEdit={item.messageType === "TEXT" ? handleEdit : undefined}
+                    />
+                )}
             </article>
         );
     }
@@ -122,7 +155,7 @@ export default function MessageItem({ item, currentUserId, roomId, onMessagesCha
             <div>
                 <p className="mb-1 text-[9px] text-[#64748B]">{item.senderName}</p>
                 <div className="rounded-[11px] bg-[#E9EDF1] px-3 py-2 text-[11px] leading-[1.5] text-[#1E293B]">
-                    {item.content}
+                    <MessageContent item={item} />
                 </div>
                 <p className="mt-1 flex items-center gap-1 text-[9px] text-[#64748B]">
                     <span>{formatTimeOnly(item.createdAt)}</span>
