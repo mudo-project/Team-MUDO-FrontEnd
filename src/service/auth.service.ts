@@ -16,7 +16,7 @@ export const login = async (user: LoginRequest): Promise<Response> => {
     return response;
 };
 
-export const logout = async (): Promise<LogoutResponse> => {
+export const logout = async (): Promise<void> => {
     const response = await fetchWithAuth("/api/auth/logout", {
         method: "POST",
     });
@@ -26,7 +26,6 @@ export const logout = async (): Promise<LogoutResponse> => {
         throw new Error(message);
     }
 
-    return response.json();
 };
 
 export const reissueAccessToken = async (): Promise<ReissueAccessTokenResponse> => {

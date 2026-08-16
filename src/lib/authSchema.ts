@@ -31,7 +31,10 @@ export const authEditSchema = z.object({
         .email({ message: '올바른 이메일 형식이 아닙니다.' }),
     phone: z
         .string()
-        .regex(/^\d{3}-\d{4}-\d{4}$/, { message: '전화번호 형식이 맞지 않습니다. (예: 010-1234-5678)' }),
+        .regex(
+            /^\d{2,3}-\d{3,4}-\d{4}$/,
+            "전화번호 형식이 올바르지 않습니다.",
+        ),
     roleId: z
         .coerce.number().int().min(0, "존재하지 않는 값입니다.")
 })
@@ -44,7 +47,10 @@ export const myInfoUpdateSchema = z.object({
         .email({ message: '올바른 이메일 형식이 아닙니다.' }),
     phone: z
         .string()
-        .regex(/^\d{3}-\d{4}-\d{4}$/, { message: '전화번호 형식이 맞지 않습니다. (예: 010-1234-5678)' }),
+        .regex(
+            /^\d{2,3}-\d{3,4}-\d{4}$/,
+            "전화번호 형식이 올바르지 않습니다.",
+        ),
 })
 
 
