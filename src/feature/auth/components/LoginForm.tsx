@@ -42,7 +42,9 @@ export default function LoginForm() {
             }
 
         } else {
-            toast.error(state.message)
+            if (state.message) {
+                toast.error(state.message)
+            }
         }
     }, [state])
 
@@ -95,12 +97,6 @@ export default function LoginForm() {
                     로그인
                 </button>
             </div>
-
-            <p className="mt-6 w-full border-t-[1.5px] border-[#ECF3EF] pt-5 text-center text-[11px] leading-[17.6px] text-[#B0BEC8]">
-                테스트 계정 · 아이디 <strong className="font-bold text-[#7A9A90]">10001</strong>
-                {" · 비밀번호 "}
-                <strong className="font-bold text-[#7A9A90]">1234</strong>
-            </p>
         </form>
     )
 }

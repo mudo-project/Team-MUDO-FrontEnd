@@ -1,5 +1,4 @@
 import LoginForm from "@/feature/auth/components/LoginForm";
-import { login } from "@/service/auth.service";
 import { GraduationCap } from "lucide-react";
 
 export default async function Page() {

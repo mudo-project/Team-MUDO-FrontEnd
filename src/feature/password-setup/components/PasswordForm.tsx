@@ -57,7 +57,7 @@ export default function PasswordForm() {
                         type="text"
                     />
                 </label>
-                {errors.email?.message && <p>{errors.email.message}</p>}
+                {errors.email?.message && <p className="-mt-[14px] text-[12px] text-[#C0483F]">{errors.email.message}</p>}
 
                 <label className="text-[12px] font-semibold leading-[18px] tracking-[0.24px] text-[#64748B]">
                     전화번호
@@ -69,7 +69,7 @@ export default function PasswordForm() {
                         type="text"
                     />
                 </label>
-                {errors.phone?.message && <p>{errors.phone.message}</p>}
+                {errors.phone?.message && <p className="-mt-[14px] text-[12px] text-[#C0483F]">{errors.phone.message}</p>}
 
                 <label className="text-[12px] font-semibold leading-[18px] tracking-[0.24px] text-[#64748B]">
                     비밀번호
@@ -95,7 +95,7 @@ export default function PasswordForm() {
                         </button>
                     </span>
                 </label>
-                {errors.newPassword?.message && <p>{errors.newPassword.message}</p>}
+                {errors.newPassword?.message && <p className="-mt-[14px] text-[12px] text-[#C0483F]">{errors.newPassword.message}</p>}
 
 
                 <label className="text-[12px] font-semibold leading-[18px] tracking-[0.24px] text-[#64748B]">
@@ -122,7 +122,7 @@ export default function PasswordForm() {
                         </button>
                     </span>
                 </label>
-                {errors.confirmPassword?.message && <p>{errors.confirmPassword.message}</p>}
+                {errors.confirmPassword?.message && <p className="-mt-[14px] text-[12px] text-[#C0483F]">{errors.confirmPassword.message}</p>}
 
                 <button
                     disabled={isSubmitting}
