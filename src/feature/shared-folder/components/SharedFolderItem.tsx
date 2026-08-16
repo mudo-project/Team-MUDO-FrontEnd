@@ -9,7 +9,6 @@ type SharedFolderItemProps = {
   onDelete: () => void;
   onDownload: () => void;
   onFolderOpen: () => void;
-  onMenuSelect: () => void;
   onMenuToggle: () => void;
   onMove: () => void;
   onOpenPreview: () => void;
@@ -60,7 +59,7 @@ function ItemIcon({ kind, fileType }: { kind: SharedFolderItemKind; fileType: Sh
   }
 }
 
-export default function SharedFolderItem({ isMenuOpen, item, onDelete, onDownload, onFolderOpen, onMenuSelect, onMenuToggle, onMove, onOpenPreview, onRename }: SharedFolderItemProps) {
+export default function SharedFolderItem({ isMenuOpen, item, onDelete, onDownload, onFolderOpen, onMenuToggle, onMove, onOpenPreview, onRename }: SharedFolderItemProps) {
   const kind = getSharedFolderItemKind(item);
   const fileType = getSharedFolderFileType(item);
   const typeLabel = kind === "FOLDER" ? "폴더" : FILE_TYPE_LABEL[fileType];
@@ -74,7 +73,9 @@ export default function SharedFolderItem({ isMenuOpen, item, onDelete, onDownloa
             {item.name}
           </button>
         ) : (
-          <span className="min-w-0 truncate text-[12px] font-medium text-[#0F172A]">{item.name}</span>
+          <button className="min-w-0 truncate text-left text-[12px] font-medium text-[#0F172A]" type="button" onClick={onOpenPreview}>
+            {item.name}
+          </button>
         )}
       </div>
       <span className="truncate text-[11px] text-[#64748B]">{typeLabel}</span>
@@ -93,13 +94,13 @@ export default function SharedFolderItem({ isMenuOpen, item, onDelete, onDownloa
         </button>
         {isMenuOpen && (
           <SharedFolderItemMenu
+            downloadable={item.downloadable}
             kind={kind}
             onDelete={onDelete}
             onDownload={onDownload}
             onMove={onMove}
             onOpenPreview={onOpenPreview}
             onRename={onRename}
-            onViewDetail={onMenuSelect}
           />
         )}
       </div>

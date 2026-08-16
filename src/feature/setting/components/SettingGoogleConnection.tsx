@@ -61,7 +61,11 @@ function getDaysUntil(iso: string): number {
 }
 
 function getBannerTitle(status: BannerStatus, connection: GoogleConnectionData): string {
-  if (status === "expiring") return `${getDaysUntil(connection.tokenExpiresAt)}일 뒤 토큰이 만료됩니다`;
+  if (status === "expiring") {
+    return connection.refreshTokenExpiresAt
+      ? `${getDaysUntil(connection.refreshTokenExpiresAt)}일 뒤 토큰이 만료됩니다`
+      : "곧 토큰이 만료됩니다";
+  }
   if (status === "expired") return "토큰이 만료되었습니다";
   return "연결에 실패했습니다";
 }
@@ -104,6 +108,24 @@ export default function SettingGoogleConnection() {
         window.clearInterval(pollIntervalRef.current);
       }
     };
+  }, [fetchConnection]);
+
+  // OAuth 콜백 팝업(SettingGoogleConnectionCallback)이 postMessage로 결과를 알려주면 즉시 상태를 다시 조회한다.
+  useEffect(() => {
+    function handleMessage(event: MessageEvent) {
+      if (event.origin !== "https://ieum.store") return;
+      if (event.data?.source !== "google-oauth-connection") return;
+
+      if (pollIntervalRef.current !== null) {
+        window.clearInterval(pollIntervalRef.current);
+        pollIntervalRef.current = null;
+      }
+
+      void fetchConnection().finally(() => setIsConnecting(false));
+    }
+
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
   }, [fetchConnection]);
 
   async function handleConnect() {
@@ -243,7 +265,7 @@ export default function SettingGoogleConnection() {
                 </div>
                 <div className="flex gap-3">
                   <dt className="w-24 shrink-0 text-[#7B879B]">연결한 관리자</dt>
-                  <dd>사용자 #{connection.connectedByUserId}</dd>
+                  <dd>{connection.connectedByUserName ?? `사용자 #${connection.connectedByUserId}`}</dd>
                 </div>
                 <div className="flex gap-3">
                   <dt className="w-24 shrink-0 text-[#7B879B]">권한 범위</dt>

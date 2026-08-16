@@ -6,11 +6,12 @@ export default function SettingGoogleConnectionCallback({ success }: { success: 
   const [closeFailed, setCloseFailed] = useState(false);
 
   useEffect(() => {
+    window.opener?.postMessage({ source: "google-oauth-connection", success }, window.location.origin);
     window.close();
 
     const timer = window.setTimeout(() => setCloseFailed(true), 300);
     return () => window.clearTimeout(timer);
-  }, []);
+  }, [success]);
 
   if (!closeFailed) return null;
 

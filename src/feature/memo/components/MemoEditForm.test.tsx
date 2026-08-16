@@ -6,7 +6,7 @@ const memo: MemoData = {
   id: 1,
   title: "기존 제목",
   content: "기존 내용",
-  color: "ROSE",
+  color: "B9827F",
   positionX: null,
   positionY: null,
   width: null,
@@ -26,7 +26,7 @@ describe("MemoEditForm", () => {
 
     fireEvent.change(screen.getByLabelText("메모 제목"), { target: { value: "수정 제목" } });
     fireEvent.change(screen.getByLabelText("메모 내용"), { target: { value: "수정 내용" } });
-    fireEvent.click(screen.getByRole("button", { name: "메모 색상 SAGE" }));
+    fireEvent.click(screen.getByRole("button", { name: "메모 색상 779F8A" }));
     fireEvent.click(screen.getByRole("button", { name: "저장" }));
 
     await waitFor(() => {

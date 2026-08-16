@@ -19,7 +19,7 @@ const oldestMemo: MemoData = {
   id: 2,
   title: "오래된 메모",
   content: "오래된 내용",
-  color: "SAGE",
+  color: "779F8A",
   positionX: null,
   positionY: null,
   width: null,

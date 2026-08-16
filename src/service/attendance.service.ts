@@ -1,12 +1,15 @@
 import { fetchWithAuth } from "@/lib/fetch";
 import { getErrorMessage } from "@/lib/stateError";
+import { buildSignedClientIpHeaders } from "@/lib/clientIpHeaders";
 
 // ── 출근/퇴근 ──────────────────────────────────────────
 
 // 출근 체크인 API
 export const checkIn = async (payload?: AttendanceCheckInRequest): Promise<AttendanceCheckInData> => {
+    const signedHeaders = await buildSignedClientIpHeaders("POST", "/api/attendance/check-ins");
     const response = await fetchWithAuth("/api/attendance/check-ins", {
         method: "POST",
+        headers: signedHeaders,
         body: JSON.stringify(payload ?? {}),
     });
 
@@ -23,8 +26,10 @@ export const checkIn = async (payload?: AttendanceCheckInRequest): Promise<Atten
 
 // 퇴근 체크아웃 API
 export const checkOut = async (payload: AttendanceCheckOutRequest): Promise<AttendanceCheckOutData> => {
+    const signedHeaders = await buildSignedClientIpHeaders("POST", "/api/attendance/check-outs");
     const response = await fetchWithAuth("/api/attendance/check-outs", {
         method: "POST",
+        headers: signedHeaders,
         body: JSON.stringify(payload),
     });
 

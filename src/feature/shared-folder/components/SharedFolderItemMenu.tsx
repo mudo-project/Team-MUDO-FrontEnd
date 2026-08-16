@@ -1,21 +1,21 @@
-import { Download, Eye, FolderInput, PencilLine, ScanEye, Trash2 } from "lucide-react";
+import { Download, FolderInput, PencilLine, ScanEye, Trash2 } from "lucide-react";
 
 type SharedFolderItemMenuProps = {
+  downloadable?: boolean;
   kind: SharedFolderItemKind;
   onRename: () => void;
   onMove: () => void;
   onDelete: () => void;
-  onViewDetail?: () => void;
   onOpenPreview?: () => void;
   onDownload?: () => void;
 };
 
 export default function SharedFolderItemMenu({
+  downloadable,
   kind,
   onRename,
   onMove,
   onDelete,
-  onViewDetail,
   onOpenPreview,
   onDownload,
 }: SharedFolderItemMenuProps) {
@@ -26,30 +26,24 @@ export default function SharedFolderItemMenu({
     >
       {kind === "FILE" && (
         <>
-          <button 
-            className="flex h-9 w-full items-center gap-2 px-3 text-left hover:bg-[#F8FAFC]" 
-            type="button" 
-            onClick={onViewDetail}
-          >
-            <Eye className="size-3.5" strokeWidth={1.8} />
-            상세 보기
-          </button>
-          <button 
-            className="flex h-9 w-full items-center gap-2 px-3 text-left hover:bg-[#F8FAFC]" 
-            type="button" 
+          <button
+            className={`flex h-9 w-full items-center gap-2 px-3 text-left hover:bg-[#F8FAFC] ${downloadable ? "" : "border-b border-[#E6EBE7]"}`}
+            type="button"
             onClick={onOpenPreview}
           >
             <ScanEye className="size-3.5" strokeWidth={1.8} />
             미리보기 열기
           </button>
-          <button 
-            className="flex h-9 w-full items-center gap-2 border-b border-[#E6EBE7] px-3 text-left hover:bg-[#F8FAFC]" 
-            type="button" 
-            onClick={onDownload}
-          >
-            <Download className="size-3.5" strokeWidth={1.8} />
-            다운로드
-          </button>
+          {downloadable && (
+            <button
+              className="flex h-9 w-full items-center gap-2 border-b border-[#E6EBE7] px-3 text-left hover:bg-[#F8FAFC]"
+              type="button"
+              onClick={onDownload}
+            >
+              <Download className="size-3.5" strokeWidth={1.8} />
+              다운로드
+            </button>
+          )}
         </>
       )}
       <button 

@@ -90,9 +90,10 @@ type GoogleConnectionStatus = "CONNECTED" | "EXPIRING" | "EXPIRED" | "FAILED";
 interface GoogleConnectionData {
     googleEmail: string;
     connectedByUserId: number;
+    connectedByUserName: string | null;
     scope: string;
     connectedAt: string;
-    tokenExpiresAt: string;
+    refreshTokenExpiresAt: string | null;
     lastCheckedAt: string;
     status: GoogleConnectionStatus;
 }

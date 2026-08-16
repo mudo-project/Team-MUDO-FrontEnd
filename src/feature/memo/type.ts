@@ -1,17 +1,5 @@
-// 메모 색상 코드
-type MemoColorCode =
-    | "ROSE"
-    | "MUSTARD"
-    | "SAGE"
-    | "BLUE"
-    | "LAVENDER"
-    | "PINK"
-    | "SLATE"
-    | "PEACH"
-    | "TEAL"
-    | "OLIVE"
-    | "CLAY"
-    | "INDIGO";
+// 메모 색상 코드. 6자리 16진수 색상 코드(RRGGBB, # 없이). 실제 팔레트·색상값은 FE가 자유롭게 정한다.
+type MemoColorCode = string;
 
 // 메모 정렬 기준
 type MemoSortOrder = "NEWEST" | "OLDEST";

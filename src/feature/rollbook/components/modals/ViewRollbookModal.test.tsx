@@ -17,6 +17,10 @@ jest.mock("sonner", () => ({
     toast: { success: jest.fn() },
 }));
 
+jest.mock("date-fns", () => ({
+    format: jest.fn(() => "2026-08-15"),
+}));
+
 const mockedGetLectureAttendanceAction =
     getLectureAttendanceAction as jest.MockedFunction<
         typeof getLectureAttendanceAction

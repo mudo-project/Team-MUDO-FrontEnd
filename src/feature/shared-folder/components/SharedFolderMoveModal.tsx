@@ -8,6 +8,7 @@ import { getSharedFolderItemKind } from "../sharedFolderFormat";
 type SharedFolderMoveModalProps = {
   isSubmitting: boolean;
   item: SharedFolderDriveItemData;
+  rootId: string | null;
   onClose: () => void;
   onMove: (destinationFolderId: string) => void;
 };
@@ -17,7 +18,7 @@ type BrowsePathEntry = {
   name: string;
 };
 
-export default function SharedFolderMoveModal({ isSubmitting, item, onClose, onMove }: SharedFolderMoveModalProps) {
+export default function SharedFolderMoveModal({ isSubmitting, item, rootId, onClose, onMove }: SharedFolderMoveModalProps) {
   const [browsePath, setBrowsePath] = useState<BrowsePathEntry[]>([]);
   const [folders, setFolders] = useState<SharedFolderDriveItemData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -59,7 +60,8 @@ export default function SharedFolderMoveModal({ isSubmitting, item, onClose, onM
   }, [browsingFolderId, item.id]);
 
   const destinationName = browsePath.at(-1)?.name ?? "공유파일 루트";
-  const canMoveHere = browsingFolderId !== undefined;
+  const destinationFolderId = browsingFolderId ?? rootId ?? undefined;
+  const canMoveHere = destinationFolderId !== undefined;
 
   return (
     <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-[#162236]/35" onClick={onClose}>
@@ -117,7 +119,7 @@ export default function SharedFolderMoveModal({ isSubmitting, item, onClose, onM
               className="h-9 rounded-lg bg-[#12182B] px-4 text-[12px] font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
               disabled={!canMoveHere || isSubmitting}
               type="button"
-              onClick={() => browsingFolderId && onMove(browsingFolderId)}
+              onClick={() => destinationFolderId && onMove(destinationFolderId)}
             >
               {isSubmitting ? "이동 중..." : "이동"}
             </button>
