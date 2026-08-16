@@ -12,14 +12,23 @@ describe("ScheduleCreateForm", () => {
     expect(await screen.findByText("제목을 입력해주세요.")).toBeInTheDocument();
   });
 
-  it("종일이 아닌데 시작/종료 시간을 선택하지 않으면 에러 메시지를 노출한다", async () => {
+  it("종일이 아닌데 시작 시간을 선택하지 않으면 에러 메시지를 노출한다", async () => {
     render(<ScheduleCreateForm initialDate={new Date(2026, 7, 1)} mode="create" onCancel={jest.fn()} onSubmit={jest.fn()} />);
 
     fireEvent.change(screen.getByLabelText("제목"), { target: { value: "전체 회의" } });
     fireEvent.click(screen.getByRole("button", { name: "등록" }));
 
     expect(await screen.findByText("시작 시간을 선택해주세요.")).toBeInTheDocument();
-    expect(screen.getByText("종료 시간을 선택해주세요.")).toBeInTheDocument();
+  });
+
+  it("시작 시간만 선택하고 종료 시간을 선택하지 않으면 종료 시간 에러 메시지를 노출한다", async () => {
+    render(<ScheduleCreateForm initialDate={new Date(2026, 7, 1)} mode="create" onCancel={jest.fn()} onSubmit={jest.fn()} />);
+
+    fireEvent.change(screen.getByLabelText("제목"), { target: { value: "전체 회의" } });
+    fireEvent.change(screen.getByLabelText("시작 시간"), { target: { value: "09:00" } });
+    fireEvent.click(screen.getByRole("button", { name: "등록" }));
+
+    expect(await screen.findByText("종료 시간을 선택해주세요.")).toBeInTheDocument();
   });
 
   it("종일 체크박스를 누르면 시간 선택 영역이 사라진다", () => {

@@ -59,7 +59,7 @@ describe("ScheduleBoard", () => {
 
     renderBoard();
 
-    fireEvent.click(await screen.findByText("전체 교직원 회의"));
+    fireEvent.click(await screen.findByText("전체 교직원 회의", { selector: "strong" }));
 
     expect(await screen.findByRole("heading", { name: "전체 교직원 회의" })).toBeInTheDocument();
   });
@@ -86,7 +86,7 @@ describe("ScheduleBoard", () => {
 
     renderBoard();
 
-    fireEvent.click(await screen.findByText("전체 교직원 회의"));
+    fireEvent.click(await screen.findByText("전체 교직원 회의", { selector: "strong" }));
     fireEvent.click(await screen.findByRole("button", { name: "수정" }));
 
     expect(await screen.findByLabelText("제목")).toHaveValue("전체 교직원 회의");
@@ -98,7 +98,7 @@ describe("ScheduleBoard", () => {
 
     renderBoard();
 
-    fireEvent.click(await screen.findByText("전체 교직원 회의"));
+    fireEvent.click(await screen.findByText("전체 교직원 회의", { selector: "strong" }));
     fireEvent.click(await screen.findByRole("button", { name: "삭제" }));
     fireEvent.click(await screen.findByRole("button", { name: "삭제" }));
 
