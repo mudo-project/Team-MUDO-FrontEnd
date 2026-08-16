@@ -7,20 +7,8 @@ interface MemoActionState {
     message: string;
 }
 
-const MEMO_COLOR_CODES: MemoColorCode[] = [
-    "ROSE",
-    "MUSTARD",
-    "SAGE",
-    "BLUE",
-    "LAVENDER",
-    "PINK",
-    "SLATE",
-    "PEACH",
-    "TEAL",
-    "OLIVE",
-    "CLAY",
-    "INDIGO",
-];
+// 6자리 16진수 색상 코드(RRGGBB, # 없이)인지 검증
+const isValidMemoColorCode = (color: string): boolean => /^[0-9A-Fa-f]{6}$/.test(color);
 
 // 메모 목록조회 액션
 export const getMemoListAction = async (sort?: MemoSortOrder): Promise<MemoData[]> => {
@@ -47,7 +35,7 @@ export const createMemoAction = async (
         };
     }
 
-    if (!MEMO_COLOR_CODES.includes(color)) {
+    if (!isValidMemoColorCode(color)) {
         return {
             success: false,
             message: "올바르지 않은 색상입니다."
@@ -127,7 +115,7 @@ export const changeMemoColorAction = async (
     memoId: number,
     color: MemoColorCode
 ): Promise<MemoActionState> => {
-    if (!MEMO_COLOR_CODES.includes(color)) {
+    if (!isValidMemoColorCode(color)) {
         return {
             success: false,
             message: "올바르지 않은 색상입니다."

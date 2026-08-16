@@ -19,7 +19,7 @@ describe("MemoCreateForm", () => {
 
     fireEvent.change(screen.getByLabelText("메모 제목"), { target: { value: "회의 메모" } });
     fireEvent.change(screen.getByLabelText("메모 내용"), { target: { value: "회의 내용을 정리합니다." } });
-    fireEvent.click(screen.getByRole("button", { name: "메모 색상 BLUE" }));
+    fireEvent.click(screen.getByRole("button", { name: "메모 색상 7894C2" }));
     fireEvent.click(screen.getByRole("button", { name: "저장" }));
 
     await waitFor(() => {
