@@ -14,10 +14,32 @@ import { getMyPermissionListAction } from "@/feature/auth/actions";
 import { getUnreadNotificationCountAction } from "@/feature/alarm/actions";
 import { useAlarmStore } from "@/store/useAlarmStore";
 import { useMessengerUnreadStore } from "@/store/useMessengerUnreadStore";
+import Image from "next/image";
 
-type MenuItem = {
+export type MenuHref =
+    | "/alarm"
+    | "/notice"
+    | "/messenger"
+    | "/approval/my"
+    | "/workspace/my-works"
+    | "/shared-folder"
+    | "/schedule"
+    | "/attendance"
+    | "/finance"
+    | "/student"
+    | "/lecture"
+    | "/rollbook"
+    | "/message"
+    | "/timetable"
+    | "/revenue-report"
+    | "/members"
+    | "/role"
+    | "/initial"
+    | "/setting";
+
+interface MenuItem {
     label: string;
-    href: string;
+    href: MenuHref;
     icon: 'Home' | "PanelTop" | "MessageSquare" | "Bell" | "BellRing" | "FileCheck2" | "Grid2X2" | "Clock3" | "WalletCards" | "GraduationCap" | "CalendarDays" | "Users" | "Shield" | "Settings" | "Book" | "Folder" | "TrendingUp" | "Mail" | 'UserRoundPen' | 'HardDriveDownload',
     count?: number;
     dividerAfter?: boolean;
@@ -30,7 +52,6 @@ export default function Sidebar() {
     const profileMenuRef = useRef<HTMLDivElement>(null);
     const user = useUserStore((state) => state.user);
     const setUser = useUserStore((state) => state.setUser);
-    const permissions = useUserStore((state) => state.permissions);
     const setPermissions = useUserStore((state) => state.setPermissions);
     const unreadNotificationCount = useAlarmStore((state) => state.unreadCount);
     const setUnreadNotificationCount = useAlarmStore((state) => state.setUnreadCount);
@@ -124,10 +145,15 @@ export default function Sidebar() {
     return (
         <aside className={`${isOpen ? 'flex' : 'hidden'} h-screen w-[219px] shrink-0 flex-col bg-[#0F172A] text-[#CBD5E1]`}>
             <div className="flex h-13 shrink-0 items-center border-b border-white/8 px-4">
-                <div className="flex h-6 w-6 items-center justify-center rounded-[6px] bg-[#2C8D50]">
-                    <GraduationCap className="h-4 w-4 text-white" strokeWidth={1.8} />
+                <div className="relative flex h-6 w-10 items-center justify-center rounded-[6px]">
+                    <Image
+                        src='/ieum.png'
+                        alt="ieum 로고"
+                        fill
+                        sizes="w-10 h-10"
+                        className="object-cover hover:cursor-pointer" />
                 </div>
-                <strong className="ml-2 block text-[14px] font-semibold text-white">아카데미</strong>
+                <strong className="ml-2 block text-[14px] font-semibold text-white">이음 그룹웨어</strong>
                 <CloseSidebar />
             </div>
 

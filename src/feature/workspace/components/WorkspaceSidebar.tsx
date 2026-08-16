@@ -35,14 +35,16 @@ export default function WorkspaceSidebar() {
                 </button>
             </div>
             <div className={`${!open && 'hidden'} flex h-[60px] items-center border-b border-[#EEF0F3] px-4 pt-3.5 pb-[11px]`}>
-                <h1 className="text-[12px] leading-[18px] font-semibold tracking-[-0.02em]">워크스페이스</h1>
-                <button
-                    onClick={modal.openModal}
-                    className="ml-auto flex h-6 w-6 items-center justify-center rounded-[6px] border border-[#DDE2E8] text-[14px] font-light text-[#A6AFBD]"
-                    aria-label="워크스페이스 추가"
-                >
-                    +
-                </button>
+                <h1 className="mr-auto text-[12px] leading-[18px] font-semibold tracking-[-0.02em]">워크스페이스</h1>
+                {permissions.includes('WORKSPACE:CREATE') && (
+                    <button
+                        onClick={modal.openModal}
+                        className=" flex h-6 w-6 items-center justify-center rounded-[6px] border border-[#DDE2E8] text-[14px] font-light text-[#A6AFBD]"
+                        aria-label="워크스페이스 추가"
+                    >
+                        +
+                    </button>
+                )}
                 <button onClick={() => { setOpen(!open) }} className="ml-2">
                     <ChevronsLeft className="size-4" strokeWidth={1.5} />
                 </button>
