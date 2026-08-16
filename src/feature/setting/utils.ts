@@ -53,6 +53,22 @@ export function toWorkingHoursPolicyWeekdays(exceptions: WeekdayException[]): Wo
     }));
 }
 
+// 설정 화면의 구글 연동 카드에서 쓰는 상태 배지(레이블 + 색상). 연동 안 됨(null)도 포함한다.
+export function getGoogleConnectionBadge(status: GoogleConnectionStatus | null): { label: string; className: string } {
+    switch (status) {
+        case "CONNECTED":
+            return { label: "연결됨", className: "bg-[#EDF5EE] text-[#4D9560]" };
+        case "EXPIRING":
+            return { label: "갱신 필요", className: "bg-[#FFFBEB] text-[#D97706]" };
+        case "EXPIRED":
+            return { label: "연결 만료", className: "bg-[#FEF2F2] text-[#DC2626]" };
+        case "FAILED":
+            return { label: "연결 실패", className: "bg-[#FEF2F2] text-[#DC2626]" };
+        default:
+            return { label: "연결되지 않음", className: "bg-[#F1F4F8] text-[#64748B]" };
+    }
+}
+
 // 구글 연동 응답의 ISO 시각(연결일시/토큰만료일시/마지막확인일시)을 "YYYY.MM.DD HH:mm"로 표시
 export function formatGoogleDateTime(iso: string): string {
     const date = new Date(iso);

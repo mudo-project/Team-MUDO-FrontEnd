@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Check, FileText, Folder, Loader2, Table2, TriangleAlert, X } from "lucide-react";
 import { toast } from "sonner";
 import { getGoogleAuthorizationUrlAction, getGoogleConnectionAction } from "@/feature/setting/actions";
@@ -27,6 +27,19 @@ export default function SettingGoogleReplaceModal({ email, onClose }: { email: s
   const popupRef = useRef<Window | null>(null);
   const pollIntervalRef = useRef<number | null>(null);
 
+  function clearPolling() {
+    if (pollIntervalRef.current !== null) {
+      window.clearInterval(pollIntervalRef.current);
+      pollIntervalRef.current = null;
+    }
+  }
+
+  async function resolveAuthResult() {
+    const data = await getGoogleConnectionAction();
+    setResultEmail(data ? data.googleEmail : null);
+    setStep(3);
+  }
+
   function openPopup() {
     const url = authorizationUrlRef.current;
     if (!url) return;
@@ -40,17 +53,25 @@ export default function SettingGoogleReplaceModal({ email, onClose }: { email: s
 
     pollIntervalRef.current = window.setInterval(async () => {
       if (popupRef.current?.closed) {
-        if (pollIntervalRef.current !== null) {
-          window.clearInterval(pollIntervalRef.current);
-          pollIntervalRef.current = null;
-        }
-
-        const data = await getGoogleConnectionAction();
-        setResultEmail(data ? data.googleEmail : null);
-        setStep(3);
+        clearPolling();
+        await resolveAuthResult();
       }
     }, 500);
   }
+
+  // OAuth 콜백 팝업(SettingGoogleConnectionCallback)이 postMessage로 결과를 알려주면 팝업 닫힘 polling을 기다리지 않고 바로 처리한다.
+  useEffect(() => {
+    function handleMessage(event: MessageEvent) {
+      if (event.origin !== "https://ieum.store") return;
+      if (event.data?.source !== "google-oauth-connection") return;
+
+      clearPolling();
+      void resolveAuthResult();
+    }
+
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, []);
 
   async function handleAgree() {
     setIsRequestingAuth(true);
