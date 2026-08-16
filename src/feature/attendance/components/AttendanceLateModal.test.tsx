@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import AttendanceLateModal from "./AttendanceLateModal";
 
 describe("AttendanceLateModal", () => {
@@ -12,7 +12,7 @@ describe("AttendanceLateModal", () => {
     expect(onConfirm).not.toHaveBeenCalled();
   });
 
-  it("비고를 입력하고 제출하면 trim된 값으로 onConfirm을 호출한다", () => {
+  it("비고를 입력하고 제출하면 trim된 값으로 onConfirm을 호출한다", async () => {
     const onConfirm = jest.fn();
     render(<AttendanceLateModal date={new Date("2026-08-17T09:40:00")} onCancel={jest.fn()} onConfirm={onConfirm} />);
 
@@ -21,7 +21,7 @@ describe("AttendanceLateModal", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: "출근하기" }));
 
-    expect(onConfirm).toHaveBeenCalledWith("버스 지연");
+    await waitFor(() => expect(onConfirm).toHaveBeenCalledWith("버스 지연"));
   });
 
   it("취소 버튼을 클릭하면 onCancel을 호출한다", () => {

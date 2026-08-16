@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import AttendanceCreateEditRequestModal from "./AttendanceCreateEditRequestModal";
 
 function makeDayDetail(overrides: Partial<AttendanceDayDetailData> = {}): AttendanceDayDetailData {
@@ -50,18 +50,20 @@ describe("AttendanceCreateEditRequestModal", () => {
     expect(await screen.findByText("수정할 비고 내용을 입력해주세요.")).toBeInTheDocument();
   });
 
-  it("출근 시각 요청을 사유와 함께 제출하면 요청 구분에 맞는 payload로 onSubmit을 호출한다", () => {
+  it("출근 시각 요청을 사유와 함께 제출하면 요청 구분에 맞는 payload로 onSubmit을 호출한다", async () => {
     const onSubmit = jest.fn();
     render(<AttendanceCreateEditRequestModal dayDetail={makeDayDetail()} onCancel={jest.fn()} onSubmit={onSubmit} />);
 
     fireEvent.change(screen.getByLabelText("사유 (필수)"), { target: { value: "출근 시각이 잘못 기록되었습니다" } });
     fireEvent.click(screen.getByRole("button", { name: "요청하기" }));
 
-    expect(onSubmit).toHaveBeenCalledWith({
-      type: "CLOCK_IN_TIME",
-      requestedClockInTime: "09:05",
-      reason: "출근 시각이 잘못 기록되었습니다",
-    });
+    await waitFor(() =>
+      expect(onSubmit).toHaveBeenCalledWith({
+        type: "CLOCK_IN_TIME",
+        requestedClockInTime: "09:05",
+        reason: "출근 시각이 잘못 기록되었습니다",
+      }),
+    );
   });
 
   it("취소 버튼을 클릭하면 onCancel을 호출한다", () => {

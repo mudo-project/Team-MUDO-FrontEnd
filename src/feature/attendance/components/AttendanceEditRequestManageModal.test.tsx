@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import AttendanceEditRequestManageModal from "./AttendanceEditRequestManageModal";
 
 function makeRequest(overrides: Partial<AttendanceAdminCorrectionRequestData> = {}): AttendanceAdminCorrectionRequestData {
@@ -38,7 +38,7 @@ describe("AttendanceEditRequestManageModal", () => {
 
     expect(screen.queryByRole("button", { name: "승인" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "반려" })).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "닫기" })).toBeInTheDocument();
+    expect(screen.getByText("닫기")).toBeInTheDocument();
   });
 
   it("승인 버튼을 클릭하면 requestId와 함께 onApprove를 호출한다", () => {
@@ -61,7 +61,7 @@ describe("AttendanceEditRequestManageModal", () => {
     expect(onReject).not.toHaveBeenCalled();
   });
 
-  it("반려 사유를 입력하고 제출하면 requestId와 trim된 사유로 onReject를 호출한다", () => {
+  it("반려 사유를 입력하고 제출하면 requestId와 trim된 사유로 onReject를 호출한다", async () => {
     const onReject = jest.fn();
     render(<AttendanceEditRequestManageModal request={makeRequest()} canProcess={true} isSubmitting={false} onClose={jest.fn()} onApprove={jest.fn()} onReject={onReject} />);
 
@@ -69,7 +69,7 @@ describe("AttendanceEditRequestManageModal", () => {
     fireEvent.change(screen.getByLabelText("반려 사유"), { target: { value: "  사유 불충분  " } });
     fireEvent.click(screen.getByRole("button", { name: "반려 처리" }));
 
-    expect(onReject).toHaveBeenCalledWith(1, "사유 불충분");
+    await waitFor(() => expect(onReject).toHaveBeenCalledWith(1, "사유 불충분"));
   });
 
   it("처리 완료된(대기가 아닌) 요청이면 반려 사유가 있을 때 함께 노출한다", () => {

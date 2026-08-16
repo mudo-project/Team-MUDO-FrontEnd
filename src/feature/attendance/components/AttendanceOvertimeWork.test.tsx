@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import AttendanceOvertimeWork from "./AttendanceOvertimeWork";
 
 function makeToday(overrides: Partial<AttendanceTodayData> = {}): AttendanceTodayData {
@@ -25,7 +25,7 @@ describe("AttendanceOvertimeWork", () => {
     expect(onConfirm).not.toHaveBeenCalled();
   });
 
-  it("사유를 입력하고 제출하면 trim된 값으로 onConfirm을 호출한다", () => {
+  it("사유를 입력하고 제출하면 trim된 값으로 onConfirm을 호출한다", async () => {
     const onConfirm = jest.fn();
     render(<AttendanceOvertimeWork now={new Date("2026-08-17T19:00:00")} today={makeToday()} onCancel={jest.fn()} onConfirm={onConfirm} />);
 
@@ -34,6 +34,6 @@ describe("AttendanceOvertimeWork", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: "초과근무 기록" }));
 
-    expect(onConfirm).toHaveBeenCalledWith("시험 문제 출제");
+    await waitFor(() => expect(onConfirm).toHaveBeenCalledWith("시험 문제 출제"));
   });
 });

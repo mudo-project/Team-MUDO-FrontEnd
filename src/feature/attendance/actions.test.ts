@@ -13,7 +13,7 @@ import {
   rejectCorrectionRequestAction,
 } from "./actions";
 
-jest.mock("@/service/attendance.service");
+jest.mock("../../service/attendance.service");
 
 describe("checkInAction", () => {
   afterEach(() => jest.clearAllMocks());

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import AttendanceLeaveWorkModal from "./AttendanceLeaveWorkModal";
 
 function makeToday(overrides: Partial<AttendanceTodayData> = {}): AttendanceTodayData {
@@ -15,16 +15,16 @@ function makeToday(overrides: Partial<AttendanceTodayData> = {}): AttendanceToda
 }
 
 describe("AttendanceLeaveWorkModal", () => {
-  it("비고 없이 제출해도 onConfirm이 빈 문자열로 호출된다", () => {
+  it("비고 없이 제출해도 onConfirm이 빈 문자열로 호출된다", async () => {
     const onConfirm = jest.fn();
     render(<AttendanceLeaveWorkModal now={new Date("2026-08-17T18:10:00")} today={makeToday()} onCancel={jest.fn()} onConfirm={onConfirm} />);
 
     fireEvent.click(screen.getByRole("button", { name: "퇴근하기" }));
 
-    expect(onConfirm).toHaveBeenCalledWith("");
+    await waitFor(() => expect(onConfirm).toHaveBeenCalledWith(""));
   });
 
-  it("비고를 입력하고 제출하면 trim된 값으로 onConfirm을 호출한다", () => {
+  it("비고를 입력하고 제출하면 trim된 값으로 onConfirm을 호출한다", async () => {
     const onConfirm = jest.fn();
     render(<AttendanceLeaveWorkModal now={new Date("2026-08-17T18:10:00")} today={makeToday()} onCancel={jest.fn()} onConfirm={onConfirm} />);
 
@@ -33,7 +33,7 @@ describe("AttendanceLeaveWorkModal", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: "퇴근하기" }));
 
-    expect(onConfirm).toHaveBeenCalledWith("특이사항 없음");
+    await waitFor(() => expect(onConfirm).toHaveBeenCalledWith("특이사항 없음"));
   });
 
   it("취소 버튼을 클릭하면 onCancel을 호출한다", () => {
