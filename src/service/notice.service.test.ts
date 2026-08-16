@@ -71,7 +71,7 @@ describe("getNoticeList", () => {
 
         const result = await getNoticeList({ keyword: "공지", page: 1, size: 20 });
 
-        expect(mockedFetch).toHaveBeenCalledWith("/api/notices?keyword=공지&page=1&size=20");
+        expect(mockedFetch).toHaveBeenCalledWith("/api/notices?keyword=%EA%B3%B5%EC%A7%80&page=1&size=20");
         expect(result).toEqual(data);
     });
 

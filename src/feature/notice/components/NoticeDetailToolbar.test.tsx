@@ -18,7 +18,7 @@ jest.mock("sonner", () => ({
     },
 }));
 
-jest.mock("@/feature/messenger/actions", () => ({
+jest.mock("../../messenger/actions", () => ({
     getCurrentUserIdAction: jest.fn(),
 }));
 
