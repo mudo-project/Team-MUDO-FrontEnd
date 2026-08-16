@@ -2,6 +2,7 @@
 
 import { getMyPermissionList, getUserList, login, logout } from "@/service/auth.service";
 import { cookies } from "next/headers";
+import { getCookieDomain } from "@/lib/cookieDomain";
 
 export interface AuthActionResult<T = undefined> {
     success: boolean;
@@ -27,12 +28,14 @@ export const loginAction = async (
         const response = await login({ username, password });
         const responseData = (await response.json()) as LoginResponse;
         const cookieStore = await cookies();
+        const domain = getCookieDomain();
 
         cookieStore.set("accessToken", responseData.data.accessToken, {
             httpOnly: true,
             maxAge: 60 * 60,
             path: "/",
             sameSite: "lax",
+            domain,
         });
 
         const refreshTokenHeader = response.headers
@@ -48,6 +51,7 @@ export const loginAction = async (
                 maxAge: 60 * 60 * 3,
                 path: "/",
                 sameSite: "lax",
+                domain,
             });
         }
 
@@ -104,9 +108,10 @@ export const logoutAction = async (): Promise<AuthActionResult> => {
     try {
         await logout();
         const cookieStore = await cookies();
+        const domain = getCookieDomain();
 
-        cookieStore.delete("accessToken");
-        cookieStore.delete("refreshToken");
+        cookieStore.delete({ name: "accessToken", path: "/", domain });
+        cookieStore.delete({ name: "refreshToken", path: "/", domain });
 
         return {
             success: true,

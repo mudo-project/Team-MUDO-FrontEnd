@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import type { MyTokenPayload } from "./lib/decode";
 import { jwtDecode } from "jwt-decode";
 import { getApiBaseUrl } from "./lib/apiBaseUrl";
+import { getCookieDomain } from "./lib/cookieDomain";
 import { ReissueResponse } from "./lib/refreshType";
 
 async function getRefreshToken(request: NextRequest) {
@@ -35,9 +36,10 @@ async function getRefreshToken(request: NextRequest) {
 }
 
 function redirectToAuth(request: NextRequest) {
+    const domain = getCookieDomain();
     const response = NextResponse.redirect(new URL('/auth', request.url));
-    response.cookies.delete('accessToken');
-    response.cookies.delete('refreshToken');
+    response.cookies.delete({ name: 'accessToken', path: '/', domain });
+    response.cookies.delete({ name: 'refreshToken', path: '/', domain });
     return response;
 }
 
@@ -85,6 +87,7 @@ export async function proxy(request: NextRequest) {
             httpOnly: true,
             maxAge: 60 * 60,
             path: "/",
+            domain: getCookieDomain(),
         });
     }
 

@@ -2,8 +2,10 @@
 
 import { useRef, useState } from "react";
 import { CheckSquare, FileText, Image as ImageIcon, Plus, Send } from "lucide-react";
+import { toast } from "sonner";
 import TaskCreateModal from "./TaskCreateModal";
-import { sendMessageAction } from "../actions";
+import { sendFileMessageAction, sendMessageAction } from "../actions";
+import { createFileMetadataAction, createFilePresignedUrlAction, getFileDownloadUrlAction } from "@/feature/file/actions";
 
 type MessageInputProps = {
     roomId: number;
@@ -15,6 +17,7 @@ export default function MessageInput({ roomId, onMessageSent, onTaskCreated }: M
     const [value, setValue] = useState("");
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isTaskCreateOpen, setIsTaskCreateOpen] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
     const photoInputRef = useRef<HTMLInputElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -44,13 +47,70 @@ export default function MessageInput({ roomId, onMessageSent, onTaskCreated }: M
         onMessageSent();
     };
 
+    const handleFileSelected = async (
+        event: React.ChangeEvent<HTMLInputElement>,
+        messageType: "IMAGE" | "FILE",
+    ) => {
+        const file = event.target.files?.[0];
+        event.target.value = "";
+        if (!file) return;
+
+        setIsUploading(true);
+
+        try {
+            const contentType = file.type || "application/octet-stream";
+            const presigned = await createFilePresignedUrlAction({ fileName: file.name, contentType });
+
+            if (!presigned.success || !presigned.data) {
+                toast.error(presigned.message);
+                return;
+            }
+
+            const uploadResponse = await fetch(presigned.data.uploadUrl, {
+                method: "PUT",
+                headers: { "Content-Type": contentType },
+                body: file,
+            });
+
+            if (!uploadResponse.ok) {
+                toast.error(`${file.name} 업로드에 실패했습니다.`);
+                return;
+            }
+
+            const metadata = await createFileMetadataAction({ objectKey: presigned.data.objectKey, contentType });
+
+            if (!metadata.success || !metadata.data) {
+                toast.error(metadata.message);
+                return;
+            }
+
+            const downloadUrl = await getFileDownloadUrlAction(metadata.data.fileId);
+
+            if (!downloadUrl.success || !downloadUrl.data) {
+                toast.error(downloadUrl.message);
+                return;
+            }
+
+            const result = await sendFileMessageAction(roomId, messageType, downloadUrl.data.downloadUrl, file.name);
+
+            if (result.success) {
+                onMessageSent();
+            } else {
+                toast.error(result.message);
+            }
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
     return (
         <>
             <form className="flex h-[70px] shrink-0 items-center gap-3 border-t border-[#D7E8DB] bg-white px-6" onSubmit={handleSubmit}>
                 <button
                     type="button"
-                    className="text-[#64748B]"
+                    className="text-[#64748B] disabled:opacity-40"
                     aria-label="첨부 추가"
+                    disabled={isUploading}
                     onClick={() => setIsMenuOpen((open) => !open)}
                 >
                     <Plus className="size-4" strokeWidth={1.7} />
@@ -59,11 +119,13 @@ export default function MessageInput({ roomId, onMessageSent, onTaskCreated }: M
                 <input
                     accept="image/*"
                     className="hidden"
+                    onChange={(event) => handleFileSelected(event, "IMAGE")}
                     ref={photoInputRef}
                     type="file"
                 />
                 <input
                     className="hidden"
+                    onChange={(event) => handleFileSelected(event, "FILE")}
                     ref={fileInputRef}
                     type="file"
                 />
