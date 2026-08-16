@@ -26,14 +26,12 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v6
 
-      # 이미지 이름과 빌드 환경변수가 누락된 경우 Docker Hub 로그인 전에 중단한다.
+      # 이미지 이름이 누락된 경우 Docker Hub 로그인 전에 중단한다.
       - name: Validate publish configuration
         env:
-          NEXT_PUBLIC_API_BASE_URL: ${{ vars.NEXT_PUBLIC_API_BASE_URL }}
           DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
           DOCKERHUB_REPOSITORY: ${{ vars.DOCKERHUB_REPOSITORY }}
         run: |
-          test -n "$NEXT_PUBLIC_API_BASE_URL"
           test -n "$DOCKERHUB_USERNAME"
           test -n "$DOCKERHUB_REPOSITORY"
 
@@ -48,7 +46,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
-      # 운영 API 주소를 주입해 linux/amd64 이미지를 만들고 commit SHA 태그로 push한다.
+      # 테넌트 설정과 독립된 linux/amd64 이미지를 만들고 commit SHA 태그로 push한다.
       - name: Build and push Docker image
         uses: docker/build-push-action@v7
         with:
@@ -56,8 +54,6 @@ jobs:
           file: ./Dockerfile
           platforms: linux/amd64
           push: true
-          build-args: |
-            NEXT_PUBLIC_API_BASE_URL=${{ vars.NEXT_PUBLIC_API_BASE_URL }}
           # latest 대신 불변 commit SHA를 사용해 배포 추적과 rollback이 가능하게 한다.
           tags: ${{ env.IMAGE_NAME }}:${{ github.sha }}
           # GitHub Actions cache를 재사용해 이후 Docker 빌드 시간을 줄인다.

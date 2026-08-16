@@ -17,10 +17,6 @@ jobs:
     runs-on: ubuntu-latest
     # 비정상적으로 오래 실행되는 Job을 자동 종료한다.
     timeout-minutes: 20
-    # NEXT_PUBLIC 환경변수는 Next.js 빌드 시 브라우저 번들에 포함되는 공개값이다.
-    env:
-      NEXT_PUBLIC_API_BASE_URL: ${{ vars.NEXT_PUBLIC_API_BASE_URL }}
-
     steps:
       # PR에 포함된 소스 코드를 runner로 내려받는다.
       - name: Checkout source code
@@ -32,10 +28,6 @@ jobs:
         with:
           node-version: 20
           cache: npm
-
-      # Repository Variable 누락으로 잘못된 프론트 이미지를 만들지 않도록 먼저 실패시킨다.
-      - name: Validate build configuration
-        run: test -n "$NEXT_PUBLIC_API_BASE_URL"
 
       # package-lock.json을 기준으로 동일한 의존성을 설치한다.
       - name: Install dependencies

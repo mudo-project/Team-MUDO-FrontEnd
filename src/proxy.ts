@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { MyTokenPayload } from "./lib/decode";
 import { jwtDecode } from "jwt-decode";
+import { getApiBaseUrl } from "./lib/apiBaseUrl";
 import { ReissueResponse } from "./lib/refreshType";
 
 async function getRefreshToken(request: NextRequest) {
-    const base_url = process.env.NEXT_PUBLIC_API_BASE_URL;
+    const baseUrl = getApiBaseUrl();
     const refreshToken = request.cookies.get('refreshToken')?.value;
 
     try {
-        const response = await fetch(`${base_url}/api/token/reissue`, {
+        const response = await fetch(`${baseUrl}/api/token/reissue`, {
             method: 'POST',
             body: JSON.stringify({}),
             headers: {

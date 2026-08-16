@@ -17,7 +17,7 @@ interface ApprovalLineActivatedEvent {
     documentTitle: string;
 }
 
-export default function AlarmRealtimeProvider() {
+export default function AlarmRealtimeProvider({ apiBaseUrl }: { apiBaseUrl: string }) {
     const incrementUnreadCount = useAlarmStore((state) => state.incrementUnreadCount);
 
     useEffect(() => {
@@ -28,10 +28,8 @@ export default function AlarmRealtimeProvider() {
             const userId = await getCurrentUserIdAction();
             if (!userId || cancelled) return;
 
-            const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-
             client = new Client({
-                webSocketFactory: () => new SockJS(`${baseUrl}/ws`),
+                webSocketFactory: () => new SockJS(`${apiBaseUrl}/ws`),
                 reconnectDelay: 5000,
                 onConnect: () => {
                     client?.subscribe(`/topic/workspaces/users/${userId}`, (message) => {
@@ -65,7 +63,7 @@ export default function AlarmRealtimeProvider() {
             cancelled = true;
             client?.deactivate();
         };
-    }, [incrementUnreadCount]);
+    }, [apiBaseUrl, incrementUnreadCount]);
 
     return null;
 }
