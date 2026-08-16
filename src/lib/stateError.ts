@@ -1,10 +1,13 @@
 'use server'
 
 import { cookies } from "next/headers";
+import { getApiBaseUrl } from "./apiBaseUrl";
+import { getCookieDomain } from "./cookieDomain";
 import { ReissueResponse } from "./refreshType";
 
 export const refreshGet = async () => {
-    const base_url = process.env.NEXT_PUBLIC_API_BASE_URL;
+    const baseUrl = getApiBaseUrl();
+    const domain = getCookieDomain();
 
     try {
         const cookieStore = await cookies();
@@ -14,7 +17,7 @@ export const refreshGet = async () => {
             throw new Error("로그인이 만료되었습니다. 다시 로그인해주세요.");
         }
 
-        const response = await fetch(`${base_url}/api/token/reissue`, {
+        const response = await fetch(`${baseUrl}/api/token/reissue`, {
             method: 'POST',
             body: JSON.stringify({}),
             headers: {
@@ -40,6 +43,7 @@ export const refreshGet = async () => {
             maxAge: 60 * 60,
             path: '/',
             sameSite: "lax" as const,
+            domain,
         })
 
 
@@ -54,15 +58,16 @@ export const refreshGet = async () => {
                 httpOnly: true,
                 maxAge: 60 * 60 * 3,
                 path: '/',
-                sameSite: "lax" as const
+                sameSite: "lax" as const,
+                domain,
             });
         }
 
         return resData.data.accessToken;
     } catch (error) {
         const cookieStore = await cookies();
-        cookieStore.delete('accessToken');
-        cookieStore.delete('refreshToken');
+        cookieStore.delete({ name: 'accessToken', path: '/', domain });
+        cookieStore.delete({ name: 'refreshToken', path: '/', domain });
 
         return null;
     }

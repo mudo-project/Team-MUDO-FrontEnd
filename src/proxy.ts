@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { MyTokenPayload } from "./lib/decode";
 import { jwtDecode } from "jwt-decode";
+import { getApiBaseUrl } from "./lib/apiBaseUrl";
+import { getCookieDomain } from "./lib/cookieDomain";
 import { ReissueResponse } from "./lib/refreshType";
 
 async function getRefreshToken(request: NextRequest) {
-    const base_url = process.env.NEXT_PUBLIC_API_BASE_URL;
+    const baseUrl = getApiBaseUrl();
     const refreshToken = request.cookies.get('refreshToken')?.value;
 
     if (!refreshToken) {
@@ -12,7 +14,7 @@ async function getRefreshToken(request: NextRequest) {
     }
 
     try {
-        const response = await fetch(`${base_url}/api/token/reissue`, {
+        const response = await fetch(`${baseUrl}/api/token/reissue`, {
             method: 'POST',
             body: JSON.stringify({}),
             headers: {
@@ -34,9 +36,10 @@ async function getRefreshToken(request: NextRequest) {
 }
 
 function redirectToAuth(request: NextRequest) {
+    const domain = getCookieDomain();
     const response = NextResponse.redirect(new URL('/auth', request.url));
-    response.cookies.delete('accessToken');
-    response.cookies.delete('refreshToken');
+    response.cookies.delete({ name: 'accessToken', path: '/', domain });
+    response.cookies.delete({ name: 'refreshToken', path: '/', domain });
     return response;
 }
 
@@ -84,6 +87,7 @@ export async function proxy(request: NextRequest) {
             httpOnly: true,
             maxAge: 60 * 60,
             path: "/",
+            domain: getCookieDomain(),
         });
     }
 

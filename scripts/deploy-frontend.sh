@@ -9,6 +9,8 @@ IMAGE_NAME="${1:?Docker image name is required}"
 # 운영 컨테이너와 배포 실패 시 되돌릴 임시 백업 컨테이너의 이름을 고정한다.
 CURRENT_CONTAINER="mudo-frontend"
 ROLLBACK_CONTAINER="mudo-frontend-rollback"
+# 컨테이너 실행 시 주입할 운영 환경변수 파일의 경로를 고정한다.
+ENV_FILE="/etc/mudo/frontend.env"
 
 # 오류가 발생한 위치에 따라 어떤 컨테이너를 제거하고 다시 시작할지 판단하는 상태값이다.
 HAD_CURRENT_CONTAINER=false
@@ -54,6 +56,18 @@ rollback() {
 # 이후 어떤 명령이든 실패하면 위 rollback 함수를 실행한다.
 trap rollback ERR
 
+# 현재 운영 컨테이너를 변경하기 전에 런타임 환경변수 파일을 읽을 수 있는지 확인한다.
+if [ ! -r "$ENV_FILE" ]; then
+  echo "Frontend runtime environment file is missing or unreadable." >&2
+  exit 1
+fi
+
+# 실제 API 주소를 출력하지 않고 필수 런타임 환경변수의 존재 여부만 확인한다.
+if ! grep -qE '^API_BASE_URL=.+$' "$ENV_FILE"; then
+  echo "API_BASE_URL is missing from the frontend runtime environment." >&2
+  exit 1
+fi
+
 # ubuntu 사용자의 Docker Hub Read-only 로그인을 사용하며 pull 성공 전에는 기존 서비스를 중지하지 않는다.
 sudo -u ubuntu -H docker pull "$IMAGE_NAME"
 
@@ -77,7 +91,7 @@ docker run -d \
   --name "$CURRENT_CONTAINER" \
   --restart unless-stopped \
   -p 127.0.0.1:3000:3000 \
-  --env-file /etc/mudo/frontend.env \
+  --env-file "$ENV_FILE" \
   -e HOSTNAME=0.0.0.0 \
   -e PORT=3000 \
   "$IMAGE_NAME"
