@@ -114,7 +114,7 @@ describe("TaskCreateModal", () => {
 
         expect(await screen.findByRole("heading", { name: "업무지시 수정" })).toBeInTheDocument();
         expect(screen.getByDisplayValue("기존 내용")).toBeInTheDocument();
-        expect(screen.getByRole("button", { name: "김지수 담당자 제거" })).toBeInTheDocument();
+        expect(await screen.findByRole("button", { name: "김지수 담당자 제거" })).toBeInTheDocument();
 
         fireEvent.click(screen.getByRole("button", { name: "수정 완료" }));
 
