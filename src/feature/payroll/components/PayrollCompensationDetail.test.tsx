@@ -45,7 +45,7 @@ describe("PayrollCompensationDetail", () => {
         fireEvent.click(screen.getByRole("button", { name: "추가" }));
 
         expect(screen.getByPlaceholderText("수당명")).toBeInTheDocument();
-        expect(screen.getAllByText("식대").length).toBe(1);
+        expect(screen.getAllByRole("button", { name: /삭제$/ })).toHaveLength(1);
     });
 
     it("수당명과 금액을 입력하고 추가하면 목록에 새 수당이 노출된다", () => {

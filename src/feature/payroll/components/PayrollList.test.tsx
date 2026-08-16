@@ -43,7 +43,7 @@ const items: PayrollListItemData[] = [
         employeeId: 2,
         employeeName: "이강사",
         employmentType: "PART_TIME",
-        payrollId: null,
+        payrollId: 15,
         preparationStatus: "DRAFT",
         totalEarnings: null,
         totalDeductions: null,
@@ -96,10 +96,10 @@ describe("PayrollList", () => {
         fireEvent.click(screen.getByRole("button", { name: /계산하기/ }));
         expect(screen.getByText("급여를 계산하시겠습니까?")).toBeInTheDocument();
 
-        fireEvent.click(screen.getByRole("button", { name: "계산하기" }));
+        fireEvent.click(screen.getAllByRole("button", { name: "계산하기" })[1]);
 
         await waitFor(() => {
-            expect(calculatePayrollAction).toHaveBeenCalledWith(20, 5);
+            expect(calculatePayrollAction).toHaveBeenCalledWith(15, 5);
         });
         expect(toast.success).toHaveBeenCalledWith("급여를 계산하였습니다.");
         expect(onListChanged).toHaveBeenCalled();
@@ -113,7 +113,7 @@ describe("PayrollList", () => {
         render(<PayrollList isLoading={false} items={items} onListChanged={onListChanged} onToggleAll={jest.fn()} onToggleItem={jest.fn()} selectedItemIds={[]} />);
 
         fireEvent.click(screen.getByRole("button", { name: /계산하기/ }));
-        fireEvent.click(screen.getByRole("button", { name: "계산하기" }));
+        fireEvent.click(screen.getAllByRole("button", { name: "계산하기" })[1]);
 
         await waitFor(() => {
             expect(toast.error).toHaveBeenCalledWith("급여 계산에 실패하였습니다.");

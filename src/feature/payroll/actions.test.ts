@@ -29,7 +29,7 @@ import {
     updatePayrollPolicyAction,
 } from "./actions";
 
-jest.mock("@/service/payroll.service");
+jest.mock("../../service/payroll.service");
 
 const aggregate = { payrollId: 10, version: 2 } as PayrollAggregateData;
 
