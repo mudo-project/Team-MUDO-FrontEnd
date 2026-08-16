@@ -63,21 +63,17 @@ describe("getSharedFolderDownloadFormats", () => {
 });
 
 describe("formatSharedFolderModifiedAt", () => {
-  const originalTz = process.env.TZ;
+  // 실행 환경(로컬/CI)마다 시스템 타임존이 달라 UTC 시각을 하드코딩하면 결과가 달라진다.
+  // 로컬 타임존 기준으로 Date를 생성해 toISOString()으로 왕복시키면 환경에 관계없이 같은 지역 시각으로 복원된다.
+  it("시각을 'YYYY.MM.DD HH:mm' 형태로 변환한다", () => {
+    const localDate = new Date(2026, 7, 1, 18, 5);
 
-  beforeAll(() => {
-    process.env.TZ = "Asia/Seoul";
-  });
-
-  afterAll(() => {
-    process.env.TZ = originalTz;
-  });
-
-  it("ISO 시각을 한국 표준시 'YYYY.MM.DD HH:mm' 형태로 변환한다", () => {
-    expect(formatSharedFolderModifiedAt("2026-08-01T09:05:00.000Z")).toBe("2026.08.01 18:05");
+    expect(formatSharedFolderModifiedAt(localDate.toISOString())).toBe("2026.08.01 18:05");
   });
 
   it("한 자리 월·일·시·분은 0으로 채운다", () => {
-    expect(formatSharedFolderModifiedAt("2026-01-01T20:04:00.000Z")).toBe("2026.01.02 05:04");
+    const localDate = new Date(2026, 0, 2, 3, 4);
+
+    expect(formatSharedFolderModifiedAt(localDate.toISOString())).toBe("2026.01.02 03:04");
   });
 });
