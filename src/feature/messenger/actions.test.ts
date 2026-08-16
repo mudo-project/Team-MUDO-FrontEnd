@@ -23,7 +23,7 @@ import {
     updateTaskCardAction,
 } from "./actions";
 
-jest.mock("@/service/messenger.service");
+jest.mock("../../service/messenger.service");
 
 jest.mock("next/headers", () => ({
     cookies: jest.fn(),

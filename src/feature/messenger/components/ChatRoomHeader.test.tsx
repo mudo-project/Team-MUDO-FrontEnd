@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { getChatRoomMembersAction } from "../actions";
 import ChatRoomHeader from "./ChatRoomHeader";
 
@@ -35,7 +35,7 @@ describe("ChatRoomHeader", () => {
         expect(await screen.findByText("참여자 2명")).toBeInTheDocument();
     });
 
-    it("검색 모드면 검색 입력창을 노출하고 제목은 노출하지 않는다", () => {
+    it("검색 모드면 검색 입력창을 노출하고 제목은 노출하지 않는다", async () => {
         mockedGetChatRoomMembersAction.mockResolvedValue(members);
         render(
             <ChatRoomHeader
@@ -50,9 +50,10 @@ describe("ChatRoomHeader", () => {
 
         expect(screen.getByLabelText("채팅방 내 메시지 검색")).toHaveValue("안녕");
         expect(screen.queryByRole("heading", { name: "1반 공지방" })).not.toBeInTheDocument();
+        await waitFor(() => expect(getChatRoomMembersAction).toHaveBeenCalledWith(1));
     });
 
-    it("검색 아이콘을 클릭하면 검색 토글 콜백을 호출한다", () => {
+    it("검색 아이콘을 클릭하면 검색 토글 콜백을 호출한다", async () => {
         mockedGetChatRoomMembersAction.mockResolvedValue(members);
         const onToggleSearch = jest.fn();
         render(
@@ -69,6 +70,7 @@ describe("ChatRoomHeader", () => {
         fireEvent.click(screen.getByRole("button", { name: "대화 검색" }));
 
         expect(onToggleSearch).toHaveBeenCalled();
+        await waitFor(() => expect(getChatRoomMembersAction).toHaveBeenCalledWith(1));
     });
 
     it("참여자 아이콘을 클릭하면 참여자 목록이 열리고, 닫기 버튼으로 닫힌다", async () => {
