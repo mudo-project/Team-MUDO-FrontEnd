@@ -12,7 +12,7 @@ export default function Home() {
     return (
         <div className="h-screen w-full overflow-y-auto bg-white text-[#0F172A]">
             <LandingHeader />
-            <main className="w-full">
+            <div className="w-full">
                 <HeroSection />
                 <ProblemSection />
                 <PositioningSection />
@@ -20,7 +20,7 @@ export default function Home() {
                 <SpecialFeaturesSection />
                 <PricingSection />
                 <ContactSection />
-            </main>
+            </div>
             <LandingFooter />
         </div>
     );

@@ -2,15 +2,15 @@ import { METRICS, SPECIAL_FEATURES } from "@/feature/landing/constants";
 
 export default function SpecialFeaturesSection() {
     return (
-        <section id="special" className="w-full border-t border-[#F1F5F9] bg-[#0F172A] py-24">
+        <div id="special" className="w-full border-t border-[#F1F5F9] bg-[#0F172A] py-24">
             <div className="mx-auto w-full max-w-[1120px] px-6">
                 <div className="max-w-[560px]">
                     <span className="text-[12px] font-semibold tracking-[0.08em] text-[#8FD1A8]">
                         특별 제공 기능
                     </span>
-                    <h2 className="mt-3 text-[30px] font-bold leading-[1.35] text-white">
+                    <div className="mt-3 text-[30px] font-bold leading-[1.35] text-white">
                         이음만 할 수 있는 일
-                    </h2>
+                    </div>
                     <p className="mt-3 text-[14px] leading-[24px] text-[#94A3B8]">
                         다른 학원 관리 프로그램에는 없는, 이음만의 자동화 기능입니다.
                     </p>
@@ -40,6 +40,6 @@ export default function SpecialFeaturesSection() {
                     ))}
                 </div>
             </div>
-        </section>
+        </div>
     );
 }

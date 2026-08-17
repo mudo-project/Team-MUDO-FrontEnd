@@ -2,13 +2,13 @@ import { MAILTO, PRICING_PLANS } from "@/feature/landing/constants";
 
 export default function PricingSection() {
     return (
-        <section id="pricing" className="w-full border-t border-[#F1F5F9] py-24">
+        <div id="pricing" className="w-full border-t border-[#F1F5F9] py-24">
             <div className="mx-auto w-full max-w-[1120px] px-6">
                 <div className="max-w-[560px]">
                     <span className="text-[12px] font-semibold tracking-[0.08em] text-[#2C8D50]">요금제</span>
-                    <h2 className="mt-3 text-[30px] font-bold leading-[1.35] text-[#0F172A]">
+                    <div className="mt-3 text-[30px] font-bold leading-[1.35] text-[#0F172A]">
                         학원 규모에 맞게, 부담 없이
-                    </h2>
+                    </div>
                     <p className="mt-3 text-[14px] leading-[24px] text-[#64748B]">
                         회원가입이 아닌 도입 문의로 시작합니다. 학원 규모에 맞는 플랜을 함께 정해드려요.
                     </p>
@@ -56,6 +56,6 @@ export default function PricingSection() {
                     ))}
                 </div>
             </div>
-        </section>
+        </div>
     );
 }
