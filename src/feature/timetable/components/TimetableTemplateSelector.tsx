@@ -50,7 +50,7 @@ export default function TimetableTemplateSelector({
       {isOpen && (
         <div
           aria-label="시간표 템플릿 목록"
-          className="absolute left-0 top-[calc(100%+6px)] z-30 w-[320px] overflow-hidden rounded-xl border border-[#DCE9DF] bg-white shadow-[0_12px_30px_rgba(28,42,34,0.14)]"
+          className="absolute left-0 top-[calc(100%+6px)] z-30 w-[320px] max-w-[calc(100vw-2.5rem)] overflow-hidden rounded-xl border border-[#DCE9DF] bg-white shadow-[0_12px_30px_rgba(28,42,34,0.14)]"
           id="timetable-template-menu"
         >
           <div className="max-h-[280px] overflow-y-auto scrollbar-hide">

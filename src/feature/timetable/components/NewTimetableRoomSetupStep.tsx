@@ -18,7 +18,7 @@ export default function NewTimetableRoomSetupStep({
   onRemoveRoom,
 }: NewTimetableRoomSetupStepProps) {
   return (
-    <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_160px] gap-3 overflow-y-auto scrollbar-hide px-5 py-4">
+    <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 overflow-y-auto scrollbar-hide px-5 py-4 sm:grid-cols-[minmax(0,1fr)_160px]">
       <div className="space-y-3">
         {floors.map((floor, floorIndex) => {
           const newRoomName = newRoomNames[floorIndex]?.trim() ?? "";
