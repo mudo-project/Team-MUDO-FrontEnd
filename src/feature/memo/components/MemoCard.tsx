@@ -112,7 +112,7 @@ export default function MemoCard({ memos, createForm, isLoading, onRefresh }: Me
   };
 
   return (
-    <div className="grid min-h-0 flex-1 grid-cols-1 content-start items-start gap-2 overflow-y-auto p-3 sm:grid-cols-2">
+    <div className="grid min-h-0 flex-1 grid-cols-1 content-start items-start gap-2 overflow-y-auto p-3 md:grid-cols-2">
       {createForm && <div className="col-span-full">{createForm}</div>}
       {isLoading && memos.length === 0 && (
         <p className="col-span-full py-8 text-center text-[11px] text-[#94A3B8]">불러오는 중...</p>

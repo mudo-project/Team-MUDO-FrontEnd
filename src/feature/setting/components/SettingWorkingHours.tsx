@@ -103,7 +103,7 @@ export default function SettingWorkingHours() {
           <div className="overflow-hidden rounded-lg border border-[#DCE9DF]">
             {weekdayExceptions.map((exception) => (
               <div
-                className="flex items-center gap-3 border-b border-[#DCE9DF] px-4 py-3 last:border-b-0"
+                className="flex flex-wrap items-center gap-2 border-b border-[#DCE9DF] px-4 py-3 last:border-b-0 sm:gap-3"
                 key={exception.day}
               >
                 <span
