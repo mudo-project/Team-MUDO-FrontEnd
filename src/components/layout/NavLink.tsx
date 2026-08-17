@@ -46,6 +46,7 @@ const checkPermission: Partial<Record<MenuHref, string>> = {
     '/message': 'ROLLCALL:TEMPLATE_MANAGE',
     '/student': 'STUDENT:MANAGE',
     '/approval/my': 'APPROVAL:SUBMIT',
+    '/finance': ''
 }
 
 export default function NavLink({ href, children, icon, count, border }: NavLinkProps) {
@@ -61,7 +62,19 @@ export default function NavLink({ href, children, icon, count, border }: NavLink
         ? permissions.includes(requiredPermission)
         : true;
 
+    let financehref;
+
+    if (href === '/finance') {
+        const financePermissions = permissions.includes('PAYROLL:MANAGE') || permissions.includes('CORPORATE_CARD:EXPENSE')
+        if (!financePermissions) {
+            return null;
+        } else {
+            financehref = permissions.includes('CORPORATE_CARD:EXPENSE') ? '/finance/corporate-card' : '/finance/payroll'
+        }
+    }
+
     if (!hasPermission) return null;
+
 
     return (
         <>
@@ -70,7 +83,7 @@ export default function NavLink({ href, children, icon, count, border }: NavLink
                 : "text-[#CBD5E1] hover:bg-white/5"
                 }`}>
                 <Link className={`flex h-[25px] gap-2.5 w-full items-center text-[10px]`}
-                    href={href}>
+                    href={financehref || href}>
                     <SidebarIcon className="h-3.5 w-3.5" strokeWidth={1.7} />
                     <p className="ml-2 pt-[4px] text-[13px]">{children}</p>
                     {(count ?? 0) !== 0 && (
