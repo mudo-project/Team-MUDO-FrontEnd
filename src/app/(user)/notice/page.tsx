@@ -22,11 +22,11 @@ export default async function NoticePage({ searchParams }: NoticePageProps) {
     }
 
     return (
-        <main className="mx-auto w-full max-w-[930px] px-5 py-6">
+        <main className="mx-auto w-full max-w-[930px] px-4 py-6 sm:px-5 lg:px-6">
 
             <section aria-label="공지 목록" className="mt-4">
-                <div className="mb-3 flex items-center justify-end gap-4">
-                    <div className="flex items-center gap-2">
+                <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end sm:gap-4">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                         <NoticeSearch defaultValue={keyword} />
                         <NoticeCreateForm />
                     </div>

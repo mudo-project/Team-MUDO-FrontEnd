@@ -36,7 +36,7 @@ export default async function NoticeDetail({ id }: { id: string }) {
 
                 <h1 className="mt-3 text-[20px] font-bold text-[#0F172A]">{notice.title}</h1>
 
-                <div className="mt-2 flex items-center gap-2 text-[12px] text-[#64748B]">
+                <div className="mt-2 flex flex-wrap items-center gap-2 text-[12px] text-[#64748B]">
                     <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#0F172A] text-[11px] font-semibold text-white">
                         {notice.authorName.slice(0, 1)}
                     </span>
@@ -98,8 +98,8 @@ export default async function NoticeDetail({ id }: { id: string }) {
                         href={`/notice/${prevNotice.id}`}
                     >
                         <ChevronUp className="size-3.5 shrink-0 text-[#94A3B8]" strokeWidth={2} />
-                        <span className="text-[#94A3B8]">이전</span>
-                        <span className="truncate text-[#0F172A]">{prevNotice.title}</span>
+                        <span className="shrink-0 text-[#94A3B8]">이전</span>
+                        <span className="min-w-0 flex-1 truncate text-[#0F172A]">{prevNotice.title}</span>
                     </Link>
                 ) : (
                     <div className="flex h-[46px] items-center gap-2 rounded-[8px] border border-[#DCE9DF] bg-white px-4 text-[13px] text-[#94A3B8]">
@@ -115,8 +115,8 @@ export default async function NoticeDetail({ id }: { id: string }) {
                         href={`/notice/${nextNotice.id}`}
                     >
                         <ChevronDown className="size-3.5 shrink-0 text-[#94A3B8]" strokeWidth={2} />
-                        <span className="text-[#94A3B8]">다음</span>
-                        <span className="truncate text-[#0F172A]">{nextNotice.title}</span>
+                        <span className="shrink-0 text-[#94A3B8]">다음</span>
+                        <span className="min-w-0 flex-1 truncate text-[#0F172A]">{nextNotice.title}</span>
                     </Link>
                 ) : (
                     <div className="flex h-[46px] items-center gap-2 rounded-[8px] border border-[#DCE9DF] bg-white px-4 text-[13px] text-[#94A3B8]">
