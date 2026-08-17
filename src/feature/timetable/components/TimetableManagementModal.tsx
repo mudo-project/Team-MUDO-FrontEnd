@@ -27,10 +27,10 @@ export default function TimetableManagementModal({
 }: TimetableManagementModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#172033]/40 px-4 py-6">
-      <section 
-        aria-labelledby="timetable-management-title" 
-        className={modalSurfaceClass} 
-        role="dialog" 
+      <section
+        aria-labelledby="timetable-management-title"
+        className={`${modalSurfaceClass} max-h-[90vh] overflow-y-auto scrollbar-hide`}
+        role="dialog"
         aria-modal="true"
       >
         <header className="flex items-center justify-between border-b border-[#E5EEE7] px-5 py-4">

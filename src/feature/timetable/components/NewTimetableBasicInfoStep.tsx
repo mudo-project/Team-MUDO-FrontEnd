@@ -106,7 +106,7 @@ export default function NewTimetableBasicInfoStep({
         </div>
         <fieldset>
           <legend className="mb-2 text-[13px] font-medium text-[#526071]">운영 요일</legend>
-          <div className="flex gap-2">{["일", "월", "화", "수", "목", "금", "토"].map((day) =>
+          <div className="flex flex-wrap gap-2">{["일", "월", "화", "수", "목", "금", "토"].map((day) =>
             <button
               className="flex size-9 items-center justify-center rounded-full bg-[#273548] text-[12px] font-semibold text-white"
               key={day}

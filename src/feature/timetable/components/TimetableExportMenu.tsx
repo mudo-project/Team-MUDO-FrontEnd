@@ -27,7 +27,7 @@ export default function TimetableExportMenu({
         <div
           id="timetable-export-menu"
           aria-label="시간표 내보내기 옵션"
-          className="absolute right-0 top-12 z-30 w-[284px] overflow-hidden rounded-xl border border-[#DCE9DF] bg-white shadow-[0_12px_24px_rgba(28,42,34,0.12)]"
+          className="absolute right-0 top-12 z-30 w-[284px] max-w-[calc(100vw-2.5rem)] overflow-hidden rounded-xl border border-[#DCE9DF] bg-white shadow-[0_12px_24px_rgba(28,42,34,0.12)]"
         >
           <div className="divide-y divide-[#E5EEE7]">
             <button
