@@ -3,16 +3,16 @@ import { CONTACT_EMAIL, MAILTO, ONBOARDING_STEPS } from "@/feature/landing/const
 
 export default function ContactSection() {
     return (
-        <section id="contact" className="w-full border-t border-[#F1F5F9] bg-[#FBFBF8] py-24">
+        <div id="contact" className="w-full border-t border-[#F1F5F9] bg-[#FBFBF8] py-24">
             <div className="mx-auto w-full max-w-[1120px] px-6">
                 <div className="grid grid-cols-1 gap-14 lg:grid-cols-2">
                     <div>
                         <span className="text-[12px] font-semibold tracking-[0.08em] text-[#2C8D50]">
                             도입 방법
                         </span>
-                        <h2 className="mt-3 text-[30px] font-bold leading-[1.35] text-[#0F172A]">
+                        <div className="mt-3 text-[30px] font-bold leading-[1.35] text-[#0F172A]">
                             가입이 아니라, 발급입니다
-                        </h2>
+                        </div>
                         <p className="mt-3 text-[14px] leading-[24px] text-[#64748B]">
                             이음은 회원가입·소셜 로그인이 없는 내부 전용 서비스입니다. 이음이 학원 대표
                             계정을 발급하면, 대표가 하위 직원·강사·조교 계정과 권한을 직접 만들어 사용하는
@@ -59,6 +59,6 @@ export default function ContactSection() {
                     </div>
                 </div>
             </div>
-        </section>
+        </div>
     );
 }
