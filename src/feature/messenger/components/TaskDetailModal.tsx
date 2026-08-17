@@ -60,7 +60,7 @@ export default function TaskDetailModal({ card, currentUserId, roomId, roomName,
 
     return (
         <div className="fixed top-0 left-0 z-999 h-screen w-screen bg-[#162236]/45">
-            <div className="fixed top-1/2 left-1/2 z-1000 w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-[12px] bg-white p-6 shadow-[0_8px_12px_rgba(22,34,54,0.12)]">
+            <div className="fixed top-1/2 left-1/2 z-1000 max-h-[85vh] w-[calc(100%-2rem)] max-w-[520px] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-[12px] bg-white p-6 shadow-[0_8px_12px_rgba(22,34,54,0.12)] scrollbar-hide">
                 <div className="flex items-center gap-1.5">
                     <span className="flex items-center gap-1 text-[14px] font-bold text-[#0F172A]">
                         <CheckSquare className="size-4 text-[#2C8D50]" strokeWidth={1.8} />

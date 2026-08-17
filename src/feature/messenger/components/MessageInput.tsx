@@ -83,7 +83,7 @@ export default function MessageInput({ roomId, onMessageSent, onTaskCreated }: M
 
     return (
         <>
-            <form className="flex h-[70px] shrink-0 items-center gap-3 border-t border-[#D7E8DB] bg-white px-6" onSubmit={handleSubmit}>
+            <form className="flex h-[70px] shrink-0 items-center gap-3 border-t border-[#D7E8DB] bg-white px-3 sm:px-4 lg:px-6" onSubmit={handleSubmit}>
                 <button
                     type="button"
                     className="text-[#64748B] disabled:opacity-40"

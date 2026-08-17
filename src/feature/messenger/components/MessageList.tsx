@@ -18,7 +18,7 @@ export default function MessageList({ feed, currentUserId, roomId, onMessagesCha
     }, [feed]);
 
     return (
-        <div className="min-h-0 flex-1 overflow-y-auto px-10 py-4">
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-6 lg:px-10">
             <div className="mx-auto flex w-full max-w-[754px] flex-col gap-3">
                 {feed.map((item, index) => {
                     const showDateDivider = index === 0 || !isSameDay(item.createdAt, feed[index - 1].createdAt);
