@@ -109,10 +109,10 @@ export default function CreateMemberModal({ closeModal }: { closeModal: () => vo
 
     return (
         <div onClick={handleClose} className="fixed top-0 left-0 z-999 h-screen w-screen bg-[#162236]/45">
-            <form onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit(onSubmit)} className="fixed top-1/2 left-1/2 z-1000 w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-[12px] bg-white p-7 shadow-[0_8px_12px_rgba(22,34,54,0.12)]">
+            <form onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit(onSubmit)} className="fixed top-1/2 left-1/2 z-1000 w-11/12 sm:w-4/5 md:w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-[12px] bg-white p-5 sm:p-6 md:p-7 shadow-[0_8px_12px_rgba(22,34,54,0.12)]">
                 <div className="flex w-full items-center gap-3.5">
                     <div>
-                        <h2 className="text-[18px] font-bold leading-[27px] text-[#0F172A]">계정 생성</h2>
+                        <h2 className="text-[15px] sm:text-base md:text-[18px] font-bold leading-[27px] text-[#0F172A]">계정 생성</h2>
                         <p className="pt-0.5 text-[13px] leading-[19.5px] text-[#64748B]">새 구성원 계정을 만듭니다</p>
                     </div>
 

@@ -23,7 +23,7 @@ export default function SettingGoogleDisconnectModal({
       onClick={onClose}
     >
       <section
-        className="w-[420px] rounded-xl bg-white p-6 shadow-[0_8px_16px_rgba(22,34,54,0.16)]"
+        className="w-[calc(100%-2rem)] max-w-[420px] rounded-xl bg-white p-6 shadow-[0_8px_16px_rgba(22,34,54,0.16)]"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex items-center justify-between">

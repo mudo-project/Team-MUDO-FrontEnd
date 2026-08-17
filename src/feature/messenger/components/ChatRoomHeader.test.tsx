@@ -1,12 +1,17 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { getChatRoomMembersAction } from "../actions";
 import ChatRoomHeader from "./ChatRoomHeader";
+import { MessengerMobileNavProvider } from "./MessengerMobileNavContext";
 
 jest.mock("../actions", () => ({
     getChatRoomMembersAction: jest.fn(),
 }));
 
 const mockedGetChatRoomMembersAction = getChatRoomMembersAction as jest.MockedFunction<typeof getChatRoomMembersAction>;
+
+function renderWithProvider(ui: React.ReactElement) {
+    return render(<MessengerMobileNavProvider>{ui}</MessengerMobileNavProvider>);
+}
 
 const members: MessengerRoomMemberData[] = [
     { userId: 1, name: "로그인 사용자", lastReadAt: null },
@@ -20,7 +25,7 @@ describe("ChatRoomHeader", () => {
 
     it("평시에는 채팅방 제목과 참여자 수를 노출한다", async () => {
         mockedGetChatRoomMembersAction.mockResolvedValue(members);
-        render(
+        renderWithProvider(
             <ChatRoomHeader
                 roomId={1}
                 roomName="1반 공지방"
@@ -37,7 +42,7 @@ describe("ChatRoomHeader", () => {
 
     it("검색 모드면 검색 입력창을 노출하고 제목은 노출하지 않는다", async () => {
         mockedGetChatRoomMembersAction.mockResolvedValue(members);
-        render(
+        renderWithProvider(
             <ChatRoomHeader
                 roomId={1}
                 roomName="1반 공지방"
@@ -56,7 +61,7 @@ describe("ChatRoomHeader", () => {
     it("검색 아이콘을 클릭하면 검색 토글 콜백을 호출한다", async () => {
         mockedGetChatRoomMembersAction.mockResolvedValue(members);
         const onToggleSearch = jest.fn();
-        render(
+        renderWithProvider(
             <ChatRoomHeader
                 roomId={1}
                 roomName="1반 공지방"
@@ -75,7 +80,7 @@ describe("ChatRoomHeader", () => {
 
     it("참여자 아이콘을 클릭하면 참여자 목록이 열리고, 닫기 버튼으로 닫힌다", async () => {
         mockedGetChatRoomMembersAction.mockResolvedValue(members);
-        render(
+        renderWithProvider(
             <ChatRoomHeader
                 roomId={1}
                 roomName="1반 공지방"

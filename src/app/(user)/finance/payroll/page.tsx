@@ -1,5 +1,6 @@
 import { getPayrollsAction } from "@/feature/payroll/actions";
 import PayrollManagement from "@/feature/payroll/components/PayrollManagement";
+import DesktopOnlyGuard from "@/components/ui/DesktopOnlyGuard";
 
 export default async function FinancePayrollPage() {
     const now = new Date();
@@ -22,5 +23,9 @@ export default async function FinancePayrollPage() {
         );
     }
 
-    return <PayrollManagement initialData={listData} initialMonth={month} initialYear={year} />;
+    return (
+        <DesktopOnlyGuard>
+            <PayrollManagement initialData={listData} initialMonth={month} initialYear={year} />
+        </DesktopOnlyGuard>
+    );
 }

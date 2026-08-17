@@ -78,25 +78,24 @@ export default function CreateApprovalTemplateModal({
         >
             <form
                 action={createTemplateFormAction}
-                className="fixed top-1/2 left-1/2 z-1000 max-h-[85vh] w-[560px] -translate-x-1/2 -translate-y-1/2 rounded-[14px] bg-white p-5 shadow-[0_8px_40px_rgba(22,34,54,0.18)] "
+                className="fixed top-1/2 left-1/2 z-1000 flex max-h-[450px] md:max-h-[550px] w-[90%] sm:w-[420px]  -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-[14px] bg-white shadow-[0_8px_40px_rgba(22,34,54,0.18)]"
                 onClick={(e) => e.stopPropagation()}
             >
-                <section className="overflow-y-auto h-full p-3 lg:p-4 ">
+                <header className="flex h-[49px] w-full shrink-0 items-center p-5 pb-0 sm:p-6 sm:pb-0 mb-5">
+                    <h2 className="text-[18px] font-bold leading-[27px] text-[#0F172A]">
+                        결재 템플릿 생성
+                    </h2>
+                    <button
+                        aria-label="결재 템플릿 생성 모달 닫기"
+                        className="ml-auto flex size-[22px] items-center justify-center text-[#C0C8D0]"
+                        onClick={closeModal}
+                        type="button"
+                    >
+                        <X className="size-3.5" strokeWidth={1.5} />
+                    </button>
+                </header>
 
-                    <div className="flex h-[27px] w-full items-center">
-                        <h2 className="text-[18px] font-bold leading-[27px] text-[#0F172A]">
-                            결재 템플릿 생성
-                        </h2>
-                        <button
-                            aria-label="결재 템플릿 생성 모달 닫기"
-                            className="ml-auto flex size-[22px] items-center justify-center text-[#C0C8D0]"
-                            onClick={closeModal}
-                            type="button"
-                        >
-                            <X className="size-3.5" strokeWidth={1.5} />
-                        </button>
-                    </div>
-
+                <div className="min-h-0 flex-1 overflow-y-auto p-5 pt-0">
                     <div className="mt-4 w-full">
                         <label
                             className="block pb-1.5 text-[12px] font-medium leading-[18px] text-[#6B7280]"
@@ -137,15 +136,17 @@ export default function CreateApprovalTemplateModal({
                         </div>
                     </div>
                     {!state.success && <p>{state.message}</p>}
+                </div>
 
+                <footer className="shrink-0 p-5 pt-2">
                     <button
-                        className="mt-4 h-10 w-full rounded-[8px] bg-[#0F172A] text-[13px] font-semibold leading-[19.5px] text-white"
+                        className="h-10 w-full rounded-[8px] bg-[#0F172A] text-[13px] font-semibold leading-[19.5px] text-white"
                         type="submit"
                         disabled={ispending}
                     >
                         템플릿 저장
                     </button>
-                </section>
+                </footer>
             </form>
         </div>
     );

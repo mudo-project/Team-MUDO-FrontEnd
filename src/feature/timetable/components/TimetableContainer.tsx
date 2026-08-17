@@ -391,7 +391,7 @@ export default function TimetableContainer() {
 
   return (
     <main className="h-[calc(100dvh-3.25rem)] min-w-0 w-full overflow-hidden bg-[#FCFCFC] text-[#172033]">
-      <div className="h-full overflow-y-auto px-5 pb-2 pt-5 lg:px-6">
+      <div className="h-full overflow-y-auto px-4 pb-2 pt-5 sm:px-5 lg:px-6">
         <div className="mx-auto min-w-0 w-full max-w-[1760px]">
           <h1 className="sr-only">시간표</h1>
           <div className="flex flex-col gap-4 border-b border-[#E5EEE7] pb-4 xl:flex-row xl:items-center xl:justify-between">
@@ -421,7 +421,7 @@ export default function TimetableContainer() {
                 onPrev={() => setWeekOffsetWeeks((currentOffset) => currentOffset - 1)}
               />
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <button
                 className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-[#273548] px-4 text-[13px] font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
                 disabled={!activeTemplate}

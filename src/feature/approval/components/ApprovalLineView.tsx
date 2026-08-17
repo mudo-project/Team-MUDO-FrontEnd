@@ -1,3 +1,4 @@
+import { format } from "date-fns";
 import { ApprovalLineData, ApprovalLineStatus } from "../type";
 import ApprovalComp from "./ApprovalComp";
 import ApprovalIng from "./ApprovalIng";
@@ -31,7 +32,7 @@ export default function ApprovalLineView({ line, i, length }: { line: ApprovalLi
                 <div className="text-center">
                     <p className="text-[12px] font-medium leading-[18px] text-[#0F172A]">{line.stepOrder}차 · {line.approverName}</p>
                     <p className="pt-px text-[10px] leading-[15px] text-[#64748B]">{lineStatusLabel[line.status]}</p>
-                    {line.decidedAt && <p className="pt-px text-[10px] leading-[15px] text-[#C0C8D0]">{line.decidedAt}</p>}
+                    {line.decidedAt && <p className="pt-px text-[10px] leading-[15px] text-[#C0C8D0]">{format(line.decidedAt, 'yyyy-MM-dd')}</p>}
                 </div>
             </div>
             {length !== i + 1 &&

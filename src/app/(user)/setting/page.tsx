@@ -6,7 +6,7 @@ import SettingGoogle from "@/feature/setting/components/SettingGoogle";
 
 export default function SettingPage() {
   return (
-    <main className="h-[calc(100dvh-3.25rem)] overflow-hidden bg-[#FCFCFC] px-5 py-6 text-[#172033] lg:px-8">
+    <main className="h-[calc(100dvh-3.25rem)] overflow-hidden bg-[#FCFCFC] px-4 py-6 text-[#172033] sm:px-5 lg:px-8">
       <div className="h-full overflow-y-auto scrollbar-hide">
         <div className="mx-auto w-full max-w-[1740px] pb-8">
           <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(520px,1fr)] xl:gap-5">

@@ -52,7 +52,7 @@ export default function AttendanceDownloadButton({
             type="button"
         >
             <Download aria-hidden="true" className="size-[13px]" strokeWidth={1.5} />
-            {isDownloading ? "다운로드 중" : "다운로드"}
+            <p className="hidden sm:block"> {isDownloading ? "다운로드 중" : "다운로드"}</p>
         </button>
     );
 }

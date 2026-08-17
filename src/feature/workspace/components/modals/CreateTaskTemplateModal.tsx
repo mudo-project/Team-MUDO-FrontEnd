@@ -39,7 +39,7 @@ export default function CreateTaskTemplateModal({ closeModal, workspaceId }: { c
                     createMutation.mutate(new FormData(event.currentTarget));
                 }}
                 onClick={(e) => e.stopPropagation()}
-                className="fixed top-1/2 left-1/2 z-1000 w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-[12px] bg-white p-6 shadow-[0_8px_16px_rgba(22,34,54,0.16)]">
+                className="fixed top-1/2 left-1/2 z-1000 w-[90%] sm:w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-[12px] bg-white p-5 sm:p-6 shadow-[0_8px_16px_rgba(22,34,54,0.16)]">
                 <div className="flex w-full items-center">
                     <h2 className="text-[15px] leading-[22.5px] font-bold text-[#0F172A]">
                         반복 템플릿 추가

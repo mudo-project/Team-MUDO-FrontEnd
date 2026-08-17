@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Avatar from "./Avatar";
+import { useMessengerMobileNav } from "./MessengerMobileNavContext";
 import { formatChatTime, getInitials } from "../utils";
 
 export default function ChatListItem({ room }: { room: MessengerRoomListItemData }) {
     const pathname = usePathname();
     const isActive = pathname === `/messenger/${room.id}`;
+    const { closeSidebar } = useMessengerMobileNav();
 
     return (
         <Link
@@ -20,6 +22,7 @@ export default function ChatListItem({ room }: { room: MessengerRoomListItemData
                 `
             }
             href={`/messenger/${room.id}`}
+            onClick={closeSidebar}
         >
             <Avatar initials={getInitials(room.name)} />
             <span className="min-w-0 flex-1">

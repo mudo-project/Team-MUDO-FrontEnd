@@ -59,7 +59,7 @@ export default function LectureScheduleFields({ initialSchedules = [] }: Lecture
     return (
         <div className="mt-3.5">
             {schedules.map((schedule) => (
-                <div className="mb-2 flex items-center gap-2 last:mb-0" key={schedule.id}>
+                <div className="mb-2 flex flex-col sm:flex-row items-center gap-2 last:mb-0" key={schedule.id}>
                     <select
                         aria-label="수업 요일"
                         className={inputClassName}
@@ -89,7 +89,7 @@ export default function LectureScheduleFields({ initialSchedules = [] }: Lecture
                     />
                     <button
                         aria-label="시간표 삭제"
-                        className="flex size-9 shrink-0 items-center justify-center rounded-[7px] border border-[#F1D0CE] bg-[#FEF2F2] text-[#C0483F] disabled:cursor-not-allowed disabled:opacity-40"
+                        className="flex w-full sm:w-[40px]  size-9 shrink-0 items-center justify-center rounded-[7px] border border-[#F1D0CE] bg-[#FEF2F2] text-[#C0483F] disabled:cursor-not-allowed disabled:opacity-40"
                         disabled={schedules.length === 1}
                         onClick={() => removeSchedule(schedule.id)}
                         type="button"

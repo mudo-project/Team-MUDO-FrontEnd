@@ -8,8 +8,8 @@ const approvers = [
 export default function UpdateApprovalModal() {
     return (
         <div className="fixed top-0 left-0 z-999 h-screen w-screen bg-[#162236]/30">
-            <form className="fixed top-1/2 left-1/2 z-1000 h-[565px] max-h-[85vh] w-[420px] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-[12px] bg-white p-6 shadow-[0_8px_16px_rgba(22,34,54,0.16)]">
-                <div className="flex h-[23px] items-center">
+            <form className="fixed top-1/2 left-1/2 z-1000 flex max-h-[450px] md:max-h-[550px] w-[420px] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-[12px] bg-white shadow-[0_8px_16px_rgba(22,34,54,0.16)]">
+                <header className="flex h-[23px] shrink-0 items-center p-6 pb-0">
                     <h2 className="text-[15px] font-bold leading-[22.5px] text-[#0F172A]">
                         결재 수정
                     </h2>
@@ -20,9 +20,10 @@ export default function UpdateApprovalModal() {
                     >
                         <X className="size-3.5" strokeWidth={1.5} />
                     </button>
-                </div>
+                </header>
 
-                <div className="flex w-full flex-col gap-3.5 pt-5">
+                <div className="min-h-0 flex-1 overflow-y-auto p-6 pt-5">
+                <div className="flex w-full flex-col gap-3.5">
                     <div className="w-full">
                         <p className="text-[12px] font-medium leading-[18px] text-[#6B7280]">
                             결재 라인{" "}
@@ -100,11 +101,14 @@ export default function UpdateApprovalModal() {
                             <input className="hidden" name="attachment" type="file" />
                         </label>
                     </div>
+                </div>
+                </div>
 
+                <footer className="shrink-0 p-6 pt-2">
                     <button className="h-10 w-full rounded-[8px] bg-[#0F172A] text-[13px] font-semibold leading-[19.5px] text-white" type="submit">
                         저장하기
                     </button>
-                </div>
+                </footer>
             </form>
         </div>
     );

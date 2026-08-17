@@ -7,7 +7,7 @@ export default function ApprovalTemplateLine({ line, i, length }: { line: Approv
                 <span className="flex size-9 items-center justify-center rounded-full bg-[#0F172A] text-[13px] font-semibold leading-[19.5px] text-white">
                     {line.approverName.split('')[0]}
                 </span>
-                <span className="text-[11px] font-normal leading-[16.5px] text-[#0F172A]">
+                <span className="text-[11px] font-normal leading-[16.5px] text-[#0F172A] w-[70px] text-center">
                     {line.stepOrder}차 · {line.approverName}
                 </span>
             </div>
