@@ -78,7 +78,7 @@ export default function TaskCreateModal({ roomId, onClose, onCreated, editingCar
 
     return (
         <div className="fixed top-0 left-0 z-999 h-screen w-screen bg-[#162236]/45">
-            <form className="fixed top-1/2 left-1/2 z-1000 w-[480px] -translate-x-1/2 -translate-y-1/2 rounded-[12px] bg-white p-6 shadow-[0_8px_12px_rgba(22,34,54,0.12)]" onSubmit={handleSubmit}>
+            <form className="fixed top-1/2 left-1/2 z-1000 max-h-[85vh] w-[calc(100%-2rem)] max-w-[480px] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-[12px] bg-white p-6 shadow-[0_8px_12px_rgba(22,34,54,0.12)] scrollbar-hide" onSubmit={handleSubmit}>
                 <div className="flex h-[27px] w-full items-center">
                     <h2 className="text-[18px] font-bold leading-[27px] text-[#0F172A]">{editingCard ? "업무지시 수정" : "업무지시 작성"}</h2>
                     <button

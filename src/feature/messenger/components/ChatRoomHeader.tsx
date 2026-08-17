@@ -1,8 +1,9 @@
 'use client'
 
 import { useEffect, useState } from "react";
-import { Search, Users, X } from "lucide-react";
+import { Menu, Search, Users, X } from "lucide-react";
 import ChatMemberList from "./ChatMemberList";
+import { useMessengerMobileNav } from "./MessengerMobileNavContext";
 import { getChatRoomMembersAction } from "../actions";
 
 type ChatRoomHeaderProps = {
@@ -17,13 +18,23 @@ type ChatRoomHeaderProps = {
 export default function ChatRoomHeader({ roomId, roomName, isSearchOpen, searchQuery, onToggleSearch, onSearchQueryChange }: ChatRoomHeaderProps) {
     const [isMemberListOpen, setIsMemberListOpen] = useState(false);
     const [members, setMembers] = useState<MessengerRoomMemberData[]>([]);
+    const { openSidebar } = useMessengerMobileNav();
 
     useEffect(() => {
         getChatRoomMembersAction(roomId).then(setMembers);
     }, [roomId]);
 
     return (
-        <header className="flex h-[51px] shrink-0 items-center border-b border-[#D7E8DB] bg-white px-6">
+        <header className="flex h-[51px] shrink-0 items-center border-b border-[#D7E8DB] bg-white px-4 lg:px-6">
+            <button
+                aria-label="채팅 목록 열기"
+                className="mr-3 shrink-0 text-[#64748B] lg:hidden"
+                onClick={openSidebar}
+                type="button"
+            >
+                <Menu className="size-4" strokeWidth={1.7} />
+            </button>
+
             {isSearchOpen
                 ? (
                     <>
@@ -50,9 +61,9 @@ export default function ChatRoomHeader({ roomId, roomName, isSearchOpen, searchQ
                 )
                 : (
                     <>
-                        <h1 className="text-[16px] font-bold tracking-[-0.02em]">{roomName}</h1>
-                        <span className="ml-2 text-[10px] text-[#64748B]">참여자 {members.length}명</span>
-                        <div className="ml-auto flex items-center gap-3 text-[#64748B]">
+                        <h1 className="min-w-0 truncate text-[16px] font-bold tracking-[-0.02em]">{roomName}</h1>
+                        <span className="ml-2 hidden shrink-0 text-[10px] text-[#64748B] sm:inline">참여자 {members.length}명</span>
+                        <div className="ml-auto flex shrink-0 items-center gap-3 text-[#64748B]">
                             <button
                                 aria-label="대화 검색"
                                 onClick={onToggleSearch}

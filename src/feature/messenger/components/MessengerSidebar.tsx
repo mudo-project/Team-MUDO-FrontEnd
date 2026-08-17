@@ -35,7 +35,7 @@ export default function MessengerSidebar() {
 
     return (
         <section
-            className="flex min-h-0 w-[282px] shrink-0 flex-col border-r border-[#D7E8DB] bg-white"
+            className="flex h-full min-h-0 w-full flex-col border-r border-[#D7E8DB] bg-white"
             aria-label="대화 목록"
         >
             <div className="flex h-[51px] shrink-0 border-b border-[#D7E8DB]">

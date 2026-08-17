@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { useUserStore } from "@/store/useUserStore";
+import DesktopOnlyGuard from "@/components/ui/DesktopOnlyGuard";
 import AttendanceTodaySituation from "./AttendanceTodaySituation";
 import AttendanceCalendar from "./AttendanceCalendar";
 import AttendanceCommuteInformation from "./AttendanceCommuteInformation";
@@ -283,7 +284,7 @@ export default function AttendanceBoard({ initialNow }: AttendanceBoardProps) {
             {canViewTeam && team && <AttendanceTodaySituation team={team} />}
 
             <section className="mt-6">
-              <nav aria-label="근태 메뉴" className="flex gap-7 border-b border-[#DCE9DF] text-[12px]">
+              <nav aria-label="근태 메뉴" className="flex gap-7 overflow-x-auto border-b border-[#DCE9DF] text-[12px] whitespace-nowrap">
                 {visibleTabs.map((item) => (
                   <button
                     className={activeTab === item.key ? "border-b-2 border-[#4D9560] px-1 pb-3 font-semibold" : "pb-3 text-[#718096]"}
@@ -327,13 +328,17 @@ export default function AttendanceBoard({ initialNow }: AttendanceBoardProps) {
 
               {activeTab === "all" && canViewTeam && (
                 <div className="mt-5">
-                  <AttendanceAllEmployees />
+                  <DesktopOnlyGuard>
+                    <AttendanceAllEmployees />
+                  </DesktopOnlyGuard>
                 </div>
               )}
 
               {activeTab === "manage" && canViewCorrections && (
                 <div className="mt-5">
-                  <AttendanceEditRequestManage canProcess={canProcessCorrections} />
+                  <DesktopOnlyGuard>
+                    <AttendanceEditRequestManage canProcess={canProcessCorrections} />
+                  </DesktopOnlyGuard>
                 </div>
               )}
 
