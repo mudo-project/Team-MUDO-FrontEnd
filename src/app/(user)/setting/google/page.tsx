@@ -2,7 +2,7 @@ import SettingGoogleConnection from "@/feature/setting/components/SettingGoogleC
 
 export default function GoogleConnectPage() {
   return (
-    <main className="h-[calc(100dvh-3.25rem)] overflow-hidden bg-[#FCFCFC] px-5 pt-6 text-[#172033] lg:px-8">
+    <main className="h-[calc(100dvh-3.25rem)] overflow-hidden bg-[#FCFCFC] px-4 pt-6 text-[#172033] sm:px-5 lg:px-8">
       <div className="h-full overflow-y-auto scrollbar-hide">
         <div className="mx-auto w-full max-w-[1010px] pb-8">
           <div className="mb-6">

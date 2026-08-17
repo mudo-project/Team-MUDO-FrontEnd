@@ -101,7 +101,7 @@ export default function SettingGoogleReplaceModal({ email, onClose }: { email: s
       onClick={handleClose}
     >
       <section
-        className="w-[440px] rounded-xl bg-white p-6 shadow-[0_8px_16px_rgba(22,34,54,0.16)]"
+        className="max-h-[90vh] w-[calc(100%-2rem)] max-w-[440px] overflow-y-auto rounded-xl bg-white p-6 shadow-[0_8px_16px_rgba(22,34,54,0.16)]"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex items-center justify-between">

@@ -224,13 +224,13 @@ export default function SettingGoogleConnection() {
 
             <div className={`rounded-lg bg-[#F6F8FA] p-6 ${banner ? "mt-3" : "mt-6"}`}>
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="flex items-center gap-2 text-lg font-semibold tracking-[-0.02em]">
+                <p className="flex min-w-0 items-center gap-2 text-lg font-semibold tracking-[-0.02em]">
                   {status === "failed" ? (
-                    <Ban className="size-4 text-[#DC2626]" />
+                    <Ban className="size-4 shrink-0 text-[#DC2626]" />
                   ) : (
-                    <span className={`size-2 rounded-full ${STATUS_DOT_CLASS[status]}`} />
+                    <span className={`size-2 shrink-0 rounded-full ${STATUS_DOT_CLASS[status]}`} />
                   )}
-                  {connection.googleEmail}
+                  <span className="min-w-0 break-all">{connection.googleEmail}</span>
                 </p>
                 {isCheckingConnection ? (
                   <span className="flex items-center gap-1.5">
