@@ -1,5 +1,6 @@
 import { getCorporateCardTransactionsAction } from "@/feature/corporate-card/actions";
 import FinanceCorporateCardManagement from "@/feature/corporate-card/components/FinanceCorporateCardManagement";
+import DesktopOnlyGuard from "@/components/ui/DesktopOnlyGuard";
 
 export default async function FinanceCorporateCardPage() {
     const { content, totalElements } = await getCorporateCardTransactionsAction({ size: 100 });
@@ -11,7 +12,7 @@ export default async function FinanceCorporateCardPage() {
     const totalAmount = content.reduce((sum, item) => sum + item.amount, 0);
 
     return (
-        <>
+        <DesktopOnlyGuard>
             <section
                 aria-label="이달 법인카드 요약"
                 className="mt-4 grid min-h-[92px] grid-cols-[repeat(4,minmax(0,1fr))_minmax(230px,1.35fr)] items-center overflow-hidden rounded-xl border border-[#DCE9DF] bg-white px-5"
@@ -50,6 +51,6 @@ export default async function FinanceCorporateCardPage() {
                 }}
                 transactions={content}
             />
-        </>
+        </DesktopOnlyGuard>
     );
 }

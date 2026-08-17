@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getPayrollCompensationAction, getPayrollPolicyAction, getPayrollsAction } from "@/feature/payroll/actions";
 import PayrollCompensationList, { type PayrollCompensationListItem } from "@/feature/payroll/components/PayrollCompensationList";
 import PayrollPolicyForm from "@/feature/payroll/components/PayrollPolicyForm";
+import DesktopOnlyGuard from "@/components/ui/DesktopOnlyGuard";
 
 export default async function FinancePayrollSettingsPage() {
     const now = new Date();
@@ -51,8 +52,10 @@ export default async function FinancePayrollSettingsPage() {
             <p className="mt-1 text-[12px] text-[#94A3B8]">급여 계산의 기준이 되는 정책과 직원별 급여 설정을 관리합니다.</p>
 
             <div className="mt-5">
-                <PayrollPolicyForm policy={policy} />
-                <PayrollCompensationList employees={employees} />
+                <DesktopOnlyGuard>
+                    <PayrollPolicyForm policy={policy} />
+                    <PayrollCompensationList employees={employees} />
+                </DesktopOnlyGuard>
             </div>
         </div>
     );
