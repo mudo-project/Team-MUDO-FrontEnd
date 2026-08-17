@@ -9,17 +9,17 @@ const PREVIEW_MEMBERS = [
 
 export default function HeroSection() {
     return (
-        <section className="w-full bg-[#FBFBF8]">
+        <div className="w-full bg-[#FBFBF8]">
             <div className="mx-auto grid w-full max-w-[1120px] grid-cols-1 items-center gap-14 px-6 py-24 lg:grid-cols-2 lg:py-28">
                 <div>
                     <span className="inline-flex items-center rounded-full bg-[#EAF5EE] px-3 py-1 text-[12px] font-semibold text-[#246B40]">
                         학원 전문 경량화 그룹웨어
                     </span>
-                    <h1 className="mt-5 text-[38px] leading-[1.25] font-bold tracking-tight text-[#0F172A] lg:text-[46px]">
+                    <div className="mt-5 text-[38px] leading-[1.25] font-bold tracking-tight text-[#0F172A] lg:text-[46px]">
                         학원의 흩어진 업무를,
                         <br />
                         하나의 흐름으로 잇다
-                    </h1>
+                    </div>
                     <p className="mt-5 text-[15px] leading-[26px] text-[#64748B]">
                         카카오톡으로 새는 공지, 엑셀에 흩어진 학생 기록, 여러 시스템을 오가는 결재까지.
                         이음은 학생 데이터 관리와 사내 그룹웨어를 하나로 합쳐, 학원 운영에 실제로 필요한
@@ -87,6 +87,6 @@ export default function HeroSection() {
                     </div>
                 </div>
             </div>
-        </section>
+        </div>
     );
 }

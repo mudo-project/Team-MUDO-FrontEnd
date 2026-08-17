@@ -3,7 +3,7 @@ import { CONTACT_EMAIL, MAILTO } from "@/feature/landing/constants";
 
 export default function LandingFooter() {
     return (
-        <footer className="w-full border-t border-[#F1F5F9] bg-white py-10">
+        <div className="w-full border-t border-[#F1F5F9] bg-white py-10">
             <div className="mx-auto flex w-full max-w-[1120px] flex-col gap-4 px-6 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     <p className="text-[15px] font-bold text-[#0F172A]">이음</p>
@@ -19,6 +19,6 @@ export default function LandingFooter() {
                     <p>© 2026 Team MUDO. All rights reserved.</p>
                 </div>
             </div>
-        </footer>
+        </div>
     );
 }
