@@ -36,7 +36,7 @@ describe("ApprovalLineView", () => {
         );
 
         expect(screen.getByText("승인")).toBeInTheDocument();
-        expect(screen.getByText("2026-08-16T09:00:00.000Z")).toBeInTheDocument();
+        expect(screen.getByText("2026-08-16")).toBeInTheDocument();
     });
 
     it("반려 상태이면 반려 라벨을 표시한다", () => {

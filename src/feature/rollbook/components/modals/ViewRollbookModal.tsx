@@ -143,7 +143,7 @@ export default function ViewRollbookModal({
         <div className="fixed inset-0 z-999 bg-[#162236]/40" onClick={closeModal}>
             <form
                 aria-labelledby="view-rollbook-modal-title"
-                className="fixed top-1/2 left-1/2 z-1000 w-[720px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[12px] bg-white shadow-[0_12px_32px_rgba(15,23,42,0.18)]"
+                className="fixed top-1/2 left-1/2 z-1000 w-11/12 md:w-[720px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[12px] bg-white shadow-[0_12px_32px_rgba(15,23,42,0.18)]"
                 onClick={(event) => event.stopPropagation()}
                 onSubmit={(event) => {
                     event.preventDefault();
@@ -155,7 +155,7 @@ export default function ViewRollbookModal({
                     <div className="flex items-start">
                         <div>
                             <div className="flex items-center gap-2">
-                                <h2 id="view-rollbook-modal-title" className="h-7 text-[17px] leading-[25.5px] font-bold text-[#0F172A]">
+                                <h2 id="view-rollbook-modal-title" className="h-7 text-[15px] sm:text-base md:text-[17px] leading-[25.5px] font-bold text-[#0F172A]">
                                     {attendance?.lectureName}
                                 </h2>
                             </div>
@@ -168,7 +168,7 @@ export default function ViewRollbookModal({
                         </button>
                     </div>
 
-                    <div className="mt-3.5 flex items-center gap-2">
+                    <div className="mt-3.5 flex items-center gap-2 flex-wrap">
                         <input
                             aria-label="출결 날짜"
                             className="h-[34px] w-[126px] rounded-[8px] border border-[#DCE8E2] bg-white px-3 text-[12px] text-[#0F172A] focus:outline-none"
@@ -177,13 +177,13 @@ export default function ViewRollbookModal({
                             value={date}
                         />
                         <button
-                            className="ml-auto flex h-[34px] items-center gap-1.5 rounded-[8px] border border-[#DCE8E2] bg-white px-3 text-[13px] leading-[19.5px] font-medium text-[#0F172A] disabled:cursor-not-allowed disabled:text-[#94A3B8]"
+                            className=" ml-auto flex h-[34px] items-center gap-1.5 rounded-[8px] border border-[#DCE8E2] bg-white px-3 text-[13px] leading-[19.5px] font-medium text-[#0F172A] disabled:cursor-not-allowed disabled:text-[#94A3B8]"
                             disabled={isLoading}
                             onClick={sendMessageModal.openModal}
                             type="button"
                         >
                             <Phone aria-hidden="true" className="size-[13px]" strokeWidth={1.5} />
-                            출결 문자 발송
+                            <p className="hidden sm:block">출결 문자 발송</p>
                         </button>
                         <AttendanceDownloadButton date={date} lectureId={lectureId} />
                         <button
@@ -210,8 +210,8 @@ export default function ViewRollbookModal({
                 </div>
 
                 <div className="max-h-[228px] overflow-y-auto">
-                    <div className="sticky top-0 z-10 grid h-9 grid-cols-12 items-center gap-3 border-b border-[#DCE8E2] bg-white px-6 text-[11px] leading-[16.5px] font-medium text-[#B0B8C1]">
-                        <p className="col-span-3">학생</p><p className="col-span-1">학년</p><p className="col-span-4">출결 상태</p><p className="col-span-4">비고</p>
+                    <div className="sticky top-0 z-10 grid h-9  sm:grid-cols-12 grid-cols-11 items-center gap-3 border-b border-[#DCE8E2] bg-white px-6 text-[10px] md:text-[11px] leading-[16.5px] font-medium text-[#B0B8C1]">
+                        <p className="col-span-3">학생</p><p className="col-span-1 hidden sm:block">학년</p><p className="col-span-4">출결 상태</p><p className="col-span-4">비고</p>
                     </div>
 
                     {isLoading && <p className="py-8 text-center text-[12px] text-[#94A3B8]">출결 정보를 불러오는 중입니다.</p>}

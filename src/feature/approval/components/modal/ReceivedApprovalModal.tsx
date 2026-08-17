@@ -14,10 +14,6 @@ import {
 } from "@/feature/approval/type";
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
-import ApprovalRest from "../ApprovalRest";
-import ApprovalIng from "../ApprovalIng";
-import ApprovalComp from "../ApprovalComp";
-import ApprovalReject from "../ApprovalReject";
 import ApprovalLineView from "../ApprovalLineView";
 
 const documentStatusLabel: Record<ApprovalDocumentStatus, string> = {
@@ -99,32 +95,33 @@ export default function ReceivedApprovalModal({ closeModal, activeModal, noneAct
 
     return (
         <div className="fixed top-0 left-0 z-999 h-screen w-screen bg-[#162236]/35" onClick={closeModal}>
-            <div className="fixed top-1/2 left-1/2 z-1000 max-h-[85vh] h-[85vh] w-5/6 max-w-[680px] -translate-x-1/2 -translate-y-1/2 rounded-[14px] bg-white shadow-[0_8px_20px_rgba(22,34,54,0.18)] md:w-3/5 lg:w-[680px] p-5" onClick={(event) => event.stopPropagation()}>
-                <section className="overflow-y-auto h-full p-3 lg:p-4 ">
-
-                    <div className="flex w-full items-start gap-3">
-                        <div className="w-full">
-                            {approval ? (
-                                <>
-                                    <div className="flex items-center gap-2.5">
-                                        <span className="bg-[#F0F2F5] text-[#8A94A3] rounded-[20px] px-[9px] py-0.5 text-[11px] font-medium leading-[16.5px]">
-                                            {documentStatusLabel[approval.status]}
-                                        </span>
-                                        <span className="text-[11px] leading-[16.5px] text-[#B0B8C1]">{approval.templateName}</span>
-                                    </div>
-                                    <h2 className="pt-1.5 text-[18px] font-bold leading-[27px] text-[#0F172A]">{approval.title}</h2>
-                                    <p className="pt-1 text-[12px] leading-[18px] text-[#B0B8C1]">기안자: {approval.creatorName} · {approval.createdAt}</p>
-                                </>
-                            ) : (
-                                <p className="text-[12px] text-[#64748B]">{error || "결재 문서를 불러오는 중입니다."}</p>
-                            )}
-                        </div>
-                        <button aria-label="결재 확인 모달 닫기" className="flex size-[22px] shrink-0 items-center justify-center text-[#C0C8D0]" onClick={closeModal} type="button"><X className="size-3.5" strokeWidth={1.5} /></button>
+            <div
+                className="fixed top-1/2 left-1/2 z-1000 flex max-h-[450px] md:max-h-[550px] w-[90%] max-w-[560px] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-[14px] bg-white shadow-[0_8px_40px_rgba(22,34,54,0.18)] md:w-3/5 lg:w-[560px]"
+                onClick={(event) => event.stopPropagation()}>
+                <header className="flex w-full shrink-0 items-start gap-3 p-6 pb-0 lg:p-8 lg:pb-0">
+                    <div className="w-full">
+                        {approval ? (
+                            <>
+                                <div className="flex items-center gap-2.5">
+                                    <span className="bg-[#F0F2F5] text-[#8A94A3] rounded-[20px] px-[9px] py-0.5 text-[11px] font-medium leading-[16.5px]">
+                                        {documentStatusLabel[approval.status]}
+                                    </span>
+                                    <span className="text-[11px] leading-[16.5px] text-[#B0B8C1]">{approval.templateName}</span>
+                                </div>
+                                <h2 className="pt-1.5 text-[18px] font-bold leading-[27px] text-[#0F172A]">{approval.title}</h2>
+                                <p className="pt-1 text-[12px] leading-[18px] text-[#B0B8C1]">기안자: {approval.creatorName} · {approval.createdAt}</p>
+                            </>
+                        ) : (
+                            <p className="text-[12px] text-[#64748B]">{error || "결재 문서를 불러오는 중입니다."}</p>
+                        )}
                     </div>
+                    <button aria-label="결재 확인 모달 닫기" className="flex size-[22px] shrink-0 items-center justify-center text-[#C0C8D0]" onClick={closeModal} type="button"><X className="size-3.5" strokeWidth={1.5} /></button>
+                </header>
 
+                <div className="min-h-0 flex-1 overflow-y-auto p-6 pt-0 lg:p-8 lg:pt-0">
                     {approval && (
                         <>
-                            <section className="mt-6 w-full rounded-[10px] bg-[#F7F8FA] px-5 py-4">
+                            <section className="mt-6 w-full rounded-[10px] bg-[#F7F8FA] px-5 py-4 overflow-x-auto">
                                 <h3 className="text-[11px] font-semibold leading-[16.5px] tracking-[0.55px] text-[#64748B]">결재 라인</h3>
                                 <div className="flex h-[107px] w-full items-start pt-5 pb-2">
                                     {[...approval.lines].sort((a, b) => a.stepOrder - b.stepOrder).map((line, i) => (
@@ -158,19 +155,20 @@ export default function ReceivedApprovalModal({ closeModal, activeModal, noneAct
                             </section>
                         </>
                     )}
-                    <div className="mt-5 flex h-[58px] w-full gap-2 border-t border-[#D7E8DB] pt-4">
-                        <button
-                            onClick={noneActiveModal}
-                            className="h-full w-full rounded-[8px] border border-[#D7E8DB] bg-[#FCFCFC] text-[13px] font-semibold leading-[19.5px] text-[#0F172A]" type="button">
-                            반려
-                        </button>
-                        <button
-                            onClick={activeModal}
-                            className="h-full w-full rounded-[8px] bg-[#0F172A] text-[13px] font-semibold leading-[19.5px] text-white" type="button">
-                            승인
-                        </button>
-                    </div>
-                </section>
+                </div>
+
+                <footer className="flex  w-full shrink-0 gap-2 border-t border-[#D7E8DB] p-5 pt-4">
+                    <button
+                        onClick={noneActiveModal}
+                        className="h-[41px] w-full rounded-[8px] border border-[#D7E8DB] bg-[#FCFCFC] text-[13px] font-semibold leading-[19.5px] text-[#0F172A]" type="button">
+                        반려
+                    </button>
+                    <button
+                        onClick={activeModal}
+                        className="h-[41px] w-full rounded-[8px] bg-[#0F172A] text-[13px] font-semibold leading-[19.5px] text-white" type="button">
+                        승인
+                    </button>
+                </footer>
             </div>
         </div>
     );

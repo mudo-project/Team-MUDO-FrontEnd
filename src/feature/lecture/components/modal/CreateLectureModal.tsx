@@ -65,9 +65,9 @@ export default function CreateLectureModal({ classrooms, closeModal, subjects, t
 
     return (
         <div className="fixed top-0 left-0 z-999 h-screen w-screen bg-[#162236]/45" onClick={closeModal}>
-            <form className="fixed top-1/2 left-1/2 z-1000 flex max-h-[calc(100dvh-48px)] w-[580px] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-[14px] bg-white shadow-[0_8px_40px_rgba(0,0,0,0.18)]" onClick={(event) => event.stopPropagation()} onSubmit={handleSubmit(onSubmit)} ref={setFormElement}>
+            <form className="fixed top-1/2 left-1/2 z-1000 flex  max-h-[450px] md:max-h-[550px] w-[90%] sm:w-4/5 md:w-[580px] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-[14px] bg-white shadow-[0_8px_40px_rgba(0,0,0,0.18)]" onClick={(event) => event.stopPropagation()} onSubmit={handleSubmit(onSubmit)} ref={setFormElement}>
                 <header className="flex shrink-0 items-center px-7 pt-[22px] pb-[18px]">
-                    <h2 className="text-[17px] font-bold text-[#0F172A]">강의 등록</h2>
+                    <h2 className="text-[15px] sm:text-base md:text-[17px] font-bold text-[#0F172A]">강의 등록</h2>
                     <button aria-label="강의 등록 모달 닫기" className="ml-auto text-[#94A3B8]" onClick={closeModal} type="button"><X className="size-[18px]" strokeWidth={1.5} /></button>
                 </header>
 
@@ -108,7 +108,7 @@ export default function CreateLectureModal({ classrooms, closeModal, subjects, t
                 </div>
 
                 <footer className="flex shrink-0 gap-2 px-7 pb-6">
-                    <button className="h-11 w-1/3 rounded-[8px] border border-[#DCE8E2] bg-white text-[13px] text-[#64748B]" onClick={closeModal} type="button">취소</button>
+                    <button className="h-11 w-full rounded-[8px] border border-[#DCE8E2] bg-white text-[13px] text-[#64748B]" onClick={closeModal} type="button">취소</button>
                     <button className="h-11 w-full rounded-[8px] bg-[#2A3A4A] text-[13px] font-semibold text-white disabled:opacity-50" disabled={isSubmitting} type="submit">{isSubmitting ? "등록 중" : "강의 등록"}</button>
                 </footer>
             </form>

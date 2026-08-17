@@ -67,7 +67,7 @@ export default function EditWorkspaceModal({
             onClick={closeModal}
         >
             <form
-                className="fixed top-1/2 left-1/2 z-1000 w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-[12px] bg-white p-6 shadow-[0_8px_16px_rgba(22,34,54,0.16)]"
+                className="fixed top-1/2 left-1/2 z-1000 w-[90%] sm:w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-[12px] bg-white p-5 sm:p-6 shadow-[0_8px_16px_rgba(22,34,54,0.16)]"
                 onClick={(event) => event.stopPropagation()}
                 onSubmit={(event) => {
                     event.preventDefault();

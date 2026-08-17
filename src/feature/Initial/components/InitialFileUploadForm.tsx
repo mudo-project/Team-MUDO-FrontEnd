@@ -25,7 +25,7 @@ export default function InitialFileUploadForm({ error, isPending, onSubmit }: In
 
     return (
         <form className="mt-5 rounded-[12px] border border-[#D7E8DB] bg-white px-6 py-6" onSubmit={submitForm}>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid md:grid-cols-3 gap-4">
                 {FILE_FIELDS.map((field) => (
                     <InitialFileUploadCard
                         description={field.description}

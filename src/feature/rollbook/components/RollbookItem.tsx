@@ -25,12 +25,12 @@ export default function RollbookItem({ draft, entry, onChange }: RollbookItemPro
     const note = draft ? draft.note : entry.note ?? "";
 
     return (
-        <div className="grid min-h-16 grid-cols-12 items-center gap-3 border-b border-[#F7F8F9] px-6 py-[13px] last:border-b-0">
+        <div className="grid min-h-16 sm:grid-cols-12 grid-cols-11 items-center gap-3 border-b border-[#F7F8F9] px-6 py-[13px] last:border-b-0">
             <div className="col-span-3">
                 <strong className="block text-[13px] leading-[19.5px] font-medium text-[#0F172A]">{entry.studentName}</strong>
                 <span className="mt-px block text-[11px] leading-[16.5px] text-[#94A3B8]">{entry.parentPhone}</span>
             </div>
-            <p className="col-span-1 text-[12px] leading-[18px] text-[#64748B]">{LECTURE_GRADE_LABEL[entry.grade]}</p>
+            <p className="sm:block hidden col-span-1 text-[12px] leading-[18px] text-[#64748B]">{LECTURE_GRADE_LABEL[entry.grade]}</p>
             <select
                 aria-label={`${entry.studentName} 출결 상태`}
                 className="col-span-4 h-8 w-full rounded-[7px] border border-[#DCE8E2] bg-white px-3 text-[12px] text-[#0F172A] focus:outline-none"

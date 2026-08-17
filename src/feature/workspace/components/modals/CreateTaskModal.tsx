@@ -42,7 +42,7 @@ export default function CreateTaskModal({ closeModal, workspaceId }: { closeModa
                     event.preventDefault();
                     createMutation.mutate(new FormData(event.currentTarget));
                 }}
-                className="fixed top-1/2 left-1/2 z-1000 w-[450px] -translate-x-1/2 -translate-y-1/2 rounded-[12px] bg-white p-6 shadow-[0_18px_45px_rgba(32,42,60,0.18)]"
+                className="fixed top-1/2 left-1/2 z-1000 w-[90%] sm:w-[450px] -translate-x-1/2 -translate-y-1/2 rounded-[12px] bg-white p-5 sm:p-6 shadow-[0_18px_45px_rgba(32,42,60,0.18)]"
                 onClick={(e) => e.stopPropagation()}
             >
                 <div className="flex items-center">

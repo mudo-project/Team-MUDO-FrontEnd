@@ -106,7 +106,7 @@ export default function ViewTask({
         (isError ? "업무 정보를 불러오지 못했습니다." : "");
 
     return (
-        <aside className="fixed top-[52px] right-0 bottom-0 z-100 w-[44.3vw] min-w-[520px] max-w-[850px] border-l border-[#D7E8DB] bg-[#FCFCFC] shadow-[-8px_0_20px_rgba(22,34,54,0.06)]">
+        <aside className="fixed top-[52px] right-0 bottom-0 z-500 w-full sm:w-[44.3vw] sm:min-w-[520px] max-w-[850px] border-l border-[#D7E8DB] bg-[#FCFCFC] shadow-[-8px_0_20px_rgba(22,34,54,0.06)]">
             <div className="flex h-full flex-col">
                 <header className="flex items-start border-b border-[#D7E8DB] px-5 py-4 gap-2">
                     <div>

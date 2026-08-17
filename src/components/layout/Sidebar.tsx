@@ -143,7 +143,7 @@ export default function Sidebar() {
 
 
     return (
-        <aside className={`${isOpen ? 'flex' : 'hidden'} h-screen w-[219px] shrink-0 flex-col bg-[#0F172A] text-[#CBD5E1]`}>
+        <aside className={`${isOpen ? 'flex' : 'hidden'} fixed md:static h-screen w-[219px] shrink-0 flex-col bg-[#0F172A] text-[#CBD5E1] z-900`}>
             <div className="flex h-13 shrink-0 items-center border-b border-white/8 px-4">
                 <div className="relative flex h-6 w-10 items-center justify-center rounded-[6px]">
                     <Image

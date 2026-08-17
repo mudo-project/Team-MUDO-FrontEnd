@@ -205,25 +205,25 @@ export default function CreateApprovalModal({
             onClick={closeModal}
         >
             <form
-                className="fixed top-1/2 left-1/2 z-1000 h-[85vh] max-h-[85vh] w-5/6 max-w-[560px] -translate-x-1/2 -translate-y-1/2 rounded-[14px] bg-white p-3 shadow-[0_8px_40px_rgba(22,34,54,0.18)] md:w-3/5 lg:w-[560px] lg:p-3"
+                className="fixed top-1/2 left-1/2 z-1000 flex max-h-[450px] md:max-h-[550px] w-[90%] max-w-[560px] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-[14px] bg-white shadow-[0_8px_40px_rgba(22,34,54,0.18)] md:w-3/5 lg:w-[560px]"
                 onClick={(event) => event.stopPropagation()}
                 onSubmit={handleSubmit}
             >
-                <section className="overflow-y-auto h-full p-3 lg:p-4 ">
-                    <div className="flex items-center">
-                        <h2 className="text-[15px] font-bold leading-[22.5px] text-[#0F172A] lg:text-[18px] lg:leading-[27px]">
-                            결재 상신
-                        </h2>
-                        <button
-                            aria-label="결재 상신 모달 닫기"
-                            className="ml-auto flex size-[22px] items-center justify-center text-[#C0C8D0]"
-                            onClick={closeModal}
-                            type="button"
-                        >
-                            <X className="size-3.5" strokeWidth={1.5} />
-                        </button>
-                    </div>
+                <header className="h-[49px] flex shrink-0 items-center p-3 pb-0 lg:p-4 lg:pb-0">
+                    <h2 className="text-[15px] font-bold leading-[22.5px] text-[#0F172A] lg:text-[18px] lg:leading-[27px]">
+                        결재 상신
+                    </h2>
+                    <button
+                        aria-label="결재 상신 모달 닫기"
+                        className="ml-auto flex size-[22px] items-center justify-center text-[#C0C8D0]"
+                        onClick={closeModal}
+                        type="button"
+                    >
+                        <X className="size-3.5" strokeWidth={1.5} />
+                    </button>
+                </header>
 
+                <div className="min-h-0 flex-1 overflow-y-auto p-3 pt-0 lg:p-4 lg:pt-0">
                     <ApprovalLine setSelectedTemplateId={setSelectedTemplateId} setApprovalLines={setApprovalLines} setHasChangedApprovalLine={setHasChangedApprovalLine} approvalLines={approvalLines} selectedTemplateId={selectedTemplateId} templateDatas={templateDatas} setTemplateDatas={setTemplateDatas} />
 
                     <div className="mt-4 w-full">
@@ -266,11 +266,13 @@ export default function CreateApprovalModal({
                     </div>
 
                     {error && <p className="mt-3 text-[12px] text-red-500" role="alert">{error}</p>}
+                </div>
 
-                    <button className="mt-4 h-10 w-full rounded-[8px] bg-[#0F172A] text-[13px] font-semibold leading-[19.5px] text-white disabled:opacity-40" disabled={!canSubmit} type="submit">
+                <footer className="shrink-0 p-3 pt-2 lg:p-4 lg:pt-2">
+                    <button className="h-10 w-full rounded-[8px] bg-[#0F172A] text-[13px] font-semibold leading-[19.5px] text-white disabled:opacity-40" disabled={!canSubmit} type="submit">
                         {isSubmitting ? "상신 중..." : "상신하기"}
                     </button>
-                </section>
+                </footer>
             </form>
         </div>
     );
