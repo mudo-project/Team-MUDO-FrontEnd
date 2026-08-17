@@ -117,7 +117,7 @@ export default function InitialDataImport() {
 
                 {!draft && <InitialFileUploadForm error={error} isPending={isPending} onSubmit={(formData) => void uploadFiles(formData)} />}
 
-                {draft && <div className="mt-5 space-y-4">
+                {draft && <div className="mt-5 space-y-4 ">
                     <StudentDraftSection onToggle={toggleStudent} rows={draft.students} />
                     <LectureDraftSection onToggle={toggleLecture} rows={draft.lectures} />
                     <EnrollmentDraftSection onToggle={toggleEnrollment} rows={draft.enrollments} />

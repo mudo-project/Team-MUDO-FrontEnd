@@ -24,10 +24,10 @@ export default function CreateMessageTemplateModal({ closeModal }: { closeModal:
 
     return (
         <div className="fixed top-0 left-0 z-999 flex h-screen w-screen items-center justify-center bg-[#0F172A]/55" onClick={closeModal}>
-            <form action={formAction} className="z-1000 w-[640px] overflow-hidden rounded-[20px] bg-white shadow-[0_32px_40px_rgba(0,0,0,0.20)]" onClick={(event) => event.stopPropagation()}>
+            <form action={formAction} className="z-1000 w-11/12 sm:w-4/5 md:w-[640px] overflow-hidden rounded-[20px] bg-white shadow-[0_32px_40px_rgba(0,0,0,0.20)]" onClick={(event) => event.stopPropagation()}>
                 <header className="flex items-center border-b border-[#F1F5F9] px-7 pt-6 pb-5">
                     <div>
-                        <h2 className="text-[17px] leading-[25.5px] font-bold text-[#0F172A]">
+                        <h2 className="text-[15px] sm:text-base md:text-[17px] leading-[25.5px] font-bold text-[#0F172A]">
                             템플릿 등록
                         </h2>
                         <p className="pt-0.5 text-[12px] leading-[18px] text-[#94A3B8]">
@@ -45,7 +45,7 @@ export default function CreateMessageTemplateModal({ closeModal }: { closeModal:
                 </header>
 
                 <div className="px-7 py-6">
-                    <div className="flex gap-3">
+                    <div className="flex flex-col gap-3 md:flex-row">
                         <label className="w-full text-[12px] leading-[18px] font-medium text-[#64748B]">
                             템플릿 이름 <span aria-hidden="true">*</span>
                             <input
@@ -56,7 +56,7 @@ export default function CreateMessageTemplateModal({ closeModal }: { closeModal:
                             />
                         </label>
 
-                        <label className="relative w-[160px] shrink-0 text-[12px] leading-[18px] font-medium text-[#64748B]">
+                        <label className="relative w-full md:w-[160px] md:shrink-0 text-[12px] leading-[18px] font-medium text-[#64748B]">
                             출결 상태 <span aria-hidden="true">*</span>
                             <select
                                 className="mt-1.5 h-10 w-full appearance-none rounded-[9px] border border-[#E2E8F0] bg-white px-4 pr-9 text-[13px] text-[#0F172A] outline-none"

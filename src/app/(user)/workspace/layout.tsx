@@ -4,7 +4,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     return (
         <div className="flex bg-[#FCFDFE] text-[#202A3C]">
             <WorkspaceSidebar />
-            <div className="w-full">{children}</div>
+            <div className="w-full ml-[50px] md:m-0">{children}</div>
         </div>
     );
 }

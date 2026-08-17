@@ -109,7 +109,7 @@ export default function SendMessageModal({ closeModal, date, lectureId, lectureN
         >
             <form
                 aria-labelledby="send-message-modal-title"
-                className="z-1002 flex max-h-[500px] w-[460px] flex-col overflow-hidden rounded-[14px] bg-white shadow-[0_8px_20px_rgba(0,0,0,0.18)]"
+                className="z-1002 flex max-h-[70vh] sm:max-h-[80vh] md:max-h-[500px] w-11/12 sm:w-4/5 md:w-[460px] flex-col overflow-hidden rounded-[14px] bg-white shadow-[0_8px_20px_rgba(0,0,0,0.18)]"
                 onClick={(event) => event.stopPropagation()}
                 onSubmit={(event) => {
                     event.preventDefault();
@@ -119,7 +119,7 @@ export default function SendMessageModal({ closeModal, date, lectureId, lectureN
             >
                 <header className="flex h-[86px] shrink-0 items-center justify-between border-b border-[#DCE8E2] px-7">
                     <div>
-                        <h2 id="send-message-modal-title" className="text-[16px] leading-6 font-bold text-[#0F172A]">
+                        <h2 id="send-message-modal-title" className="text-[14px] sm:text-[15px] md:text-[16px] leading-6 font-bold text-[#0F172A]">
                             출결 문자 발송
                         </h2>
                         <p className="mt-[3px] text-[12px] leading-[18px] text-[#64748B]">

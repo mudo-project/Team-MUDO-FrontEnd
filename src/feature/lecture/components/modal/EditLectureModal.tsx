@@ -67,9 +67,9 @@ export default function EditLectureModal({
 
     return (
         <div className="fixed top-0 left-0 z-1001 flex h-screen w-screen items-center justify-center bg-black/35 p-5" onClick={closeModal}>
-            <form className="z-1002 flex max-h-[calc(100dvh-48px)] w-[580px] flex-col overflow-hidden rounded-[10px] bg-white shadow-[0_8px_20px_rgba(0,0,0,0.18)]" onClick={(event) => event.stopPropagation()} onSubmit={handleSubmit(onSubmit)} ref={setFormElement}>
+            <form className="z-1002 flex max-h-[450px] md:max-h-[550px] w-[90%] sm:w-4/5 md:w-[580px] flex-col overflow-hidden rounded-[10px] bg-white shadow-[0_8px_20px_rgba(0,0,0,0.18)]" onClick={(event) => event.stopPropagation()} onSubmit={handleSubmit(onSubmit)} ref={setFormElement}>
                 <header className="flex h-[56px] shrink-0 items-center px-7">
-                    <h2 className="text-[16px] font-bold text-[#1D2B3A]">강의 수정</h2>
+                    <h2 className="text-[14px] sm:text-[15px] md:text-[16px] font-bold text-[#1D2B3A]">강의 수정</h2>
                     <button aria-label="강의 수정 모달 닫기" className="ml-auto text-[#94A3B8]" onClick={closeModal} type="button"><X className="size-4" strokeWidth={1.5} /></button>
                 </header>
 
@@ -110,7 +110,7 @@ export default function EditLectureModal({
                 </div>
 
                 <footer className="flex shrink-0 gap-2 px-7 pb-6 pt-2">
-                    <button className="h-11 w-1/3 rounded-[8px] border border-[#DCE8E2] bg-white text-[13px] text-[#64748B]" onClick={closeModal} type="button">취소</button>
+                    <button className="h-11 w-full rounded-[8px] border border-[#DCE8E2] bg-white text-[13px] text-[#64748B]" onClick={closeModal} type="button">취소</button>
                     <button className="h-11 w-full rounded-[8px] bg-[#2A3A4A] text-[13px] font-semibold text-white disabled:opacity-50" disabled={isSubmitting} type="submit">{isSubmitting ? "수정 중" : "수정 완료"}</button>
                 </footer>
             </form>

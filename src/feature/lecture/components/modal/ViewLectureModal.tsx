@@ -48,18 +48,18 @@ export default function ViewLectureModal({ closeModal, lectureId }: ViewLectureM
 
     return (
         <div className="fixed top-0 left-0 z-999 flex h-screen w-screen items-center justify-center bg-[#162236]/40 p-6" onClick={closeModal}>
-            <article aria-labelledby="lecture-detail-title" aria-modal="true" className="relative z-1000 max-h-[calc(100dvh-48px)] w-[560px] overflow-y-auto rounded-[12px] bg-white shadow-[0_12px_32px_rgba(22,34,54,0.18)]" onClick={(event) => event.stopPropagation()} role="dialog">
+            <article aria-labelledby="lecture-detail-title" aria-modal="true" className="relative z-1000 flex max-h-[550px] w-[90%] sm:w-4/5 md:w-[580px] flex-col overflow-hidden rounded-[12px] bg-white shadow-[0_12px_32px_rgba(22,34,54,0.18)]" onClick={(event) => event.stopPropagation()} role="dialog">
                 {!detail && !error && <p className="px-6 py-12 text-center text-[13px] text-[#94A3B8]">강의 정보를 불러오는 중입니다.</p>}
                 {error && <p className="px-6 py-12 text-center text-[13px] text-[#C0483F]">{error}</p>}
                 {detail && (
                     <>
-                        <header className="flex items-start px-6 pt-[18px] pb-4">
+                        <header className="flex shrink-0 items-start px-6 pt-[18px] pb-4">
                             <div>
                                 <div className="flex items-center gap-1.5">
                                     <span className="rounded-full bg-[#EAF1FA] px-2 py-0.5 text-[11px] font-medium text-[#1E40AF]">{LECTURE_CLASS_TYPE_LABEL[detail.classType]}</span>
                                     {detail.grade && <span className="rounded-full bg-[#F4F5F2] px-2 py-0.5 text-[11px] font-medium text-[#64748B]">{LECTURE_GRADE_LABEL[detail.grade]}</span>}
                                 </div>
-                                <h2 className="pt-1 text-[18px] leading-[27px] font-bold text-[#0F172A]" id="lecture-detail-title">{detail.name}</h2>
+                                <h2 className="pt-1 text-[15px] sm:text-base md:text-[18px] leading-[27px] font-bold text-[#0F172A]" id="lecture-detail-title">{detail.name}</h2>
                             </div>
                             <div className="ml-auto flex items-center gap-1.5">
                                 {permissions.includes("LECTURE:MANAGE") && (
@@ -71,7 +71,7 @@ export default function ViewLectureModal({ closeModal, lectureId }: ViewLectureM
                             </div>
                         </header>
 
-                        <div className="px-6 pt-5 pb-7">
+                        <div className="min-h-0 flex-1 overflow-y-auto px-6 pt-5 pb-7">
                             <section>
                                 <h3 className="text-[11px] font-semibold tracking-[0.55px] text-[#94A3B8]">기본 정보</h3>
                                 <div className="grid grid-cols-2 gap-x-6 gap-y-2.5 pt-3.5">

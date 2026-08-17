@@ -95,8 +95,8 @@ export default function CreateWorkspaceModal({ closeModal }: { closeModal: () =>
                         new FormData(event.currentTarget),
                     );
                 }}
-                className="fixed top-1/2 left-1/2 z-1000 w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-[12px] bg-white p-6 shadow-[0_8px_16px_rgba(22,34,54,0.16)]">
-                <div className="flex w-full items-center">
+                className="fixed top-1/2 left-1/2 z-1000 flex max-h-[450px] md:max-h-[550px] w-[90%] sm:w-[420px] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-[12px] bg-white shadow-[0_8px_16px_rgba(22,34,54,0.16)]">
+                <header className="flex w-full shrink-0 items-center p-5 pb-0 sm:p-6 sm:pb-0">
                     <h2 className="text-[15px] leading-[22.5px] font-bold text-[#0F172A]">
                         새 워크스페이스 만들기
                     </h2>
@@ -108,8 +108,9 @@ export default function CreateWorkspaceModal({ closeModal }: { closeModal: () =>
                     >
                         <X className="size-3.5" strokeWidth={1.5} />
                     </button>
-                </div>
+                </header>
 
+                <div className="min-h-0 flex-1 overflow-y-auto p-5 pt-0 sm:p-6 sm:pt-0">
                 <div className="mt-5">
                     <label
                         className="block text-[12px] leading-[18px] font-medium text-[#6B7280]"
@@ -183,14 +184,17 @@ export default function CreateWorkspaceModal({ closeModal }: { closeModal: () =>
                         {createError}
                     </p>
                 )}
+                </div>
 
-                <button
-                    disabled={createWorkspaceMutation.isPending}
-                    className={`mt-3.5 h-10 w-full rounded-[8px] ${createWorkspaceMutation.isPending ? 'bg-[#0F172A]/40' : 'bg-[#1D2639]'} text-[13px] leading-[19.5px] font-medium text-white`}
-                    type="submit"
-                >
-                    {createWorkspaceMutation.isPending ? "생성 중..." : "워크스페이스 생성"}
-                </button>
+                <footer className="shrink-0 p-5 pt-3.5 sm:p-6 sm:pt-3.5">
+                    <button
+                        disabled={createWorkspaceMutation.isPending}
+                        className={`h-10 w-full rounded-[8px] ${createWorkspaceMutation.isPending ? 'bg-[#0F172A]/40' : 'bg-[#1D2639]'} text-[13px] leading-[19.5px] font-medium text-white`}
+                        type="submit"
+                    >
+                        {createWorkspaceMutation.isPending ? "생성 중..." : "워크스페이스 생성"}
+                    </button>
+                </footer>
             </form>
         </div>
     );
