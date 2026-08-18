@@ -32,6 +32,7 @@ export default function ScheduleDateRangePicker({ range, defaultMonth, onChange 
       defaultMonth={defaultMonth}
       locale={ko}
       mode="range"
+      resetOnSelect
       selected={range}
       weekStartsOn={1}
       onSelect={onChange}

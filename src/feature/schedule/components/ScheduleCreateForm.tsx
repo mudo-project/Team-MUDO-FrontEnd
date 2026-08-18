@@ -5,14 +5,17 @@ import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { format } from "date-fns";
 import { X } from "lucide-react";
+import type { DateRange } from "react-day-picker";
 import { scheduleCreateSchema, type ScheduleCreateFormValues } from "@/lib/scheduleCreateSchema";
 import MemoColorPicker, { MEMO_COLORS, type MemoColor } from "@/feature/memo/components/MemoColorPicker";
 import { TIME_OPTIONS } from "../scheduleFormat";
 import type { ScheduleEvent } from "../scheduleTypes";
+import ScheduleDateRangePicker from "./ScheduleDateRangePicker";
 
 export type ScheduleFormSubmitValues = {
   title: string;
-  date: Date;
+  startDate: Date;
+  endDate: Date;
   allDay: boolean;
   startTime?: string;
   endTime?: string;
@@ -43,16 +46,23 @@ export default function ScheduleCreateForm({
   onSubmit,
 }: ScheduleCreateFormProps) {
   const [selectedColor, setSelectedColor] = useState<MemoColor>(schedule?.color ?? MEMO_COLORS[0]);
+  const [range, setRange] = useState<DateRange | undefined>(() => ({
+    from: schedule?.startDate ?? initialDate ?? new Date(),
+    to: schedule?.endDate ?? initialDate ?? new Date(),
+  }));
+
   const {
     register,
     handleSubmit,
     control,
+    setValue,
     formState: { errors },
   } = useForm<ScheduleCreateFormValues>({
     resolver: zodResolver(scheduleCreateSchema),
     defaultValues: {
       title: schedule?.title ?? "",
-      date: format(schedule?.date ?? initialDate ?? new Date(), "yyyy-MM-dd"),
+      startDate: format(schedule?.startDate ?? initialDate ?? new Date(), "yyyy-MM-dd"),
+      endDate: format(schedule?.endDate ?? initialDate ?? new Date(), "yyyy-MM-dd"),
       allDay: schedule?.allDay ?? false,
       startTime: schedule?.startTime ?? "",
       endTime: schedule?.endTime ?? "",
@@ -62,10 +72,21 @@ export default function ScheduleCreateForm({
 
   const allDay = useWatch({ control, name: "allDay" });
 
+  const handleRangeChange = (nextRange: DateRange | undefined) => {
+    setRange(nextRange);
+    if (!nextRange?.from) return;
+
+    const start = nextRange.from;
+    const end = nextRange.to ?? nextRange.from;
+    setValue("startDate", format(start, "yyyy-MM-dd"), { shouldValidate: true });
+    setValue("endDate", format(end, "yyyy-MM-dd"), { shouldValidate: true });
+  };
+
   const submit = (values: ScheduleCreateFormValues) => {
     onSubmit({
       title: values.title,
-      date: parseDateInput(values.date),
+      startDate: parseDateInput(values.startDate),
+      endDate: parseDateInput(values.endDate),
       allDay: values.allDay,
       startTime: values.allDay ? undefined : values.startTime,
       endTime: values.allDay ? undefined : values.endTime,
@@ -102,16 +123,11 @@ export default function ScheduleCreateForm({
           </div>
 
           <div>
-            <label className="mb-1.5 block text-[13px] font-medium text-[#344054]" htmlFor="schedule-date">
-              날짜
-            </label>
-            <input
-              className="h-11 w-full rounded-lg border border-[#DCE9DF] px-3 text-[13px] outline-none focus:border-[#4D9560]"
-              id="schedule-date"
-              type="date"
-              {...register("date")}
-            />
-            {errors.date && <p className="mt-1 text-[11px] text-[#C65A50]">{errors.date.message}</p>}
+            <label className="mb-1.5 block text-[13px] font-medium text-[#344054]">날짜</label>
+            <ScheduleDateRangePicker defaultMonth={range?.from} range={range} onChange={handleRangeChange} />
+            {(errors.startDate ?? errors.endDate) && (
+              <p className="mt-1 text-[11px] text-[#C65A50]">{errors.startDate?.message ?? errors.endDate?.message}</p>
+            )}
           </div>
 
           <label className="flex items-center gap-2 text-[13px] font-medium text-[#344054]">

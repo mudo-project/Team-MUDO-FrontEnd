@@ -63,7 +63,8 @@ describe("ScheduleCreateForm", () => {
     const schedule: ScheduleEvent = {
       id: 1,
       title: "기존 일정",
-      date: new Date(2026, 7, 5),
+      startDate: new Date(2026, 7, 5),
+      endDate: new Date(2026, 7, 5),
       allDay: false,
       startTime: "09:00",
       endTime: "10:00",
@@ -94,5 +95,21 @@ describe("ScheduleCreateForm", () => {
     fireEvent.click(screen.getByRole("button", { name: "닫기" }));
 
     expect(onCancel).toHaveBeenCalledTimes(1);
+  });
+
+  it("범위 캘린더에서 서로 다른 두 날짜를 선택하면 시작일과 종료일이 다르게 등록된다", async () => {
+    const onSubmit = jest.fn();
+    render(<ScheduleCreateForm initialDate={new Date(2026, 7, 1)} mode="create" onCancel={jest.fn()} onSubmit={onSubmit} />);
+
+    fireEvent.change(screen.getByLabelText("제목"), { target: { value: "워크숍" } });
+    fireEvent.click(screen.getByRole("button", { name: "2026년 8월 10일 월요일" }));
+    fireEvent.click(screen.getByRole("button", { name: "2026년 8월 15일 토요일" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: "종일" }));
+    fireEvent.click(screen.getByRole("button", { name: "등록" }));
+
+    await waitFor(() => expect(onSubmit).toHaveBeenCalled());
+    const submitted = onSubmit.mock.calls[0][0];
+    expect(submitted.startDate).toEqual(new Date(2026, 7, 10));
+    expect(submitted.endDate).toEqual(new Date(2026, 7, 15));
   });
 });
