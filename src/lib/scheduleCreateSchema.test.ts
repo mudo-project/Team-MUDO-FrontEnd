@@ -2,7 +2,8 @@ import { scheduleCreateSchema } from "./scheduleCreateSchema";
 
 const validValues = {
   title: "전체 교직원 회의",
-  date: "2026-08-10",
+  startDate: "2026-08-10",
+  endDate: "2026-08-10",
   allDay: false,
   startTime: "09:00",
   endTime: "10:00",
@@ -22,8 +23,14 @@ describe("scheduleCreateSchema", () => {
     expect(result.success).toBe(false);
   });
 
-  it("날짜가 비어있으면 에러를 반환한다", () => {
-    const result = scheduleCreateSchema.safeParse({ ...validValues, date: "" });
+  it("시작일이 비어있으면 에러를 반환한다", () => {
+    const result = scheduleCreateSchema.safeParse({ ...validValues, startDate: "" });
+
+    expect(result.success).toBe(false);
+  });
+
+  it("종료일이 비어있으면 에러를 반환한다", () => {
+    const result = scheduleCreateSchema.safeParse({ ...validValues, endDate: "" });
 
     expect(result.success).toBe(false);
   });
@@ -52,12 +59,23 @@ describe("scheduleCreateSchema", () => {
     }
   });
 
-  it("종료 시간이 시작 시간보다 빠르거나 같으면 endTime 필드에 에러를 반환한다", () => {
+  it("같은 날인데 종료 시간이 시작 시간보다 빠르거나 같으면 endTime 필드에 에러를 반환한다", () => {
     const result = scheduleCreateSchema.safeParse({ ...validValues, startTime: "10:00", endTime: "09:00" });
 
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.issues[0].path).toEqual(["endTime"]);
     }
+  });
+
+  it("종료일이 시작일과 다르면 종료 시간이 시작 시간보다 빨라도 통과한다", () => {
+    const result = scheduleCreateSchema.safeParse({
+      ...validValues,
+      endDate: "2026-08-12",
+      startTime: "10:00",
+      endTime: "09:00",
+    });
+
+    expect(result.success).toBe(true);
   });
 });
