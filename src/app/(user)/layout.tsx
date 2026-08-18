@@ -1,8 +1,7 @@
 import Header from "@/components/layout/Header";
 import QueryProvider from "@/components/layout/QueryProvider";
 import Sidebar from "@/components/layout/Sidebar";
-import AlarmRealtimeProvider from "@/feature/alarm/components/AlarmRealtimeProvider";
-import MessengerUnreadRealtimeProvider from "@/feature/messenger/components/MessengerUnreadRealtimeProvider";
+import RealtimeProviders from "./RealtimeProviders";
 import { getApiBaseUrl } from "@/lib/apiBaseUrl";
 import MemoContainer from "@/feature/memo/components/MemoContainer";
 import { connection } from "next/server";
@@ -21,8 +20,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
                     {children}
                 </div>
                 <MemoContainer />
-                <AlarmRealtimeProvider apiBaseUrl={apiBaseUrl} />
-                <MessengerUnreadRealtimeProvider apiBaseUrl={apiBaseUrl} />
+                <RealtimeProviders apiBaseUrl={apiBaseUrl} />
             </section>
         </QueryProvider>
 
