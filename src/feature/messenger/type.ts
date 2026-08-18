@@ -55,7 +55,7 @@ interface MessengerRoomMemberListResponse {
 interface MessengerMessageCreateRequest {
     messageType: "TEXT" | "IMAGE" | "FILE";
     content?: string | null;
-    fileUrl?: string | null;
+    fileId?: number | null;
     fileName?: string | null;
 }
 
