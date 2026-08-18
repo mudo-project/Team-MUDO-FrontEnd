@@ -5,7 +5,6 @@ import { CheckSquare, FileText, Image as ImageIcon, Plus, Send } from "lucide-re
 import { toast } from "sonner";
 import TaskCreateModal from "./TaskCreateModal";
 import { sendFileMessageAction, sendMessageAction } from "../actions";
-import { getFileDownloadUrlAction } from "@/feature/file/actions";
 import { uploadFiles } from "@/feature/file/uploadFiles";
 
 type MessageInputProps = {
@@ -60,14 +59,7 @@ export default function MessageInput({ roomId, onMessageSent, onTaskCreated }: M
 
         try {
             const { fileIds } = await uploadFiles([file], {});
-            const downloadUrl = await getFileDownloadUrlAction(fileIds[0]);
-
-            if (!downloadUrl.success || !downloadUrl.data) {
-                toast.error(downloadUrl.message);
-                return;
-            }
-
-            const result = await sendFileMessageAction(roomId, messageType, downloadUrl.data.downloadUrl, file.name);
+            const result = await sendFileMessageAction(roomId, messageType, fileIds[0], file.name);
 
             if (result.success) {
                 onMessageSent();

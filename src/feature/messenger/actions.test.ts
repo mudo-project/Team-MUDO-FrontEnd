@@ -155,8 +155,8 @@ describe("sendMessageAction", () => {
 describe("sendFileMessageAction", () => {
     afterEach(() => jest.clearAllMocks());
 
-    it("첨부할 파일 URL이 없으면 service를 호출하지 않고 실패 결과를 반환한다", async () => {
-        const result = await sendFileMessageAction(1, "IMAGE", "   ");
+    it("첨부할 파일 아이디가 없으면 service를 호출하지 않고 실패 결과를 반환한다", async () => {
+        const result = await sendFileMessageAction(1, "IMAGE", 0);
 
         expect(result).toEqual({ success: false, message: "첨부할 파일이 없습니다." });
         expect(sendMessage).not.toHaveBeenCalled();
@@ -165,16 +165,16 @@ describe("sendFileMessageAction", () => {
     it("service 호출이 성공하면 성공 결과와 메시지 아이디를 반환한다", async () => {
         (sendMessage as jest.Mock).mockResolvedValue(8);
 
-        const result = await sendFileMessageAction(1, "IMAGE", "https://example.com/a.png", "a.png");
+        const result = await sendFileMessageAction(1, "IMAGE", 123, "a.png");
 
-        expect(sendMessage).toHaveBeenCalledWith(1, { messageType: "IMAGE", fileUrl: "https://example.com/a.png", fileName: "a.png" });
+        expect(sendMessage).toHaveBeenCalledWith(1, { messageType: "IMAGE", fileId: 123, fileName: "a.png" });
         expect(result).toEqual({ success: true, message: "파일을 전송했습니다.", messageId: 8 });
     });
 
     it("service 호출이 실패하면 에러 메시지를 담아 실패 결과를 반환한다", async () => {
         (sendMessage as jest.Mock).mockRejectedValue(new Error("파일 업로드에 실패했습니다."));
 
-        const result = await sendFileMessageAction(1, "FILE", "https://example.com/a.hwp");
+        const result = await sendFileMessageAction(1, "FILE", 456);
 
         expect(result).toEqual({ success: false, message: "파일 업로드에 실패했습니다." });
     });

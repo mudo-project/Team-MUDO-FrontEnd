@@ -144,10 +144,10 @@ export const sendMessageAction = async (
 export const sendFileMessageAction = async (
     roomId: number,
     messageType: "IMAGE" | "FILE",
-    fileUrl: string,
+    fileId: number,
     fileName?: string
 ): Promise<MessengerActionState & { messageId?: number }> => {
-    if (!fileUrl.trim()) {
+    if (!Number.isInteger(fileId) || fileId <= 0) {
         return {
             success: false,
             message: "첨부할 파일이 없습니다."
@@ -155,7 +155,7 @@ export const sendFileMessageAction = async (
     }
 
     try {
-        const messageId = await sendMessage(roomId, { messageType, fileUrl, fileName });
+        const messageId = await sendMessage(roomId, { messageType, fileId, fileName });
 
         return {
             success: true,
