@@ -13,9 +13,14 @@ interface PayrollPolicyFormProps {
 export default function PayrollPolicyForm({ policy }: PayrollPolicyFormProps) {
     const [payDayType, setPayDayType] = useState<PayrollPayDayType>(policy.payDayType);
     const [payDay, setPayDay] = useState(policy.payDay ?? 5);
-    const [paymentMonthOffset, setPaymentMonthOffset] = useState(policy.paymentMonthOffset);
+    const [paymentMonthOffset, setPaymentMonthOffset] = useState(String(policy.paymentMonthOffset));
     const [isSaving, setIsSaving] = useState(false);
     const saveModal = useModal();
+
+    const handleChangePaymentMonthOffset = (rawValue: string) => {
+        // 앞자리 0이 남아 "01"처럼 표시되는 것을 막기 위해 숫자 뒤에 오는 선행 0을 제거한다.
+        setPaymentMonthOffset(rawValue.replace(/^0+(?=\d)/, ""));
+    };
 
     const handleSave = async () => {
         if (isSaving) return;
@@ -24,7 +29,7 @@ export default function PayrollPolicyForm({ policy }: PayrollPolicyFormProps) {
         const result = await updatePayrollPolicyAction({
             payDayType,
             payDay: payDayType === "FIXED_DAY" ? payDay : null,
-            paymentMonthOffset,
+            paymentMonthOffset: Number(paymentMonthOffset) || 0,
         });
         setIsSaving(false);
 
@@ -86,7 +91,7 @@ export default function PayrollPolicyForm({ policy }: PayrollPolicyFormProps) {
                         id="paymentMonthOffset"
                         max={12}
                         min={0}
-                        onChange={(event) => setPaymentMonthOffset(Number(event.target.value))}
+                        onChange={(event) => handleChangePaymentMonthOffset(event.target.value)}
                         type="number"
                         value={paymentMonthOffset}
                     />

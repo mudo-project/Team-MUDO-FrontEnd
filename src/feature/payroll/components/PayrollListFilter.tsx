@@ -4,7 +4,6 @@ import { Search, Send } from "lucide-react";
 import { useState } from "react";
 import useModal from "@/components/hooks/useModal";
 import TwoButtonModal from "@/components/ui/TwoButtonModal";
-import PayrollBatchResultPanel from "./PayrollBatchResultPanel";
 
 export type PayrollEmploymentTypeFilter = "전체" | PayrollEmploymentType;
 export type PayrollStatusFilter = "전체" | PayrollPreparationStatus;
@@ -15,9 +14,8 @@ interface PayrollListFilterProps {
     onChangeEmploymentTypeFilter: (filter: PayrollEmploymentTypeFilter) => void;
     onChangeSearchQuery: (query: string) => void;
     onChangeStatusFilter: (filter: PayrollStatusFilter) => void;
-    onConfirmBatchSend: () => Promise<PayrollEmailBatchResultData>;
+    onConfirmBatchSend: () => Promise<void>;
     searchQuery: string;
-    selectedCount: number;
     statusFilter: PayrollStatusFilter;
     totalCount: number;
 }
@@ -30,11 +28,9 @@ export default function PayrollListFilter({
     onChangeStatusFilter,
     onConfirmBatchSend,
     searchQuery,
-    selectedCount,
     statusFilter,
     totalCount,
 }: PayrollListFilterProps) {
-    const [batchResult, setBatchResult] = useState<PayrollEmailBatchResultData | null>(null);
     const [isSending, setIsSending] = useState(false);
     const batchSendModal = useModal();
 
@@ -42,10 +38,9 @@ export default function PayrollListFilter({
         if (isSending) return;
 
         setIsSending(true);
-        const result = await onConfirmBatchSend();
+        await onConfirmBatchSend();
         setIsSending(false);
         batchSendModal.closeModal();
-        setBatchResult(result);
     };
 
     return (
@@ -88,16 +83,12 @@ export default function PayrollListFilter({
             </select>
 
             <button
-                className={`ml-auto flex h-9 items-center gap-1.5 rounded-lg px-4 text-[12px] font-semibold text-white disabled:cursor-not-allowed ${selectedCount > 0
-                    ? "bg-[#172033] hover:bg-[#2B344B]"
-                    : "cursor-not-allowed bg-[#CBD2DC]"
-                }`}
-                disabled={selectedCount === 0}
+                className="ml-auto flex h-9 items-center gap-1.5 rounded-lg bg-[#172033] px-4 text-[12px] font-semibold text-white hover:bg-[#2B344B]"
                 onClick={batchSendModal.openModal}
                 type="button"
             >
                 <Send className="size-3.5" />
-                선택한 {selectedCount}명 명세서 발송
+                전체 일괄 발송
             </button>
 
             {batchSendModal.isModal && (
@@ -105,14 +96,10 @@ export default function PayrollListFilter({
                     activeModal={handleConfirmSend}
                     closeModal={batchSendModal.closeModal}
                     confirmLabel="발송 시작"
-                    content={`${monthLabel} 확정 급여 중 선택한 ${selectedCount}명에게 명세서를 이메일로 발송합니다. 확정되지 않았거나 명세서가 준비되지 않은 직원, 이메일이 없는 직원은 자동 제외됩니다.`}
+                    content={`${monthLabel} 귀속 확정 급여명세서를 전체 직원에게 이메일로 일괄 발송합니다. 확정되지 않았거나 명세서가 준비되지 않은 직원, 이메일이 없는 직원은 자동 제외됩니다.`}
                     isPending={isSending}
-                    title={`선택한 ${selectedCount}명에게 명세서를 발송하시겠습니까?`}
+                    title="전체 급여명세서를 일괄 발송하시겠습니까?"
                 />
-            )}
-
-            {batchResult && (
-                <PayrollBatchResultPanel onClose={() => setBatchResult(null)} result={batchResult} />
             )}
         </div>
     );
