@@ -5,6 +5,7 @@ import { ChevronDown, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect } from "react";
 import { toast } from "sonner";
+import MessageVariable from "../MessageVariable";
 
 export default function CreateMessageTemplateModal({ closeModal }: { closeModal: () => void }) {
     const router = useRouter();
@@ -24,7 +25,7 @@ export default function CreateMessageTemplateModal({ closeModal }: { closeModal:
 
     return (
         <div className="fixed top-0 left-0 z-999 flex h-screen w-screen items-center justify-center bg-[#0F172A]/55" onClick={closeModal}>
-            <form action={formAction} className="z-1000 w-11/12 sm:w-4/5 md:w-[640px] overflow-hidden rounded-[20px] bg-white shadow-[0_32px_40px_rgba(0,0,0,0.20)]" onClick={(event) => event.stopPropagation()}>
+            <form action={formAction} className="flex flex-col z-1000 w-[90%] sm:max-h-[550px] max-h-[450px] md:w-[640px] overflow-hidden rounded-[20px] bg-white shadow-[0_32px_40px_rgba(0,0,0,0.20)]" onClick={(event) => event.stopPropagation()}>
                 <header className="flex items-center border-b border-[#F1F5F9] px-7 pt-6 pb-5">
                     <div>
                         <h2 className="text-[15px] sm:text-base md:text-[17px] leading-[25.5px] font-bold text-[#0F172A]">
@@ -44,7 +45,7 @@ export default function CreateMessageTemplateModal({ closeModal }: { closeModal:
                     </button>
                 </header>
 
-                <div className="px-7 py-6">
+                <div className="px-7 flex-1 py-6 overflow-auto">
                     <div className="flex flex-col gap-3 md:flex-row">
                         <label className="w-full text-[12px] leading-[18px] font-medium text-[#64748B]">
                             템플릿 이름 <span aria-hidden="true">*</span>
@@ -76,6 +77,8 @@ export default function CreateMessageTemplateModal({ closeModal }: { closeModal:
                             />
                         </label>
                     </div>
+
+                    <MessageVariable />
 
                     <label className="mt-5 block text-[12px] leading-[18px] font-medium text-[#64748B]">
                         <span className="flex items-center">
