@@ -134,7 +134,7 @@ export default function ReceivedApprovalModal({ closeModal, activeModal, noneAct
                     <section className="pt-5">
                         <h3 className="text-[11px] font-semibold leading-[16.5px] tracking-[0.55px] text-[#64748B]">요약</h3>
                         <div className="mt-2 w-full rounded-[8px] border border-[#D7E8DB] bg-[#FAFBFC] px-4 py-3.5">
-                            <p className="min-h-[23px] text-[13px] leading-[22.1px] text-[#3D4A5A]">{approval?.attachments[0]?.fileId ? (summary || summaryError || "AI 요약을 불러오는 중...") : '"생성된 AI 요약이 없습니다."'}</p>
+                            <p className="min-h-[23px] text-[13px] leading-[22.1px] text-[#3D4A5A]">{approval?.attachments[0]?.fileId ? (summary || summaryError || "AI 요약을 불러오는 중...") : "생성된 AI 요약이 없습니다."}</p>
                         </div>
                     </section>
                     <section className="pt-5">
