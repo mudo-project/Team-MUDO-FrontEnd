@@ -2,11 +2,14 @@
 
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { addMonths, subMonths } from "date-fns";
-import { ko } from "date-fns/locale";
-import { DayPicker, type DayButtonProps } from "react-day-picker";
+import dynamic from "next/dynamic";
 import ScheduleDatePicker from "./ScheduleDatePicker";
-import ScheduleDayCell from "./ScheduleDayCell";
 import type { ScheduleEvent } from "../scheduleTypes";
+
+const ScheduleDayPicker = dynamic(() => import("./ScheduleDayPicker"), {
+    ssr: false,
+    loading: () => <div className="min-h-[400px]" />,
+});
 
 type ScheduleCalendarProps = {
   month: Date;
@@ -73,31 +76,12 @@ export default function ScheduleCalendar({
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-[#DCE9DF] bg-white">
         <div className="min-h-0 flex-1 overflow-y-auto scrollbar-hide">
-          <DayPicker
-            components={{
-              DayButton: (props: DayButtonProps) => <ScheduleDayCell {...props} events={events} />,
-            }}
-            locale={ko}
-            mode="single"
+          <ScheduleDayPicker
+            events={events}
             month={month}
-            selected={selectedDate}
-            showOutsideDays
-            weekStartsOn={1}
-            classNames={{
-              root: "w-full",
-              months: "w-full",
-              month: "w-full",
-              month_caption: "hidden",
-              nav: "hidden",
-              month_grid: "w-full border-collapse",
-              weekdays: "grid grid-cols-7 border-b border-[#DCE9DF] bg-white",
-              weekday: "py-3 text-center text-[11px] font-semibold text-[#718096]",
-              week: "grid grid-cols-7 [&:last-child>td]:border-b-0",
-              day: "min-h-[128px] border-b border-r border-[#E5EEE7] p-0 align-top last:border-r-0",
-              outside: "text-[#A1ACBA]",
-            }}
-            onMonthChange={onChangeMonth}
-            onSelect={onSelectDate}
+            selectedDate={selectedDate}
+            onChangeMonth={onChangeMonth}
+            onSelectDate={onSelectDate}
           />
         </div>
       </div>

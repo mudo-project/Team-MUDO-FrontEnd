@@ -3,9 +3,12 @@
 import { useMemo } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { addMonths, subMonths } from "date-fns";
-import { ko } from "date-fns/locale";
-import { DayPicker, type DayButtonProps } from "react-day-picker";
-import AttendanceDayCell from "./AttendanceDayCell";
+import dynamic from "next/dynamic";
+
+const AttendanceDayPicker = dynamic(() => import("./AttendanceDayPicker"), {
+    ssr: false,
+    loading: () => <div className="min-h-[400px]" />,
+});
 
 type AttendanceCalendarProps = {
   month: Date;
@@ -56,38 +59,12 @@ export default function AttendanceCalendar({ month, days, pendingCorrectionDates
       </div>
 
       <div className="overflow-hidden rounded-xl border border-[#DCE9DF] bg-white">
-        <DayPicker
-          components={{
-            DayButton: (props: DayButtonProps) => (
-              <AttendanceDayCell
-                {...props}
-                daysByDate={daysByDate}
-                pendingCorrectionDates={pendingCorrectionDates}
-                onSelectDay={onSelectDay}
-              />
-            ),
-          }}
-          locale={ko}
-          mode="single"
+        <AttendanceDayPicker
+          daysByDate={daysByDate}
           month={month}
-          selected={undefined}
-          showOutsideDays
-          weekStartsOn={0}
-          onSelect={() => {}}
-          classNames={{
-            root: "w-full",
-            months: "w-full",
-            month: "w-full",
-            month_caption: "hidden",
-            nav: "hidden",
-            month_grid: "w-full border-collapse",
-            weekdays: "grid grid-cols-7 border-b border-[#DCE9DF] text-center",
-            weekday: "py-2.5 text-[10px] font-medium text-[#64748B]",
-            week: "grid grid-cols-7",
-            day: "relative min-h-[82px] border-b border-r border-[#E5EEE7] p-0 align-top [&:nth-child(7n)]:border-r-0 [&:nth-last-child(-n+7)]:border-b-0 sm:min-h-[100px]",
-            outside: "text-[#718096]",
-          }}
-          onMonthChange={onChangeMonth}
+          pendingCorrectionDates={pendingCorrectionDates}
+          onChangeMonth={onChangeMonth}
+          onSelectDay={onSelectDay}
         />
       </div>
     </section>
