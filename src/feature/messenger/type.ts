@@ -91,7 +91,8 @@ interface MessengerMessageItemData {
     senderName: string;
     messageType: "TEXT" | "IMAGE" | "FILE";
     content: string | null;
-    fileUrl: string | null;
+    fileId: number | null;
+    fileDownloadUrl: string | null;
     fileName: string | null;
     createdAt: string;
     editedAt: string | null;

@@ -9,19 +9,19 @@ import { FeedItem, FeedTextItem, formatTimeOnly, getInitials } from "../utils";
 import { deleteMessageAction, updateMessageAction } from "../actions";
 
 function MessageContent({ item }: { item: FeedTextItem }) {
-    if (item.messageType === "IMAGE" && item.fileUrl) {
+    if (item.messageType === "IMAGE" && item.fileDownloadUrl) {
         return (
-            <a href={item.fileUrl} rel="noopener noreferrer" target="_blank">
-                <img alt={item.fileName ?? "이미지"} className="max-h-60 max-w-full rounded-[8px]" src={item.fileUrl} />
+            <a href={item.fileDownloadUrl} rel="noopener noreferrer" target="_blank">
+                <img alt={item.fileName ?? "이미지"} className="max-h-60 max-w-full rounded-[8px]" src={item.fileDownloadUrl} />
             </a>
         );
     }
 
-    if (item.messageType === "FILE" && item.fileUrl) {
+    if (item.messageType === "FILE" && item.fileDownloadUrl) {
         return (
             <a
                 className="flex items-center gap-1.5 underline"
-                href={item.fileUrl}
+                href={item.fileDownloadUrl}
                 rel="noopener noreferrer"
                 target="_blank"
             >

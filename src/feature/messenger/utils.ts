@@ -15,7 +15,8 @@ export type FeedTextItem = {
     senderId: number;
     senderName: string;
     content: string | null;
-    fileUrl: string | null;
+    fileId: number | null;
+    fileDownloadUrl: string | null;
     fileName: string | null;
     messageType: "TEXT" | "IMAGE" | "FILE";
     createdAt: string;

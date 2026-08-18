@@ -19,7 +19,8 @@ const buildTextItem = (overrides: Partial<Extract<FeedItem, { kind: "text" }>>):
     senderId: 1,
     senderName: "로그인 사용자",
     content: "안녕하세요",
-    fileUrl: null,
+    fileId: null,
+    fileDownloadUrl: null,
     fileName: null,
     messageType: "TEXT",
     createdAt: "2026-08-01T09:00:00",
@@ -110,7 +111,7 @@ describe("MessageItem", () => {
     it("IMAGE 메시지는 메뉴에 수정 항목을 노출하지 않는다", () => {
         render(
             <MessageItem
-                item={buildTextItem({ messageType: "IMAGE", content: null, fileUrl: "https://example.com/a.png" })}
+                item={buildTextItem({ messageType: "IMAGE", content: null, fileDownloadUrl: "https://example.com/a.png" })}
                 currentUserId={1}
                 roomId={1}
                 onMessagesChange={jest.fn()}
