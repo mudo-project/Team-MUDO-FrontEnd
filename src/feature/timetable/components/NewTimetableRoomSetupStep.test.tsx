@@ -14,6 +14,7 @@ describe("NewTimetableRoomSetupStep", () => {
         onAddRoom={jest.fn()}
         onChangeNewRoomName={jest.fn()}
         onRemoveRoom={jest.fn()}
+        onRenameFloor={jest.fn()}
       />
     );
 
@@ -33,6 +34,7 @@ describe("NewTimetableRoomSetupStep", () => {
         onAddRoom={jest.fn()}
         onChangeNewRoomName={onChangeNewRoomName}
         onRemoveRoom={jest.fn()}
+        onRenameFloor={jest.fn()}
       />
     );
 
@@ -50,6 +52,7 @@ describe("NewTimetableRoomSetupStep", () => {
         onAddRoom={jest.fn()}
         onChangeNewRoomName={jest.fn()}
         onRemoveRoom={jest.fn()}
+        onRenameFloor={jest.fn()}
       />
     );
 
@@ -65,6 +68,7 @@ describe("NewTimetableRoomSetupStep", () => {
         onAddRoom={jest.fn()}
         onChangeNewRoomName={jest.fn()}
         onRemoveRoom={jest.fn()}
+        onRenameFloor={jest.fn()}
       />
     );
 
@@ -83,6 +87,7 @@ describe("NewTimetableRoomSetupStep", () => {
         onAddRoom={onAddRoom}
         onChangeNewRoomName={jest.fn()}
         onRemoveRoom={jest.fn()}
+        onRenameFloor={jest.fn()}
       />
     );
 
@@ -102,6 +107,7 @@ describe("NewTimetableRoomSetupStep", () => {
         onAddRoom={jest.fn()}
         onChangeNewRoomName={jest.fn()}
         onRemoveRoom={onRemoveRoom}
+        onRenameFloor={jest.fn()}
       />
     );
 
@@ -121,11 +127,32 @@ describe("NewTimetableRoomSetupStep", () => {
         onAddRoom={jest.fn()}
         onChangeNewRoomName={jest.fn()}
         onRemoveRoom={jest.fn()}
+        onRenameFloor={jest.fn()}
       />
     );
 
     fireEvent.click(screen.getByRole("button", { name: "+ 층 추가" }));
 
     expect(onAddFloor).toHaveBeenCalled();
+  });
+
+  it("층 이름을 입력하면 onRenameFloor를 호출한다", () => {
+    const onRenameFloor = jest.fn();
+
+    render(
+      <NewTimetableRoomSetupStep
+        floors={floors}
+        newRoomNames={{}}
+        onAddFloor={jest.fn()}
+        onAddRoom={jest.fn()}
+        onChangeNewRoomName={jest.fn()}
+        onRemoveRoom={jest.fn()}
+        onRenameFloor={onRenameFloor}
+      />
+    );
+
+    fireEvent.change(screen.getByLabelText("1번째 층 이름"), { target: { value: "옥상" } });
+
+    expect(onRenameFloor).toHaveBeenCalledWith(0, "옥상");
   });
 });

@@ -24,14 +24,12 @@ import TimetableExportMenu from "@/feature/timetable/components/TimetableExportM
 import TimetableFilterBar from "@/feature/timetable/components/TimetableFilterBar";
 import TimetableManagementModal from "@/feature/timetable/components/TimetableManagementModal";
 import TimetableTemplateSelector from "@/feature/timetable/components/TimetableTemplateSelector";
-import TimetableWeekNav from "@/feature/timetable/components/TimetableWeekNav";
 import WeeklyTimetableGrid from "@/feature/timetable/components/WeeklyTimetableGrid";
 import { weekDayNames } from "@/feature/timetable/constants";
 import {
   formatMinutesToTime,
   getClassEndTime,
   getClassStartTime,
-  indexToDayOfWeek,
   parseTimeToMinutes,
   toTimetableSlotRequestPayload,
   toTimetableTemplate,
@@ -40,12 +38,6 @@ import type { ClassItem, TemplateStatus, TimetableTemplate } from "@/feature/tim
 import type { ClassRegistrationFormValues } from "@/lib/classRegistrationSchema";
 
 const formatMonthDay = (date: Date) => `${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`;
-
-const getWeekEndDate = (startDate: Date) => {
-  const endDate = new Date(startDate);
-  endDate.setDate(startDate.getDate() + 6);
-  return endDate;
-};
 
 const getShiftedWeekStart = (startDate: Date, amount: number) => {
   const nextStartDate = new Date(startDate);
@@ -103,12 +95,10 @@ export default function TimetableContainer() {
   const [isTimetableManagementOpen, setIsTimetableManagementOpen] = useState(false);
   const [openTimetableOption, setOpenTimetableOption] = useState<number | null>(null);
   const [selectedTemplateId, setSelectedTemplateId] = useState<number | null>(null);
-  const [selectedDayFilter, setSelectedDayFilter] = useState("전체");
   const [selectedFloorFilter, setSelectedFloorFilter] = useState("전체");
   const [courseSearch, setCourseSearch] = useState("");
   const [selectedSlotId, setSelectedSlotId] = useState<number | null>(null);
   const [editingSlotId, setEditingSlotId] = useState<number | null>(null);
-  const [weekOffsetWeeks, setWeekOffsetWeeks] = useState(0);
 
   const queryClient = useQueryClient();
 
@@ -224,8 +214,6 @@ export default function TimetableContainer() {
         queryClient.invalidateQueries({ queryKey: ["timetable-set-detail", savedId] });
         queryClient.invalidateQueries({ queryKey: ["timetable-slots", savedId] });
         setSelectedTemplateId(savedId);
-        setWeekOffsetWeeks(0);
-        setSelectedDayFilter("전체");
         setSelectedFloorFilter("전체");
         setCourseSearch("");
       }
@@ -255,11 +243,9 @@ export default function TimetableContainer() {
         throw new Error("내보낼 시간표가 없습니다.");
       }
 
-      const dayIndex = weekDayNames.indexOf(selectedDayFilter);
       const params: TimetableExportParams = {
         format,
         density: "NORMAL",
-        ...(dayIndex >= 0 ? { dayOfWeek: indexToDayOfWeek[dayIndex] } : {}),
         ...(selectedFloorFilter !== "전체" ? { floor: selectedFloorFilter } : {}),
       };
 
@@ -290,8 +276,7 @@ export default function TimetableContainer() {
 
     const room = activeTemplate.roomsByDay[item.day]?.rooms[item.room] ?? "";
 
-    return (selectedDayFilter === "전체" || selectedDayFilter === weekDayNames[item.day])
-      && isRoomInFloor(room, selectedFloorFilter)
+    return isRoomInFloor(room, selectedFloorFilter)
       && item.course.toLowerCase().includes(courseSearch.trim().toLowerCase());
   };
   const floorOptions = activeTemplate
@@ -302,8 +287,7 @@ export default function TimetableContainer() {
     : [];
   const timetableGridColumns = `68px repeat(7, minmax(${Math.max(visibleRoomColumns.length, 1) * 72}px, 1fr))`;
 
-  const weekStart = activeTemplate ? getShiftedWeekStart(activeTemplate.startDate, weekOffsetWeeks * 7) : null;
-  const weekEnd = weekStart ? getWeekEndDate(weekStart) : null;
+  const weekStart = activeTemplate ? activeTemplate.startDate : null;
   const currentDays = activeTemplate && weekStart
     ? Array.from({ length: 7 }, (_, index) => {
       const date = getShiftedWeekStart(weekStart, index);
@@ -318,8 +302,6 @@ export default function TimetableContainer() {
       };
     })
     : [];
-  const isTemplateStartWeek = Boolean(activeTemplate && weekStart && weekStart.getTime() === activeTemplate.startDate.getTime());
-  const isTemplateEndWeek = Boolean(activeTemplate && weekStart && getWeekEndDate(getShiftedWeekStart(weekStart, 7)).getTime() > activeTemplate.endDate.getTime());
 
   const slotCount = activeTemplate
     ? (parseTimeToMinutes(activeTemplate.operatingEndTime) - parseTimeToMinutes(activeTemplate.operatingStartTime)) / activeTemplate.slotMinutes
@@ -336,8 +318,6 @@ export default function TimetableContainer() {
 
   const selectTimetableTemplate = (template: TimetableSetListData) => {
     setSelectedTemplateId(template.timetableSetId);
-    setWeekOffsetWeeks(0);
-    setSelectedDayFilter("전체");
     setSelectedFloorFilter("전체");
     setCourseSearch("");
     setIsTemplateMenuOpen(false);
@@ -407,19 +387,6 @@ export default function TimetableContainer() {
                   templates={templates}
                 />
               )}
-              <TimetableWeekNav
-                isNextDisabled={isTemplateEndWeek}
-                isPrevDisabled={isTemplateStartWeek}
-                label={weekStart && weekEnd ? `${formatMonthDay(weekStart)} ~ ${formatMonthDay(weekEnd)}` : ""}
-                onNext={() => setWeekOffsetWeeks((currentOffset) => {
-                  if (!weekStart || !activeTemplate) return currentOffset;
-
-                  const nextWeekStart = getShiftedWeekStart(weekStart, 7);
-
-                  return getWeekEndDate(nextWeekStart).getTime() > activeTemplate.endDate.getTime() ? currentOffset : currentOffset + 1;
-                })}
-                onPrev={() => setWeekOffsetWeeks((currentOffset) => currentOffset - 1)}
-              />
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <button
@@ -477,12 +444,9 @@ export default function TimetableContainer() {
             <>
               <TimetableFilterBar
                 courseSearch={courseSearch}
-                days={currentDays}
                 floorOptions={floorOptions}
                 onCourseSearchChange={setCourseSearch}
-                onDayChange={setSelectedDayFilter}
                 onFloorChange={setSelectedFloorFilter}
-                selectedDay={selectedDayFilter}
                 selectedFloor={selectedFloorFilter}
               />
 
@@ -553,6 +517,7 @@ export default function TimetableContainer() {
           onNext={wizard.goToNextStep}
           onPrev={wizard.goToPrevStep}
           onRemoveRoom={wizard.removeRoom}
+          onRenameFloor={wizard.renameFloor}
           onSelectTemplateOption={wizard.selectTemplateOption}
           selectedTemplateOption={wizard.selectedTemplateOption}
           slot={wizard.slot}

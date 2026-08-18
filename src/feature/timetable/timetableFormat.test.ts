@@ -63,6 +63,24 @@ describe("toTimetableTemplate", () => {
     expect(template.classroomGroups.map((group) => group.floor)).toEqual(["2층", "1층"]);
   });
 
+  it("같은 층 이름을 가진 그룹이 여러 개면 하나로 합친다", () => {
+    const duplicatedDetail: TimetableSetDetailData = {
+      ...detail,
+      classrooms: [
+        { floor: "1층", codes: ["101"] },
+        { floor: "1층", codes: ["102"] },
+        { floor: "2층", codes: ["201"] },
+      ],
+    };
+
+    const template = toTimetableTemplate(duplicatedDetail, []);
+
+    expect(template.classroomGroups).toEqual([
+      { floor: "2층", rooms: ["201"] },
+      { floor: "1층", rooms: ["101", "102"] },
+    ]);
+  });
+
   it("수업 슬롯을 그리드 좌표를 가진 ClassItem으로 변환한다", () => {
     const slot: TimetableSlotData = {
       timetableSlotId: 10,

@@ -7,6 +7,7 @@ type NewTimetableRoomSetupStepProps = {
   onAddRoom: (floorIndex: number) => void;
   onChangeNewRoomName: (floorIndex: number, value: string) => void;
   onRemoveRoom: (floorIndex: number, room: string) => void;
+  onRenameFloor: (floorIndex: number, name: string) => void;
 };
 
 export default function NewTimetableRoomSetupStep({
@@ -16,6 +17,7 @@ export default function NewTimetableRoomSetupStep({
   onAddRoom,
   onChangeNewRoomName,
   onRemoveRoom,
+  onRenameFloor,
 }: NewTimetableRoomSetupStepProps) {
   return (
     <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 overflow-y-auto scrollbar-hide px-5 py-4 sm:grid-cols-[minmax(0,1fr)_160px]">
@@ -25,9 +27,14 @@ export default function NewTimetableRoomSetupStep({
           const isDuplicate = floor.rooms.includes(newRoomName);
 
           return (
-            <section className="rounded-lg bg-[#F3F6F4] p-3" key={floor.floor}>
+            <section className="rounded-lg bg-[#F3F6F4] p-3" key={floorIndex}>
               <div className="flex items-center justify-between">
-                <span className="rounded-md border border-[#DCE9DF] bg-white px-3 py-1 text-sm text-[#526071]">{floor.floor}</span>
+                <input
+                  aria-label={`${floorIndex + 1}번째 층 이름`}
+                  className="w-24 rounded-md border border-[#DCE9DF] bg-white px-3 py-1 text-sm text-[#526071] outline-none"
+                  onChange={(event) => onRenameFloor(floorIndex, event.target.value)}
+                  value={floor.floor}
+                />
               </div>
               <div className="mt-2 flex flex-wrap gap-2">{floor.rooms.map((room) => 
                   <span 
@@ -83,8 +90,8 @@ export default function NewTimetableRoomSetupStep({
       <aside className="rounded-lg bg-[#F3F6F4] p-3">
         <strong className="text-sm text-[#273548]">미리보기</strong>
         <div className="mt-3 space-y-3 text-[12px] text-[#718096]">
-          {floors.map((floor) => 
-            <div key={floor.floor}>
+          {floors.map((floor, floorIndex) =>
+            <div key={floorIndex}>
               <span className="block font-semibold">{floor.floor}</span>
               <div className="mt-1 flex flex-wrap gap-1">{floor.rooms.map((room) => 
                 <span className="bg-[#DCE9DF] px-1.5 py-0.5" key={room}>{room}</span>)}
