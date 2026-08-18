@@ -1,8 +1,10 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Clock3, Wifi } from "lucide-react";
 import AttendanceCard from "./AttendanceCard";
 import { ATTENDANCE_STATUS_LABEL, formatClockNow, formatClockTime, formatElapsed } from "../attendanceFormat";
+import { getCurrentIpAction, getWifiIpListAction } from "@/feature/setting/actions";
 
 type AttendanceCommuteInformationProps = {
   now: Date;
@@ -16,6 +18,15 @@ type AttendanceCommuteInformationProps = {
 export default function AttendanceCommuteInformation({ now, today, canOvertime, onClockIn, onClockOut, onOvertime }: AttendanceCommuteInformationProps) {
   const hasClockedIn = today.clockInAt !== null;
   const hasClockedOut = today.clockOutAt !== null;
+  const [isWifiConnected, setIsWifiConnected] = useState(false);
+
+  useEffect(() => {
+    Promise.all([getCurrentIpAction(), getWifiIpListAction()])
+      .then(([currentIp, wifiIps]) => {
+        setIsWifiConnected(wifiIps.some((wifiIp) => wifiIp.ipAddress === currentIp));
+      })
+      .catch(() => setIsWifiConnected(false));
+  }, []);
 
   let statusLabel = "출근 전입니다";
   let statusColor = "text-[#718096]";
@@ -73,7 +84,7 @@ export default function AttendanceCommuteInformation({ now, today, canOvertime, 
 
       <p className="mt-3 flex items-center gap-1 text-[9px] text-[#718096]">
         <Wifi className="size-3" />
-        학원 와이파이 연결됨
+        {isWifiConnected ? "학원 와이파이 연결됨" : "학원 와이파이 연결되지 않음"}
       </p>
     </AttendanceCard>
   );

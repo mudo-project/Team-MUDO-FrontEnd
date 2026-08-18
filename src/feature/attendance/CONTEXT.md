@@ -341,7 +341,7 @@ Sidebar의 근태 메뉴(`href: "/attendance"`). 라우트는 `src/app/(user)/at
 | **AttendanceTodaySituation** | 금일 근태 현황. `team`(`AttendanceTeamTodayData`) prop을 받아 그대로 그린다 |
 | **AttendanceCalendar** | 내 근태 탭 좌측 캘린더. `month`/`days`/`pendingCorrectionDates`를 props로 받는 controlled 컴포넌트(`react-day-picker`). `components.DayButton`을 `AttendanceDayCell`로 오버라이드한다 |
 | **AttendanceDayCell** | `DayPicker`의 `DayButton` 오버라이드. `daysByDate`(날짜별 맵)에서 그 날의 상태·출퇴근 시각을 찾아 표시하고, 출근 기록이 있는 날만 클릭 가능(`onSelectDay`) |
-| **AttendanceCommuteInformation** | 출석 관련 컨테이너. `today`(`AttendanceTodayData`)와 `now`를 받아 경과시간·상태 뱃지를 계산하고, 클릭 콜백만 props로 받는다(모달 오픈은 `AttendanceBoard`가 담당) |
+| **AttendanceCommuteInformation** | 출석 관련 컨테이너. `today`(`AttendanceTodayData`)와 `now`를 받아 경과시간·상태 뱃지를 계산하고, 클릭 콜백만 props로 받는다(모달 오픈은 `AttendanceBoard`가 담당). 마운트 시 설정(setting) 도메인의 `getCurrentIpAction`/`getWifiIpListAction`을 호출해 현재 접속 IP가 등록된 와이파이 IP 목록에 포함되는지로 `isWifiConnected`를 계산하고, 하단에 "학원 와이파이 연결됨"/"학원 와이파이 연결되지 않음"을 표시한다(조회 실패 시 연결되지 않음으로 처리) |
 | **AttendanceLateModal** | 지각 사유 모달. `react-hook-form` + `attendanceCheckInSchema`(`src/lib/`)로 비고 필수 검증 |
 | **AttendanceLeaveWorkModal** | 퇴근 기록 모달. `react-hook-form` + `attendanceCheckOutSchema`(비고는 선택이라 검증 없음) |
 | **AttendanceOvertimeWork** | 초과 근무 기록 모달. `react-hook-form` + `attendanceOvertimeSchema`로 사유 필수 검증 |

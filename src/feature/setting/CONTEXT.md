@@ -1,7 +1,7 @@
 # Setting(설정) Domain — CONTEXT
 > 배치 경로: `src/feature/setting/CONTEXT.md`
 > 목적: 이 문서를 읽은 사람 또는 AI 에이전트가 설정 도메인이 **무엇을 하는 도메인이고, 어떤 기능이 있으며, 어떤 조각으로 이루어져 있는지** 파악할 수 있게 한다.
-> 구현 상태: 근무시간 저장, 와이파이 IP(현재 IP 조회·등록·목록·삭제), 구글 계정 연동(상태 조회·연결·재연결·계정 교체·상태 확인·해제)이 실제 API에 연동되어 있다. 급여 지급일·알림 설정은 아직 화면 레이아웃과 더미 데이터만 존재하는 정적 UI 단계다. 근무시간 정책은 저장 API만 있고 조회 API가 없어 페이지 진입 시 서버 값을 불러오지 못한다. 아래 기능 목록의 "상태" 열로 항목별 구현 여부를 표시한다.
+> 구현 상태: 근무시간 저장, 와이파이 IP(현재 IP 조회·등록(별칭 포함)·목록·삭제), 구글 계정 연동(상태 조회·연결·재연결·계정 교체·상태 확인·해제)이 실제 API에 연동되어 있다. 급여 지급일·알림 설정은 아직 화면 레이아웃과 더미 데이터만 존재하는 정적 UI 단계다. 근무시간 정책 자체의 조회 API는 없지만, 페이지(`setting/page.tsx`, 서버 컴포넌트)가 진입 시 근태(attendance) 도메인의 `getMyTodayAction`(내 오늘 근태 조회)을 서버에서 미리 호출해 `workStartTime`/`workEndTime`을 `SettingWorkingHours`의 초기 props로 내려준다(클라이언트에서 다시 불러오지 않아 하드코딩 기본값이 잠깐 보였다가 바뀌는 깜빡임이 없다). 아래 기능 목록의 "상태" 열로 항목별 구현 여부를 표시한다.
 
 ---
 
@@ -106,6 +106,7 @@ Sidebar의 설정 메뉴(`src/components/layout/Sidebar.tsx`, `href: "/setting"`
 | 요일별 on/off | 요일 목록의 요일별 토글 클릭 | 해당 요일을 근무/휴무로 전환, 휴무면 시간 select 숨김 | 구현 완료 — `weekdayExceptions` state의 `enabled`를 요일 단위로 갱신 |
 | 요일별 시간 설정 | 근무로 켜진 요일의 시작/종료 select | 해당 요일만 30분 단위로 출근/퇴근 시각 개별 설정 | 구현 완료 — `weekdayExceptions` state의 `startTime`/`endTime`을 요일 단위로 갱신 |
 | 근무시간 저장 | 카드 하단 `저장` 클릭 | 근무시간 설정 저장 | 구현 완료 — `saveWorkingHoursPolicyAction` 호출(`PUT /api/attendance/policies`). 저장 중에는 버튼이 비활성화되고 "저장 중..."으로 표시되며, 성공/실패를 토스트로 안내한다. 요일별 예외 토글이 꺼져 있어도 `weekdays` 배열은 항상 전체 7일을 전송한다(휴무 요일은 `startTime`/`endTime`이 `null`) |
+| 출근/퇴근 시각 초기값 표시 | 설정 페이지 진입(서버 렌더링 시점) | 저장된 근무시간 정책 값으로 출근/퇴근 시각 select를 채움 | 구현 완료 — `setting/page.tsx`(서버 컴포넌트)가 렌더링 전에 근태 도메인의 `getMyTodayAction`(`GET /api/attendance/me/today`)을 호출해 `today.workStartTime`/`today.workEndTime`(`"HH:mm:ss"`)의 앞 5자리를 `initialStartTime`/`initialEndTime` props로 `SettingWorkingHours`에 내려준다. 조회 실패 시 `null`을 내려 기본값(09:00~18:00)을 그대로 쓴다 |
 
 ### 4.2 와이파이 IP 등록
 
@@ -113,8 +114,8 @@ Sidebar의 설정 메뉴(`src/components/layout/Sidebar.tsx`, `href: "/setting"`
 |---|---|---|---|
 | 내 IP 확인 | `내 IP 확인` 버튼 클릭 | 현재 IP를 조회해 표시하고 `이 IP로 등록` 버튼 노출 | 구현 완료 — `getCurrentIpAction` 호출(`GET /api/attendance/wifi-ips/current`) 결과를 `checkedIp` state에 저장. 조회 중에는 버튼이 "확인 중..."으로 바뀌고 비활성화됨 |
 | IP 입력창에 채우기 | `이 IP로 등록` 클릭 | 확인된 IP를 입력창에 채움 | 구현 완료 — `checkedIp`를 `ipInput` state에 반영 |
-| 와이파이 IP 저장 | `저장` 클릭 | 입력한 IP를 등록 | 구현 완료 — `createWifiIpAction` 호출(`POST /api/attendance/wifi-ips`, `note`는 입력 UI가 없어 빈 문자열로 전송). 성공 시 목록을 다시 조회해 갱신하고 토스트로 안내. 이미 등록된 IP면 버튼이 "등록됨"으로 바뀌고 비활성화됨 |
-| 등록된 IP 목록 표시 | IP 등록 후 | `내 IP 확인` 영역 아래에 등록된 IP를 목록으로 표시(복수 등록 가능) | 구현 완료 — `getWifiIpListAction`(`GET /api/attendance/wifi-ips`)으로 마운트 시 조회하고 등록/삭제 후 재조회 |
+| 와이파이 IP 저장 | `저장` 클릭 | 입력한 IP와 별칭을 등록 | 구현 완료 — `createWifiIpAction` 호출(`POST /api/attendance/wifi-ips`). IP 입력창 옆의 별칭 입력창(`noteInput`, 선택 입력)이 `note`로 함께 전송된다. 성공 시 목록을 다시 조회해 갱신하고 별칭 입력창을 비우며 토스트로 안내. 이미 등록된 IP면 버튼이 "등록됨"으로 바뀌고 비활성화됨 |
+| 등록된 IP 목록 표시 | IP 등록 후 | `내 IP 확인` 영역 아래에 등록된 IP와 별칭(있으면)을 목록으로 표시(복수 등록 가능) | 구현 완료 — `getWifiIpListAction`(`GET /api/attendance/wifi-ips`)으로 마운트 시 조회하고 등록/삭제 후 재조회. `wifiIp.note`가 있으면 IP 옆에 함께 표시 |
 | 등록된 IP 삭제 | 목록 항목의 휴지통 아이콘 클릭 | 해당 와이파이 IP 삭제 | 구현 완료 — `deleteWifiIpAction`(`DELETE /api/attendance/wifi-ips/{wifiIpId}`) 호출 후 목록 재조회. 명세에 없던 UI지만 삭제 액션을 실제로 쓰기 위해 추가함 |
 
 `이 IP로 등록` 행(`checkedIp` 배너)은 `내 IP 확인` 버튼이 속한 배경 컨테이너 **안쪽**에 중첩되어 렌더링된다(별도 컨테이너가 아님).
@@ -197,8 +198,8 @@ Sidebar의 설정 메뉴(`src/components/layout/Sidebar.tsx`, `href: "/setting"`
 | **SectionHeading** | 카드 제목·설명 표시(구현 완료). `title`, `description` props만 받는 상태 없는 컴포넌트. 5개 카드 컴포넌트가 모두 공유 |
 | **SettingToggle** | on/off 토글 스위치(구현 완료). `checked`, `onChange`, `ariaLabel` props를 받는 controlled 컴포넌트. 근무시간 카드의 "요일별 예외" 토글과 요일별 근무/휴무 토글에서 재사용 |
 | **SettingTimeSelect** | 30분 단위 시각 select(구현 완료). `generateHalfHourOptions()`로 옵션을 만들고 `value`/`onChange` props로 controlled 동작. 출근/퇴근 시각, 요일별 예외의 시작/종료 시각에서 재사용 |
-| **SettingWorkingHours** | 근무 시간 카드(client component). `startTime`/`endTime`(select 값), `lateGraceMinutes`(0~60, 10 단위), `hasWeekdayException`(토글), `weekdayExceptions`(`WeekdayException[]`, 요일별 근무여부·시간), `isSaving` state를 갖는다. `updateWeekdayException`으로 요일 단위 부분 갱신. `저장` 클릭 시 `toWorkingHoursPolicyWeekdays()`로 변환한 뒤 `saveWorkingHoursPolicyAction`을 호출하고 결과를 토스트로 안내한다. 근무시간 정책 **조회** API가 없어 페이지 진입 시 서버 값을 불러오지는 못하고 항상 기본값에서 시작한다 |
-| **SettingWifi** | 와이파이 IP 등록 카드(client component). `ipInput`(입력값), `checkedIp`(내 IP 확인 결과), `wifiIps`(`WifiIpListItemData[]`, 서버 목록), `isChecking`/`isSaving` state를 가진다. 마운트 시 `getWifiIpListAction`으로 목록을 조회한다. `내 IP 확인` → `getCurrentIpAction` 호출 → `이 IP로 등록`으로 `ipInput`에 반영 → `저장`으로 `createWifiIpAction` 호출 후 목록 재조회, 목록 항목의 휴지통 아이콘으로 `deleteWifiIpAction` 호출 후 재조회하는 흐름. `이 IP로 등록` 배너는 `내 IP 확인` 버튼이 속한 배경 컨테이너 안에 중첩 렌더링된다. `checkedIp`가 없거나 `wifiIps`가 비어 있으면 각각의 안내 영역·목록이 렌더링되지 않아 기본 화면은 입력창과 "내 IP 확인" 버튼줄만 보인다. 모든 액션 실패는 `sonner`의 `toast.error`로 안내(다른 도메인과 동일한 패턴) |
+| **SettingWorkingHours** | 근무 시간 카드(client component). `initialStartTime`/`initialEndTime`(`string \| null`, 부모 서버 컴포넌트가 내려주는 초기값) props를 받아 `startTime`/`endTime` state의 초기값으로 쓴다(`null`이면 09:00/18:00). `lateGraceMinutes`(0~60, 10 단위), `hasWeekdayException`(토글), `weekdayExceptions`(`WeekdayException[]`, 요일별 근무여부·시간), `isSaving` state도 갖는다. `updateWeekdayException`으로 요일 단위 부분 갱신. `저장` 클릭 시 `toWorkingHoursPolicyWeekdays()`로 변환한 뒤 `saveWorkingHoursPolicyAction`을 호출하고 결과를 토스트로 안내한다. 근무시간 정책 자체의 **조회** API는 없어 지각 유예·요일별 예외는 여전히 항상 기본값에서 시작한다 |
+| **SettingWifi** | 와이파이 IP 등록 카드(client component). `ipInput`(입력값), `noteInput`(별칭 입력값, 선택), `checkedIp`(내 IP 확인 결과), `wifiIps`(`WifiIpListItemData[]`, 서버 목록), `isChecking`/`isSaving` state를 가진다. 마운트 시 `getWifiIpListAction`으로 목록을 조회한다. `내 IP 확인` → `getCurrentIpAction` 호출 → `이 IP로 등록`으로 `ipInput`에 반영 → `저장`으로 `createWifiIpAction(ip, note)` 호출 후 목록 재조회 및 `noteInput` 초기화, 목록 항목의 휴지통 아이콘으로 `deleteWifiIpAction` 호출 후 재조회하는 흐름. `이 IP로 등록` 배너는 `내 IP 확인` 버튼이 속한 배경 컨테이너 안에 중첩 렌더링된다. `checkedIp`가 없거나 `wifiIps`가 비어 있으면 각각의 안내 영역·목록이 렌더링되지 않아 기본 화면은 입력창과 "내 IP 확인" 버튼줄만 보인다. 모든 액션 실패는 `sonner`의 `toast.error`로 안내(다른 도메인과 동일한 패턴) |
 | **SettingPayday** | 급여 지급일 카드(구현 완료 — 정적). `generatePaydayOptions()`로 1~30일 select 옵션을 렌더링하지만 선택값을 저장하는 핸들러는 없음(uncontrolled) |
 | **SettingAlarm** | 알림 설정 카드(구현 완료 — 정적). `notificationItems` 더미 배열을 체크박스 목록으로 렌더링, 상호작용 없음 |
 | **SettingGoogle** | 구글 연동 카드(client component). 마운트 시 `getGoogleConnectionAction`을 호출해 `status`(`GoogleConnectionStatus \| null`) state를 채우고, `getGoogleConnectionBadge()`로 배지 레이블·색상을 정한다. "관리"는 `next/link`로 `/setting/google`로 이동한다 |
@@ -240,7 +241,7 @@ settings/google/page.tsx           (OAuth 팝업 콜백 브리지, /settings/goo
 
 | 조각 | 역할 | 상태 |
 |---|---|---|
-| 근무시간 데이터 | 출근/퇴근 시각, 지각 유예, 요일별 예외 조회·저장 | 저장만 구현 완료 — `SettingWorkingHours`가 `saveWorkingHoursPolicyAction`(`PUT /api/attendance/policies`)을 호출한다. 조회 API가 명세에 없어 페이지 진입 시 서버 값을 불러오지 못하고, 새로고침하면 항상 기본값(`DEFAULT_WEEKDAY_EXCEPTIONS` 등)에서 시작한다 |
+| 근무시간 데이터 | 출근/퇴근 시각, 지각 유예, 요일별 예외 조회·저장 | 부분 구현 — `SettingWorkingHours`가 `saveWorkingHoursPolicyAction`(`PUT /api/attendance/policies`)으로 저장하고, 출근/퇴근 시각만 `setting/page.tsx`가 서버에서 `getMyTodayAction`으로 미리 불러와 초기 props로 전달한다. 근무시간 정책 자체의 조회 API가 없어 지각 유예·요일별 예외는 새로고침하면 항상 기본값(`DEFAULT_WEEKDAY_EXCEPTIONS` 등)에서 시작한다 |
 | 와이파이 IP 데이터 | 등록된 IP 목록 조회·등록·삭제 | 구현 완료 — `SettingWifi`가 `getWifiIpListAction`/`createWifiIpAction`/`deleteWifiIpAction`을 실제로 호출하고 목록을 서버 상태와 동기화한다 |
 | 급여 지급일 데이터 | 지급일 조회·저장 | 미구현 — API/service 없음 |
 | 알림 설정 데이터 | 알림 항목별 on/off 조회·저장 | 미구현 — API/service 없음, 항목 자체도 더미 |

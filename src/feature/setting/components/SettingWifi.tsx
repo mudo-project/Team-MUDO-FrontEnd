@@ -14,6 +14,7 @@ import {
 
 export default function SettingWifi() {
   const [ipInput, setIpInput] = useState("");
+  const [noteInput, setNoteInput] = useState("");
   const [checkedIp, setCheckedIp] = useState<string | null>(null);
   const [wifiIps, setWifiIps] = useState<WifiIpListItemData[]>([]);
   const [isChecking, setIsChecking] = useState(false);
@@ -59,11 +60,12 @@ export default function SettingWifi() {
     if (!trimmedIpInput || isRegistered) return;
 
     setIsSaving(true);
-    const result = await createWifiIpAction(trimmedIpInput, "");
+    const result = await createWifiIpAction(trimmedIpInput, noteInput.trim());
     setIsSaving(false);
 
     if (result.success) {
       toast.success(result.message);
+      setNoteInput("");
       void fetchWifiIps();
     } else {
       toast.error(result.message);
@@ -94,6 +96,14 @@ export default function SettingWifi() {
           id="wifi-ip"
           onChange={(event) => setIpInput(event.target.value)}
           value={ipInput}
+        />
+        <label className="sr-only" htmlFor="wifi-note">별칭</label>
+        <input
+          className="h-11 min-w-0 flex-1 rounded-lg border border-[#DCE9DF] px-3 text-[13px] font-medium outline-none"
+          id="wifi-note"
+          placeholder="별칭 (예: 1층 강의실)"
+          onChange={(event) => setNoteInput(event.target.value)}
+          value={noteInput}
         />
         <button
           className="flex h-11 items-center justify-center gap-1 rounded-lg bg-[#0F172A] px-5 text-[13px] font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
@@ -153,7 +163,10 @@ export default function SettingWifi() {
                 key={wifiIp.wifiIpId}
               >
                 <Wifi className="size-3.5 text-[#4D9560]" />
-                <span className="min-w-0 flex-1">{wifiIp.ipAddress}</span>
+                <span className="min-w-0 flex-1">
+                  {wifiIp.ipAddress}
+                  {wifiIp.note && <span className="ml-2 text-[#718096]">{wifiIp.note}</span>}
+                </span>
                 <button
                   aria-label={`${wifiIp.ipAddress} 삭제`}
                   className="text-[#94A3B8]"
