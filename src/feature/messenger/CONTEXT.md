@@ -16,7 +16,7 @@
 - 받은/전달 업무 목록도 같은 이유로 실제 집계 API가 없다. 내가 속한 모든 채팅방을 순회 조회해 프론트에서 합친 결과다.
 - 업무지시 수정/삭제, 완료 처리 버튼은 각각 등록자 본인·미완료 담당자 본인에게만 노출되어야 한다 — 실제로 그렇게 구현되어 있다(노출 조건은 로그인 사용자 id와 `assignerId`/`assignees[].userId` 비교).
 - 로그인 사용자 id는 `accessToken`의 JWT payload를 디코딩해 얻는다(`getCurrentUserIdAction`). payload의 사용자 id claim명(`userId`/`sub`/`id` 순으로 시도)은 백엔드에 공식 확인받지 않은 상태다 — 실제 로그인 계정 기준으로는 정상 동작을 확인했다.
-- 사진·파일 첨부는 파일 모듈의 공용 업로드 헬퍼(`uploadFiles`, 전자결재와 공유)로 presigned URL 발급 → 업로드 URL에 브라우저가 S3로 직접 PUT → 메타데이터 등록을 거쳐 `fileId`를 얻고, 그 `fileId`를 메시지 생성 요청(`fileId`/`fileName`)에 그대로 실어 보낸다. 메시지 조회 응답은 `fileUrl`/`fileName`으로 내려온다(쓰기는 `fileId`, 읽기는 `fileUrl` — 서로 다른 필드).
+- 사진·파일 첨부는 파일 모듈의 공용 업로드 헬퍼(`uploadFiles`, 전자결재와 공유)로 presigned URL 발급 → 업로드 URL에 브라우저가 S3로 직접 PUT → 메타데이터 등록을 거쳐 `fileId`를 얻고, 그 `fileId`를 메시지 생성 요청(`fileId`/`fileName`)에 그대로 실어 보낸다. 메시지 조회 응답은 `fileId`/`fileDownloadUrl`/`fileName`으로 내려온다(쓰기는 `fileId`만, 읽기는 `fileId` + `fileDownloadUrl` 둘 다 — 화면 표시엔 `fileDownloadUrl`을 쓴다).
 - 브라우저가 presigned URL로 S3에 직접 PUT하는 구간은 S3 버킷 자체의 CORS 설정에 의존한다(백엔드 앱 CORS와는 별개). 버킷에 프론트 Origin에 대한 CORS 허용이 없으면 이 PUT이 `Failed to fetch`로 실패한다 — 메신저 코드만의 문제가 아니라 전자결재를 포함한 파일 모듈 전체에 해당하는 제약이다.
 
 ### 진입점 및 라우팅
