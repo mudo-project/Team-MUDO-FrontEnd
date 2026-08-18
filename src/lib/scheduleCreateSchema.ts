@@ -11,6 +11,10 @@ export const scheduleCreateSchema = z
     content: z.string().trim(),
   })
   .superRefine((values, ctx) => {
+    if (values.startDate && values.endDate && values.endDate < values.startDate) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["endDate"], message: "종료일은 시작일보다 빠를 수 없어요." });
+    }
+
     if (values.allDay) return;
 
     if (!values.startTime) {

@@ -5,12 +5,10 @@ import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { format } from "date-fns";
 import { X } from "lucide-react";
-import type { DateRange } from "react-day-picker";
 import { scheduleCreateSchema, type ScheduleCreateFormValues } from "@/lib/scheduleCreateSchema";
 import MemoColorPicker, { MEMO_COLORS, type MemoColor } from "@/feature/memo/components/MemoColorPicker";
 import { TIME_OPTIONS } from "../scheduleFormat";
 import type { ScheduleEvent } from "../scheduleTypes";
-import ScheduleDateRangePicker from "./ScheduleDateRangePicker";
 
 export type ScheduleFormSubmitValues = {
   title: string;
@@ -46,16 +44,11 @@ export default function ScheduleCreateForm({
   onSubmit,
 }: ScheduleCreateFormProps) {
   const [selectedColor, setSelectedColor] = useState<MemoColor>(schedule?.color ?? MEMO_COLORS[0]);
-  const [range, setRange] = useState<DateRange | undefined>(() => ({
-    from: schedule?.startDate ?? initialDate ?? new Date(),
-    to: schedule?.endDate ?? initialDate ?? new Date(),
-  }));
 
   const {
     register,
     handleSubmit,
     control,
-    setValue,
     formState: { errors },
   } = useForm<ScheduleCreateFormValues>({
     resolver: zodResolver(scheduleCreateSchema),
@@ -71,16 +64,6 @@ export default function ScheduleCreateForm({
   });
 
   const allDay = useWatch({ control, name: "allDay" });
-
-  const handleRangeChange = (nextRange: DateRange | undefined) => {
-    setRange(nextRange);
-    if (!nextRange?.from) return;
-
-    const start = nextRange.from;
-    const end = nextRange.to ?? nextRange.from;
-    setValue("startDate", format(start, "yyyy-MM-dd"), { shouldValidate: true });
-    setValue("endDate", format(end, "yyyy-MM-dd"), { shouldValidate: true });
-  };
 
   const submit = (values: ScheduleCreateFormValues) => {
     onSubmit({
@@ -122,12 +105,31 @@ export default function ScheduleCreateForm({
             {errors.title && <p className="mt-1 text-[11px] text-[#C65A50]">{errors.title.message}</p>}
           </div>
 
-          <div>
-            <label className="mb-1.5 block text-[13px] font-medium text-[#344054]">날짜</label>
-            <ScheduleDateRangePicker defaultMonth={range?.from} range={range} onChange={handleRangeChange} />
-            {(errors.startDate ?? errors.endDate) && (
-              <p className="mt-1 text-[11px] text-[#C65A50]">{errors.startDate?.message ?? errors.endDate?.message}</p>
-            )}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1.5 block text-[13px] font-medium text-[#344054]" htmlFor="schedule-start-date">
+                시작일
+              </label>
+              <input
+                className="h-11 w-full rounded-lg border border-[#DCE9DF] px-3 text-[13px] outline-none focus:border-[#4D9560]"
+                id="schedule-start-date"
+                type="date"
+                {...register("startDate")}
+              />
+              {errors.startDate && <p className="mt-1 text-[11px] text-[#C65A50]">{errors.startDate.message}</p>}
+            </div>
+            <div>
+              <label className="mb-1.5 block text-[13px] font-medium text-[#344054]" htmlFor="schedule-end-date">
+                종료일
+              </label>
+              <input
+                className="h-11 w-full rounded-lg border border-[#DCE9DF] px-3 text-[13px] outline-none focus:border-[#4D9560]"
+                id="schedule-end-date"
+                type="date"
+                {...register("endDate")}
+              />
+              {errors.endDate && <p className="mt-1 text-[11px] text-[#C65A50]">{errors.endDate.message}</p>}
+            </div>
           </div>
 
           <label className="flex items-center gap-2 text-[13px] font-medium text-[#344054]">

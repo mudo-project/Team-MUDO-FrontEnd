@@ -78,4 +78,13 @@ describe("scheduleCreateSchema", () => {
 
     expect(result.success).toBe(true);
   });
+
+  it("종료일이 시작일보다 빠르면 endDate 필드에 에러를 반환한다", () => {
+    const result = scheduleCreateSchema.safeParse({ ...validValues, startDate: "2026-08-10", endDate: "2026-08-09" });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues.map((issue) => issue.path)).toContainEqual(["endDate"]);
+    }
+  });
 });

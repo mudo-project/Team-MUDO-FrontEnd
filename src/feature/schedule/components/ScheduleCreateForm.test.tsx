@@ -97,13 +97,13 @@ describe("ScheduleCreateForm", () => {
     expect(onCancel).toHaveBeenCalledTimes(1);
   });
 
-  it("범위 캘린더에서 서로 다른 두 날짜를 선택하면 시작일과 종료일이 다르게 등록된다", async () => {
+  it("시작일과 종료일을 다르게 입력하면 각각 다른 날짜로 등록된다", async () => {
     const onSubmit = jest.fn();
     render(<ScheduleCreateForm initialDate={new Date(2026, 7, 1)} mode="create" onCancel={jest.fn()} onSubmit={onSubmit} />);
 
     fireEvent.change(screen.getByLabelText("제목"), { target: { value: "워크숍" } });
-    fireEvent.click(screen.getByRole("button", { name: "2026년 8월 10일 월요일" }));
-    fireEvent.click(screen.getByRole("button", { name: "2026년 8월 15일 토요일" }));
+    fireEvent.change(screen.getByLabelText("시작일"), { target: { value: "2026-08-10" } });
+    fireEvent.change(screen.getByLabelText("종료일"), { target: { value: "2026-08-15" } });
     fireEvent.click(screen.getByRole("checkbox", { name: "종일" }));
     fireEvent.click(screen.getByRole("button", { name: "등록" }));
 
@@ -111,5 +111,17 @@ describe("ScheduleCreateForm", () => {
     const submitted = onSubmit.mock.calls[0][0];
     expect(submitted.startDate).toEqual(new Date(2026, 7, 10));
     expect(submitted.endDate).toEqual(new Date(2026, 7, 15));
+  });
+
+  it("종료일이 시작일보다 빠르면 에러 메시지를 노출한다", async () => {
+    render(<ScheduleCreateForm initialDate={new Date(2026, 7, 1)} mode="create" onCancel={jest.fn()} onSubmit={jest.fn()} />);
+
+    fireEvent.change(screen.getByLabelText("제목"), { target: { value: "워크숍" } });
+    fireEvent.change(screen.getByLabelText("시작일"), { target: { value: "2026-08-10" } });
+    fireEvent.change(screen.getByLabelText("종료일"), { target: { value: "2026-08-05" } });
+    fireEvent.click(screen.getByRole("checkbox", { name: "종일" }));
+    fireEvent.click(screen.getByRole("button", { name: "등록" }));
+
+    expect(await screen.findByText("종료일은 시작일보다 빠를 수 없어요.")).toBeInTheDocument();
   });
 });
