@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { getWorkspaceListAction } from "../actions";
 import { useUserStore } from "@/store/useUserStore";
 
-export default function MyWorkHeader({ workspaceId }: { workspaceId?: number }) {
+export default function MyWorkHeader({ workspaceId, status }: { workspaceId?: number, status?: string }) {
 
     const permissions = useUserStore((state) => state.permissions)
 

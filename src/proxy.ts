@@ -44,14 +44,26 @@ function redirectToAuth(request: NextRequest) {
     return response;
 }
 
+const APEX_HOSTS = ['ieum.store', 'www.ieum.store']
 
 export async function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl;
+
+    const host = request.headers.get('host') ?? ''
+    const isApex = APEX_HOSTS.includes(host)
+
+    let response = NextResponse.next();
+
+    if (!isApex) {
+        response.headers.set('X-Robots-Tag', 'noindex, nofollow')
+
+        if (request.nextUrl.pathname === '/') {
+            return NextResponse.redirect(new URL('/auth', request.url))
+        }
+    }
+
     let accessToken = request.cookies.get('accessToken')?.value;
     const refreshToken = request.cookies.get('refreshToken')?.value;
-
-    //새로운 response
-    let response = NextResponse.next();
 
     if ((!accessToken && !refreshToken) || (accessToken && !refreshToken)) {
         //어세스랑 리프레시 둘다 없는경우
