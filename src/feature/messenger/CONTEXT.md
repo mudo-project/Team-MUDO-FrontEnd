@@ -16,7 +16,8 @@
 - 받은/전달 업무 목록도 같은 이유로 실제 집계 API가 없다. 내가 속한 모든 채팅방을 순회 조회해 프론트에서 합친 결과다.
 - 업무지시 수정/삭제, 완료 처리 버튼은 각각 등록자 본인·미완료 담당자 본인에게만 노출되어야 한다 — 실제로 그렇게 구현되어 있다(노출 조건은 로그인 사용자 id와 `assignerId`/`assignees[].userId` 비교).
 - 로그인 사용자 id는 `accessToken`의 JWT payload를 디코딩해 얻는다(`getCurrentUserIdAction`). payload의 사용자 id claim명(`userId`/`sub`/`id` 순으로 시도)은 백엔드에 공식 확인받지 않은 상태다 — 실제 로그인 계정 기준으로는 정상 동작을 확인했다.
-- 사진·파일 첨부는 `src/feature/file`(파일 모듈)의 presigned URL 발급/등록/다운로드 URL 조회 3개 액션을 그대로 사용해 전송한다. 메신저 자체의 fileId 개념은 없고, 업로드 후 발급받은 `downloadUrl`을 메시지의 `fileUrl`로 그대로 저장한다(백엔드 계약이 `fileUrl`/`fileName` 문자열만 받고 `fileId`는 받지 않음). 이 `downloadUrl`이 파일 모듈에서 만료 없이 유지되는지는 별도로 확인되지 않았다 — 시간이 지나 링크가 끊기면 이 부분을 의심할 것.
+- 사진·파일 첨부는 파일 모듈의 공용 업로드 헬퍼(`uploadFiles`, 전자결재와 공유)로 presigned URL 발급 → 업로드 URL에 브라우저가 S3로 직접 PUT → 메타데이터 등록을 거쳐 `fileId`를 얻고, 그 `fileId`를 메시지 생성 요청(`fileId`/`fileName`)에 그대로 실어 보낸다. 메시지 조회 응답은 `fileUrl`/`fileName`으로 내려온다(쓰기는 `fileId`, 읽기는 `fileUrl` — 서로 다른 필드).
+- 브라우저가 presigned URL로 S3에 직접 PUT하는 구간은 S3 버킷 자체의 CORS 설정에 의존한다(백엔드 앱 CORS와는 별개). 버킷에 프론트 Origin에 대한 CORS 허용이 없으면 이 PUT이 `Failed to fetch`로 실패한다 — 메신저 코드만의 문제가 아니라 전자결재를 포함한 파일 모듈 전체에 해당하는 제약이다.
 
 ### 진입점 및 라우팅
 
@@ -230,7 +231,7 @@
 | 전송 옵션 열기 | 입력창 좌측 `+` 버튼 클릭, 또는 `/` 입력 | 업무지시/사진/파일 선택 옵션 노출 | 구현 완료 |
 | 사진 선택 | 첨부 메뉴에서 `사진` 클릭 | `accept="image/*"` 파일 선택 창(OS 네이티브 다이얼로그) 노출 | 구현 완료 |
 | 파일 선택 | 첨부 메뉴에서 `파일` 클릭 | 파일 선택 창(OS 네이티브 다이얼로그) 노출 | 구현 완료 |
-| 사진/파일 전송 | 파일 선택 후 | 파일 모듈의 공용 `uploadFiles([file], {})`(presigned URL 발급 → 업로드 URL에 PUT 업로드 → 메타데이터 등록, 전자결재와 동일한 헬퍼)로 `fileId`를 얻고, `getFileDownloadUrlAction(fileId)`로 받은 `downloadUrl`을 `sendFileMessageAction(roomId, "IMAGE"\|"FILE", downloadUrl, fileName)`으로 전송. 업로드 중엔 첨부 버튼이 비활성화된다 | 구현 완료 |
+| 사진/파일 전송 | 파일 선택 후 | 파일 모듈의 공용 `uploadFiles([file], {})`(presigned URL 발급 → 업로드 URL에 PUT 업로드 → 메타데이터 등록, 전자결재와 동일한 헬퍼)로 얻은 `fileId`를 `sendFileMessageAction(roomId, "IMAGE"\|"FILE", fileId, fileName)`으로 바로 전송(다운로드 URL 조회 없음). 업로드 중엔 첨부 버튼이 비활성화된다 | 구현 완료 |
 
 ### 4.9 실시간 반영
 
@@ -304,7 +305,7 @@
 | **MessageMenu** | 내 메시지 메뉴. `onEdit`/`onDelete` 콜백을 받아 수정/삭제를 트리거 |
 | **TaskMessageCard** | 채팅방 내 업무지시 카드(client). `card`·`own`·`currentUserId`·`roomId`를 받아 좌/우 정렬을 결정하고, 클릭 시 `TaskDetailModal` 오픈 |
 | **TaskCompletionCard** | 완료 알림 카드(중앙 정렬). 실시간 이벤트를 화면 갱신 신호로만 쓰는 현재 구조상 생성되지 않으나 컴포넌트는 남아 있다 |
-| **MessageInput** | 하단 입력 영역(client). `roomId`를 받아 `sendMessageAction`으로 텍스트 전송, `/` 입력 감지 및 `+` 버튼으로 첨부 메뉴 토글, `업무지시` 선택 시 `TaskCreateModal` 오픈. 숨겨진 `input[type=file]` 2개(사진/파일)는 선택 시 `@/feature/file/uploadFiles`의 `uploadFiles`(전자결재와 공유하는 업로드 헬퍼)로 업로드한 뒤 `getFileDownloadUrlAction`으로 다운로드 URL을 받아 `sendFileMessageAction`으로 전송(업로드 중 첨부 버튼 비활성화) |
+| **MessageInput** | 하단 입력 영역(client). `roomId`를 받아 `sendMessageAction`으로 텍스트 전송, `/` 입력 감지 및 `+` 버튼으로 첨부 메뉴 토글, `업무지시` 선택 시 `TaskCreateModal` 오픈. 숨겨진 `input[type=file]` 2개(사진/파일)는 선택 시 `@/feature/file/uploadFiles`의 `uploadFiles`(전자결재와 공유하는 업로드 헬퍼)로 얻은 `fileId`를 그대로 `sendFileMessageAction`으로 전송(업로드 중 첨부 버튼 비활성화) |
 | **TaskCreateModal** | 업무지시 작성/수정 모달(client). `roomId`로 채팅방 참여자를 조회해 담당자 후보로 쓴다. `editingCard` prop이 없으면 작성 모드(`createTaskCardAction`), 있으면 그 값으로 입력값을 미리 채운 수정 모드(`updateTaskCardAction`)로 동작. 성공/실패 토스트 표시 |
 | **TaskDetailModal** | 업무지시 상세조회 모달(client). 채팅방 업무지시 카드·받은 업무 목록·전달한 업무 목록 세 진입점이 공유하며, 로그인 사용자가 등록자면 수정/삭제, 미완료 담당자 본인이면 완료 처리 버튼을 보여준다. `수정` 선택 시 `TaskCreateModal`(수정 모드)로 전환, `삭제`는 `TwoButtonModal`로 확인 |
 | **Avatar** | 아바타 이니셜 공용 컴포넌트 |
