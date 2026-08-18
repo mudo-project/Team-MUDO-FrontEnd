@@ -1,9 +1,9 @@
 "use client";
 
 import { X } from "lucide-react";
-import { isSameDay, isSameMonth } from "date-fns";
+import { areIntervalsOverlapping, endOfMonth, startOfMonth } from "date-fns";
 import ScheduleListItem from "./ScheduleListItem";
-import { formatEventDate } from "../scheduleFormat";
+import { formatEventDate, isDateWithinEvent } from "../scheduleFormat";
 import type { ScheduleEvent } from "../scheduleTypes";
 
 type ScheduleListProps = {
@@ -15,8 +15,13 @@ type ScheduleListProps = {
 };
 
 export default function ScheduleList({ month, events, selectedDate, onClearSelectedDate, onSelectEvent }: ScheduleListProps) {
-  const monthEvents = events.filter((event) => isSameMonth(event.date, month));
-  const filteredEvents = selectedDate ? monthEvents.filter((event) => isSameDay(event.date, selectedDate)) : monthEvents;
+  const monthRange = { start: startOfMonth(month), end: endOfMonth(month) };
+  // inclusive: true — 이벤트 종료일이 정확히 이번 달 1일 자정과 같을 때(전달부터 이번 달 1일까지 걸치는 일정)도
+  // 겹침으로 인식해야 하므로 경계가 맞닿는 경우까지 포함한다.
+  const monthEvents = events.filter((event) =>
+    areIntervalsOverlapping({ start: event.startDate, end: event.endDate }, monthRange, { inclusive: true })
+  );
+  const filteredEvents = selectedDate ? monthEvents.filter((event) => isDateWithinEvent(selectedDate, event)) : monthEvents;
 
   return (
     <section

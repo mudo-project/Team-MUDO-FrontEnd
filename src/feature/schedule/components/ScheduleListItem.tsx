@@ -1,4 +1,4 @@
-import { formatEventDate, formatEventTimeRange } from "../scheduleFormat";
+import { formatEventRangeSummary } from "../scheduleFormat";
 import type { ScheduleEvent } from "../scheduleTypes";
 
 type ScheduleListItemProps = {
@@ -16,9 +16,7 @@ export default function ScheduleListItem({ event, onClick }: ScheduleListItemPro
         onClick={onClick}
       >
         <strong className="block break-words text-[13px] font-semibold">{event.title}</strong>
-        <time className="mt-1 block text-[11px] text-[#718096]">
-          {formatEventDate(event.date)} · {formatEventTimeRange(event)}
-        </time>
+        <time className="mt-1 block text-[11px] text-[#718096]">{formatEventRangeSummary(event)}</time>
       </button>
     </li>
   );

@@ -7,7 +7,8 @@ function makeEvent(overrides: Partial<ScheduleEvent> = {}): ScheduleEvent {
   return {
     id: 1,
     title: "전체 회의",
-    date: new Date(2026, 7, 10),
+    startDate: new Date(2026, 7, 10),
+    endDate: new Date(2026, 7, 10),
     allDay: true,
     color: MEMO_COLORS[0],
     content: "",
@@ -18,7 +19,10 @@ function makeEvent(overrides: Partial<ScheduleEvent> = {}): ScheduleEvent {
 
 describe("ScheduleList", () => {
   it("선택된 날짜가 없으면 해당 월 전체 일정과 총 건수를 표시한다", () => {
-    const events = [makeEvent({ id: 1, title: "회의" }), makeEvent({ id: 2, title: "워크숍", date: new Date(2026, 7, 20) })];
+    const events = [
+      makeEvent({ id: 1, title: "회의" }),
+      makeEvent({ id: 2, title: "워크숍", startDate: new Date(2026, 7, 20), endDate: new Date(2026, 7, 20) }),
+    ];
 
     render(
       <ScheduleList
@@ -38,8 +42,8 @@ describe("ScheduleList", () => {
 
   it("선택된 날짜가 있으면 그 날짜 일정만 표시하고 날짜 선택 해제 버튼을 노출한다", () => {
     const events = [
-      makeEvent({ id: 1, title: "회의", date: new Date(2026, 7, 10) }),
-      makeEvent({ id: 2, title: "워크숍", date: new Date(2026, 7, 20) }),
+      makeEvent({ id: 1, title: "회의", startDate: new Date(2026, 7, 10), endDate: new Date(2026, 7, 10) }),
+      makeEvent({ id: 2, title: "워크숍", startDate: new Date(2026, 7, 20), endDate: new Date(2026, 7, 20) }),
     ];
 
     render(
@@ -62,7 +66,7 @@ describe("ScheduleList", () => {
 
     render(
       <ScheduleList
-        events={[makeEvent({ date: new Date(2026, 7, 10) })]}
+        events={[makeEvent({ startDate: new Date(2026, 7, 10), endDate: new Date(2026, 7, 10) })]}
         month={new Date(2026, 7, 1)}
         selectedDate={new Date(2026, 7, 10)}
         onClearSelectedDate={onClearSelectedDate}
@@ -92,7 +96,7 @@ describe("ScheduleList", () => {
   it("선택된 날짜에 일정이 없으면 안내 문구를 표시한다", () => {
     render(
       <ScheduleList
-        events={[makeEvent({ date: new Date(2026, 7, 20) })]}
+        events={[makeEvent({ startDate: new Date(2026, 7, 20), endDate: new Date(2026, 7, 20) })]}
         month={new Date(2026, 7, 1)}
         selectedDate={new Date(2026, 7, 10)}
         onClearSelectedDate={jest.fn()}
@@ -120,5 +124,46 @@ describe("ScheduleList", () => {
     fireEvent.click(screen.getByText("회의"));
 
     expect(onSelectEvent).toHaveBeenCalledWith(event);
+  });
+
+  it("여러 날에 걸친 일정은 범위 안의 어떤 날짜를 선택해도 조회된다", () => {
+    const event = makeEvent({
+      title: "워크숍",
+      startDate: new Date(2026, 7, 9),
+      endDate: new Date(2026, 7, 12),
+      allDay: false,
+    });
+
+    render(
+      <ScheduleList
+        events={[event]}
+        month={new Date(2026, 7, 1)}
+        selectedDate={new Date(2026, 7, 11)}
+        onClearSelectedDate={jest.fn()}
+        onSelectEvent={jest.fn()}
+      />
+    );
+
+    expect(screen.getByText("워크숍")).toBeInTheDocument();
+  });
+
+  it("이전 달에서 시작해 이번 달로 걸치는 일정은 이번 달 목록에 포함된다", () => {
+    const event = makeEvent({
+      title: "이월 워크숍",
+      startDate: new Date(2026, 6, 30),
+      endDate: new Date(2026, 7, 2),
+    });
+
+    render(
+      <ScheduleList
+        events={[event]}
+        month={new Date(2026, 7, 1)}
+        selectedDate={undefined}
+        onClearSelectedDate={jest.fn()}
+        onSelectEvent={jest.fn()}
+      />
+    );
+
+    expect(screen.getByText("이월 워크숍")).toBeInTheDocument();
   });
 });
