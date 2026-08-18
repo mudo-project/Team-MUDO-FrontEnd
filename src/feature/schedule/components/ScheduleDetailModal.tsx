@@ -1,7 +1,7 @@
 "use client";
 
 import { Calendar, Clock, X } from "lucide-react";
-import { formatEventDateFull, formatEventTimeRange } from "../scheduleFormat";
+import { formatEventDateRangeFull, formatEventTimeRange } from "../scheduleFormat";
 import type { ScheduleEvent } from "../scheduleTypes";
 
 type ScheduleDetailModalProps = {
@@ -28,7 +28,7 @@ export default function ScheduleDetailModal({ event, onClose, onEdit, onDelete }
         <div className="mt-4 flex flex-col gap-2 text-[13px] text-[#344054]">
           <div className="flex items-center gap-2">
             <Calendar className="size-4 text-[#94A3B8]" strokeWidth={1.8} />
-            {formatEventDateFull(event.date)}
+            {formatEventDateRangeFull(event)}
           </div>
           <div className="flex items-center gap-2">
             <Clock className="size-4 text-[#94A3B8]" strokeWidth={1.8} />
