@@ -41,7 +41,7 @@ export default function StudentDeleteButton({ studentId, closeModal }: { student
                 type="button"
                 aria-label="학생 삭제"
             >
-                <Trash2 className="text-[#64748B] h-4 w-4" />
+                <Trash2 className="text-[#64748B] h-3.5 w-3.5 md:h-4 md:w-4" />
             </button>
 
             {deleteStudentModal.isModal && (

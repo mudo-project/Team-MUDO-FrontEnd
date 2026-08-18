@@ -46,7 +46,7 @@ export default function AttendanceDownloadButton({
     return (
         <button
             aria-label="출결부 다운로드"
-            className="flex h-[34px] items-center gap-1.5 rounded-[8px] border border-[#DCE8E2] bg-white px-3 text-[13px] leading-[19.5px] font-medium text-[#0F172A] disabled:cursor-not-allowed disabled:opacity-60"
+            className="flex h-[34px] items-center gap-1.5 rounded-[8px] border border-[#DCE8E2] bg-white px-2 sm:px-3 text-[13px] leading-[19.5px] font-medium text-[#0F172A] disabled:cursor-not-allowed disabled:opacity-60"
             disabled={isDownloading}
             onClick={() => void downloadAttendance()}
             type="button"

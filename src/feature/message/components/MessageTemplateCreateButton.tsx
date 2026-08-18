@@ -9,8 +9,8 @@ export default function MessageTemplateCreateButton() {
 
     return (
         <>
-            <button className="ml-auto flex h-9 items-center gap-1.5 rounded-[9px] bg-[#1E293B] px-4 text-[13px] font-medium text-white" onClick={createTemplateModal.openModal} type="button">
-                <Plus aria-hidden="true" className="size-3.5" strokeWidth={2} />
+            <button className="ml-auto flex h-8 sm:h-8 md:h-9 items-center gap-1.5 rounded-[9px] bg-[#1E293B] px-3 sm:px-3 md:px-4 text-[12px] sm:text-[12px] md:text-[13px] font-medium text-white" onClick={createTemplateModal.openModal} type="button">
+                <Plus aria-hidden="true" className="size-3 sm:size-3 md:size-3.5" strokeWidth={2} />
                 템플릿 등록
             </button>
             {createTemplateModal.isModal && (

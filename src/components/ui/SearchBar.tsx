@@ -16,7 +16,7 @@ export default function SearchBar({ page = true }: SearchBarProps) {
     return (
         <form>
 
-            <label className="flex h-9 w-[220px] items-center gap-2 rounded-lg border border-[#DCE8E2] bg-white px-3">
+            <label className="flex flex-1 h-9 max-w-[220px] items-center gap-2 rounded-lg border border-[#DCE8E2] bg-white px-3">
                 <Search className="size-4 text-[#64748B]" strokeWidth={1.7} />
                 <input
                     onChange={(e) => setSearchInput(e.target.value)}

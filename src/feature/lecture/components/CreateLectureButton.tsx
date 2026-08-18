@@ -23,11 +23,11 @@ export default function CreateLectureButton({ classrooms = [], subjects = [], te
             {permissions.includes("LECTURE:MANAGE") && (
                 <>
                     <button
-                        className="ml-auto flex h-9 items-center gap-1.5 rounded-[8px] bg-[#2A3A4A] px-4 text-[13px] leading-[19.5px] font-medium text-white"
+                        className="min-w-[70px] ml-auto md:ml-0 flex h-7 md:h-8 lg:h-9 items-center gap-1 md:gap-1.5 lg:gap-1.5 rounded-[8px] bg-[#2A3A4A] px-2.5 md:px-3.5 lg:px-4 text-[12px] md:text-[13px] leading-[19.5px] font-medium text-white"
                         onClick={modal.openModal}
                         type="button"
                     >
-                        <Plus className="size-3.5" strokeWidth={1.5} />
+                        <Plus className="size-3 md:size-3.5" strokeWidth={1.5} />
                         강의 등록
                     </button>
 

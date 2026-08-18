@@ -14,7 +14,7 @@ export default function MemberSearchInput({ keyword }: MemberSearchInputProps) {
     useDebounce(searchInput, true);
 
     return (
-        <label className="flex h-10 w-[260px] shrink-0 items-center gap-2 rounded-[8px] border border-[#D7E8DB] bg-white px-3">
+        <label className="flex h-9 w-[140px] px-2.5 sm:h-10 sm:w-[200px] sm:px-3 md:w-[260px] shrink-0 items-center gap-2 rounded-[8px] border border-[#D7E8DB] bg-white">
             <Search
                 className="size-3.5 shrink-0 text-[#94A3B8]"
                 strokeWidth={1.7}
