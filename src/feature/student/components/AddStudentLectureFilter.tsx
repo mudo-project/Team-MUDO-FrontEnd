@@ -16,7 +16,7 @@ interface AddStudentLectureFilterProps {
 }
 
 const selectClassName =
-    "h-8 min-w-0 rounded-[8px] border border-[#DCE8E2] bg-white px-2 text-[11px] text-[#0F172A] outline-none";
+    "h-7 md:h-8 min-w-0 rounded-[8px] border border-[#DCE8E2] bg-white px-1.5 sm:px-2 text-[11px] text-[#0F172A] outline-none";
 
 export default function AddStudentLectureFilter({
     classrooms,
@@ -34,7 +34,7 @@ export default function AddStudentLectureFilter({
     };
 
     return (
-        <div className="grid grid-cols-3 gap-1.5">
+        <div className="grid grid-cols-3 gap-1 sm:gap-1.5 md:gap-1.5">
             <select aria-label="학년" className={selectClassName} onChange={(event) => changeFilter("grade", event.target.value as AddStudentLectureFilters["grade"])} value={filters.grade ?? ""}>
                 <option value="">전체 학년</option>
                 {Object.entries(LECTURE_GRADE_LABEL).map(([value, label]) => <option key={value} value={value}>{label}</option>)}

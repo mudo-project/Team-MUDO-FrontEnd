@@ -25,7 +25,7 @@ export default function RollbookItem({ draft, entry, onChange }: RollbookItemPro
     const note = draft ? draft.note : entry.note ?? "";
 
     return (
-        <div className="grid min-h-16 sm:grid-cols-12 grid-cols-11 items-center gap-3 border-b border-[#F7F8F9] px-6 py-[13px] last:border-b-0">
+        <div className="grid min-h-16 sm:grid-cols-12 grid-cols-11 items-center gap-2 md:gap-3 border-b border-[#F7F8F9] px-3 py-2.5 md:px-6 md:py-[13px] last:border-b-0">
             <div className="col-span-3">
                 <strong className="block text-[13px] leading-[19.5px] font-medium text-[#0F172A]">{entry.studentName}</strong>
                 <span className="mt-px block text-[11px] leading-[16.5px] text-[#94A3B8]">{entry.parentPhone}</span>
@@ -33,7 +33,7 @@ export default function RollbookItem({ draft, entry, onChange }: RollbookItemPro
             <p className="sm:block hidden col-span-1 text-[12px] leading-[18px] text-[#64748B]">{LECTURE_GRADE_LABEL[entry.grade]}</p>
             <select
                 aria-label={`${entry.studentName} 출결 상태`}
-                className="col-span-4 h-8 w-full rounded-[7px] border border-[#DCE8E2] bg-white px-3 text-[12px] text-[#0F172A] focus:outline-none"
+                className="col-span-4 h-8 w-full rounded-[7px] border border-[#DCE8E2] bg-white px-2 md:px-3 text-[12px] text-[#0F172A] focus:outline-none"
                 onChange={(event) => onChange({ status: (event.target.value || null) as AttendanceStatus | null })}
                 value={status}
             >
@@ -42,7 +42,7 @@ export default function RollbookItem({ draft, entry, onChange }: RollbookItemPro
             </select>
             <input
                 aria-label={`${entry.studentName} 비고`}
-                className="col-span-4 h-8 w-full rounded-[7px] border border-[#DCE8E2] px-2.5 text-[12px] text-[#0F172A] placeholder:text-[#0F172A]/50 focus:outline-none"
+                className="col-span-4 h-8 w-full rounded-[7px] border border-[#DCE8E2] px-2 md:px-2.5 text-[12px] text-[#0F172A] placeholder:text-[#0F172A]/50 focus:outline-none"
                 onChange={(event) => onChange({ note: event.target.value })}
                 placeholder="비고 입력"
                 value={note}

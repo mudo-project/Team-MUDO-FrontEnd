@@ -47,8 +47,8 @@ export default function ViewLectureModal({ closeModal, lectureId }: ViewLectureM
     }, [lectureId]);
 
     return (
-        <div className="fixed top-0 left-0 z-999 flex h-screen w-screen items-center justify-center bg-[#162236]/40 p-6" onClick={closeModal}>
-            <article aria-labelledby="lecture-detail-title" aria-modal="true" className="relative z-1000 flex max-h-[550px] w-[90%] sm:w-4/5 md:w-[580px] flex-col overflow-hidden rounded-[12px] bg-white shadow-[0_12px_32px_rgba(22,34,54,0.18)]" onClick={(event) => event.stopPropagation()} role="dialog">
+        <div className="fixed top-0 left-0 z-999 flex h-screen w-screen items-center justify-center bg-[#162236]/40" onClick={closeModal}>
+            <article aria-labelledby="lecture-detail-title" aria-modal="true" className="relative z-1000 flex max-h-[550px] w-[90%] md:w-[620px] flex-col overflow-hidden rounded-[12px] bg-white shadow-[0_12px_32px_rgba(22,34,54,0.18)]" onClick={(event) => event.stopPropagation()} role="dialog">
                 {!detail && !error && <p className="px-6 py-12 text-center text-[13px] text-[#94A3B8]">강의 정보를 불러오는 중입니다.</p>}
                 {error && <p className="px-6 py-12 text-center text-[13px] text-[#C0483F]">{error}</p>}
                 {detail && (

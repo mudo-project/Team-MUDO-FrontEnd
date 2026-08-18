@@ -12,7 +12,7 @@ interface LectureFilterProps {
 }
 
 const selectClassName =
-    "h-9 rounded-[8px] border border-[#DCE8E2] bg-white px-3 text-[13px] text-[#0F172A] outline-none";
+    "h-7 md:h-8 lg:h-9 rounded-[8px] border border-[#DCE8E2] bg-white px-2 md:px-2.5 lg:px-3 text-[11px] md:text-[12px] lg:text-[13px] text-[#0F172A] outline-none";
 
 export default function LectureFilter({ classrooms, subjects, teachers, terms }: LectureFilterProps) {
     const pathname = usePathname();
@@ -31,7 +31,7 @@ export default function LectureFilter({ classrooms, subjects, teachers, terms }:
     };
 
     return (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 md:gap-1.5 lg:gap-2 w-full sm:w-[70%] overflow-x-auto">
             <select aria-label="학년" className={selectClassName} onChange={(event) => changeFilter("grade", event.target.value)} value={searchParams.get("grade") ?? ""}>
                 <option value="">전체 학년</option>
                 {Object.entries(LECTURE_GRADE_LABEL).map(([value, label]) => <option key={value} value={value}>{label}</option>)}

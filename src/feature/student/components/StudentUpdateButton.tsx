@@ -14,7 +14,7 @@ export default function StudentUpdateButton({ refreshStudent, student, studentId
                 type="button"
                 aria-label="학생 수정"
             >
-                <Pencil className="text-[#64748B] h-4 w-4" />
+                <Pencil className="text-[#64748B] h-3.5 w-3.5 md:h-4 md:w-4" />
             </button>
             {updateStudentModal.isModal && student && (
                 <UpdateStudentModal

@@ -20,7 +20,7 @@ export default function MemberItem({ member }: { member: MemberListData }) {
 
     return (
         <>
-            <button onClick={modal.openModal} className="w-full text-start grid h-16 grid-cols-5 items-center border-t border-[#D7E8DB] px-5 text-[12px] text-[#64748B] sm:grid-cols-7">
+            <button onClick={modal.openModal} className="w-full text-start grid h-16 grid-cols-5 items-center border-t border-[#D7E8DB] px-3 sm:px-4 md:px-5 text-[12px] text-[#64748B] sm:grid-cols-7">
                 <div className="col-span-3 flex min-w-0 items-center gap-3">
                     <span className="hidden size-7 shrink-0 items-center justify-center rounded-full bg-[#EAF5EE] text-[8px] font-semibold text-[#246B40] md:flex">
                         {member.name.slice(0, 1)}
@@ -30,8 +30,8 @@ export default function MemberItem({ member }: { member: MemberListData }) {
                         <span className="block truncate text-[10px] leading-[15px] text-[#94A3B8]">{member.email}</span>
                     </span>
                 </div>
-                <span className="col-span-1">{member.roleName ?? "-"}</span>
-                <span className="col-span-1">{member.phone}</span>
+                <span className="col-span-1 text-[11px] sm:text-[12px]">{member.roleName ?? "-"}</span>
+                <span className="col-span-1 text-[11px] sm:text-[12px]">{member.phone}</span>
                 <span className="col-span-1 hidden sm:block">{member.joinedAt}</span>
                 <span className="col-span-1 hidden sm:block">
                     <span className={`inline-flex min-h-5 items-center rounded-full px-2 text-[10px] font-semibold ${status.className}`}>

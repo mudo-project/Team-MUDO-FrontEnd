@@ -16,7 +16,7 @@ interface LectureScheduleField {
     startTime: string;
 }
 
-const inputClassName = "h-[39px] w-full rounded-[8px] border border-[#DCE8E2] bg-white px-3 text-[13px] text-[#0F172A] outline-none";
+const inputClassName = "h-[36px] sm:h-[37px] md:h-[39px] w-full rounded-[8px] border border-[#DCE8E2] bg-white px-2.5 sm:px-3 text-[12px] sm:text-[13px] text-[#0F172A] outline-none";
 
 const getInitialSchedules = (initialSchedules: LectureScheduleData[]): LectureScheduleField[] => {
     if (initialSchedules.length === 0) {
@@ -89,7 +89,7 @@ export default function LectureScheduleFields({ initialSchedules = [] }: Lecture
                     />
                     <button
                         aria-label="시간표 삭제"
-                        className="flex w-full sm:w-[40px]  size-9 shrink-0 items-center justify-center rounded-[7px] border border-[#F1D0CE] bg-[#FEF2F2] text-[#C0483F] disabled:cursor-not-allowed disabled:opacity-40"
+                        className="flex w-full sm:w-[40px] size-8 md:size-8 lg:size-9 shrink-0 items-center justify-center rounded-[7px] border border-[#F1D0CE] bg-[#FEF2F2] text-[#C0483F] disabled:cursor-not-allowed disabled:opacity-40"
                         disabled={schedules.length === 1}
                         onClick={() => removeSchedule(schedule.id)}
                         type="button"
@@ -99,8 +99,8 @@ export default function LectureScheduleFields({ initialSchedules = [] }: Lecture
                 </div>
             ))}
 
-            <button className="mt-2 flex h-9 items-center gap-1.5 rounded-[8px] border border-[#DCE8E2] bg-white px-3 text-[12px] text-[#64748B]" onClick={addSchedule} type="button">
-                <Plus className="size-3.5" strokeWidth={1.5} />
+            <button className="mt-2 flex h-8 md:h-8 lg:h-9 items-center gap-1 md:gap-1.5 lg:gap-1.5 rounded-[8px] border border-[#DCE8E2] bg-white px-2.5 md:px-3 lg:px-3 text-[11px] md:text-[12px] lg:text-[12px] text-[#64748B]" onClick={addSchedule} type="button">
+                <Plus className="size-3 md:size-3.5" strokeWidth={1.5} />
                 시간표 추가
             </button>
         </div>

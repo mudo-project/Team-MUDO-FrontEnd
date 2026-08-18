@@ -43,15 +43,15 @@ export default async function LecturePage({ searchParams }: { searchParams: Prom
     const terms = termsResponse.success ? termsResponse.data ?? [] : [];
 
     return (
-        <main className="h-[calc(100dvh-52px)] overflow-y-auto bg-[#FCFCFC] px-8 py-7">
-            <div className="flex min-w-[920px] items-center gap-2">
+        <main className="h-[calc(100dvh-52px)] overflow-y-auto bg-[#FCFCFC] px-4 py-4 sm:px-6 sm:py-5 md:px-8 md:py-7">
+            <div className="flex min-w-0 items-center gap-1.5 sm:gap-2 sm:flex-row flex-col ">
                 <LectureFilter
                     classrooms={classrooms}
                     subjects={subjects}
                     teachers={teachers}
                     terms={terms}
                 />
-                <p className="text-[12px] leading-[18px] text-[#94A3B8]">총 {lectures.length}개</p>
+                <p className="ml-auto pl-1 text-[12px] leading-[18px] text-[#94A3B8] md:block hidden">총 {lectures.length}개</p>
             </div>
 
             <div className="w-full overflow-x-auto">
