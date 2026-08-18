@@ -1,6 +1,6 @@
 'use client'
 
-import { isSameDay } from "date-fns";
+import { isSameDay, isSameMonth } from "date-fns";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -50,7 +50,9 @@ export default function FinanceCorporateCardManagement({ transactions, summary }
         const normalizedSearchQuery = searchQuery.trim().toLowerCase();
 
         return transactions.filter((item) => {
-            const matchesDate = !selectedDate || isSameDay(new Date(item.approvedAt), selectedDate);
+            const matchesDate = selectedDate
+                ? isSameDay(new Date(item.approvedAt), selectedDate)
+                : isSameMonth(new Date(item.approvedAt), calendarMonth);
             const matchesFilter = activeFilter === "전체" || item.status === FILTER_STATUS[activeFilter];
             const matchesSearch = !normalizedSearchQuery || [
                 item.merchantName,
@@ -60,7 +62,7 @@ export default function FinanceCorporateCardManagement({ transactions, summary }
 
             return matchesDate && matchesFilter && matchesSearch;
         });
-    }, [transactions, activeFilter, searchQuery, selectedDate]);
+    }, [transactions, activeFilter, searchQuery, selectedDate, calendarMonth]);
 
     const handleSelectItem = async (transactionId: number) => {
         if (isDetailLoading) return;

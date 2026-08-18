@@ -1,8 +1,9 @@
-// 결재선 지정 UI에서 사용하는 승인자 형태입니다. 결재자 후보 목록 조회 API가 아직 없어 실제 데이터로 대체하지 못했습니다.
+// 결재선 지정 UI에서 사용하는 승인자 형태입니다.
 
 export interface FinanceCardApprover {
+    userId: number;
     name: string;
-    role: string;
+    username: string;
     order: number;
     isFinal: boolean;
     approvedAt: string | null;
