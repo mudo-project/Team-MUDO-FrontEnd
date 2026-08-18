@@ -57,7 +57,9 @@ export default function NoticeCreateForm() {
                 })
             );
 
-            const result = await createNoticeAction(values.title, values.content, values.pinned, attachments);
+            const result = attachments.length > 0
+                ? await createNoticeAction(values.title, values.content, values.pinned, attachments)
+                : await createNoticeAction(values.title, values.content, values.pinned);
 
             if (!result.success) {
                 toast.error(result.message);
