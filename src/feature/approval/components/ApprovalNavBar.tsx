@@ -14,9 +14,11 @@ const approvalTabs = [
 export default function ApprovalNavBar({ buttonType = '결재 상신' }: { buttonType?: string }) {
     return (
         <div className="flex h-9 w-full items-center border-b border-[#D7E8DB] md:h-[39px]">
-            {approvalTabs.map((tab) => (
-                <ApprovalNav href={tab.href} key={tab.label}>{tab.label}</ApprovalNav>
-            ))}
+            <div className="w-[70%] flex overflow-x-auto ">
+                {approvalTabs.map((tab) => (
+                    <ApprovalNav href={tab.href} key={tab.label}>{tab.label}</ApprovalNav>
+                ))}
+            </div>
             {buttonType === '결재 상신' ? <ApprovalCreateButton /> : <ApprovalTemplateCreateButton />}
 
         </div>

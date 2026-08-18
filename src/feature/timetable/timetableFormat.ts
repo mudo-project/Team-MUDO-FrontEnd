@@ -46,17 +46,43 @@ export function getClassEndTime(template: TimetableTemplate, classItem: ClassIte
   return formatMinutesToTime(startMinutes + classItem.duration * template.slotMinutes);
 }
 
+// 층 이름에 포함된 숫자를 정렬 기준으로 쓴다(숫자가 없으면 0).
+function floorSortKey(floor: string): number {
+  const match = floor.match(/\d+/);
+  return match ? Number(match[0]) : 0;
+}
+
+// 같은 층 이름을 가진 그룹을 하나로 합치고(강의실 코드 중복 제거), 층 번호 내림차순으로 정렬한다.
+export function mergeFloorGroups(groups: FloorConfig[]): FloorConfig[] {
+  const floorOrder: string[] = [];
+  const roomsByFloor = new Map<string, string[]>();
+
+  groups.forEach(({ floor, rooms }) => {
+    if (!roomsByFloor.has(floor)) {
+      floorOrder.push(floor);
+      roomsByFloor.set(floor, []);
+    }
+
+    const mergedRooms = roomsByFloor.get(floor) as string[];
+
+    rooms.forEach((room) => {
+      if (!mergedRooms.includes(room)) mergedRooms.push(room);
+    });
+  });
+
+  return floorOrder
+    .map((floor) => ({ floor, rooms: roomsByFloor.get(floor) ?? [] }))
+    .sort((a, b) => floorSortKey(b.floor) - floorSortKey(a.floor));
+}
+
 // API 시간표 세트 상세 + 수업 슬롯 목록을 화면에서 쓰는 TimetableTemplate 형태로 변환한다.
 export function toTimetableTemplate(
   detail: TimetableSetDetailData,
   slots: TimetableSlotData[]
 ): TimetableTemplate {
-  const classroomGroups: FloorConfig[] = [...detail.classrooms]
-    .sort((a, b) => parseInt(b.floor, 10) - parseInt(a.floor, 10))
-    .map((group) => ({
-      floor: group.floor,
-      rooms: [...group.codes],
-    }));
+  const classroomGroups = mergeFloorGroups(
+    detail.classrooms.map((group) => ({ floor: group.floor, rooms: [...group.codes] }))
+  );
   const rooms = classroomGroups.flatMap((group) => group.rooms);
   const roomsByDay = weekDayNames.map((name) => ({ name, rooms: [...rooms] }));
   const baseMinutes = parseTimeToMinutes(detail.operatingStartTime);

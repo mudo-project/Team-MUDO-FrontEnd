@@ -6,7 +6,8 @@ import type { ScheduleEvent } from "../scheduleTypes";
 const baseEvent: ScheduleEvent = {
   id: 1,
   title: "전체 교직원 회의",
-  date: new Date(2026, 7, 10),
+  startDate: new Date(2026, 7, 10),
+  endDate: new Date(2026, 7, 10),
   allDay: false,
   startTime: "09:00",
   endTime: "10:00",
@@ -67,5 +68,18 @@ describe("ScheduleDetailModal", () => {
     fireEvent.click(screen.getByRole("button", { name: "삭제" }));
 
     expect(onDelete).toHaveBeenCalledTimes(1);
+  });
+
+  it("여러 날에 걸친 일정은 시작일~종료일 범위를 표시한다", () => {
+    render(
+      <ScheduleDetailModal
+        event={{ ...baseEvent, endDate: new Date(2026, 7, 12) }}
+        onClose={jest.fn()}
+        onDelete={jest.fn()}
+        onEdit={jest.fn()}
+      />
+    );
+
+    expect(screen.getByText("2026년 8월 10일 (월) ~ 2026년 8월 12일 (수)")).toBeInTheDocument();
   });
 });

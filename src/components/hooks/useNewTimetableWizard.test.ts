@@ -96,6 +96,51 @@ describe("useNewTimetableWizard", () => {
     expect(result.current.newRoomNames[0]).toBe("");
   });
 
+  it("층 이름을 입력하면 해당 층의 이름이 바뀐다", () => {
+    const { result } = renderHook(() => useNewTimetableWizard({ activeClassroomGroups, onFinish: jest.fn() }));
+
+    act(() => result.current.selectTemplateOption("previous"));
+    act(() => result.current.renameFloor(0, "옥상"));
+
+    expect(result.current.floors[0]).toEqual({ floor: "옥상", rooms: ["101", "102"] });
+  });
+
+  it("이전 템플릿의 강의실 구성에 같은 층 이름이 중복돼 있으면 하나로 합쳐진다", () => {
+    const duplicatedFloorGroups: FloorConfig[] = [
+      { floor: "5층", rooms: ["501"] },
+      { floor: "5층", rooms: ["502"] },
+    ];
+    const { result } = renderHook(() => useNewTimetableWizard({ activeClassroomGroups: duplicatedFloorGroups, onFinish: jest.fn() }));
+
+    act(() => result.current.selectTemplateOption("previous"));
+
+    expect(result.current.floors).toEqual([{ floor: "5층", rooms: ["501", "502"] }]);
+  });
+
+  it("수정 진입 시 기존 템플릿의 강의실 구성에 같은 층 이름이 중복돼 있으면 하나로 합쳐진다", () => {
+    const { result } = renderHook(() => useNewTimetableWizard({ activeClassroomGroups, onFinish: jest.fn() }));
+
+    const detail: TimetableSetDetailData = {
+      timetableSetId: 5,
+      name: "2026 여름특강",
+      startDate: "2026-08-01",
+      endDate: "2026-08-31",
+      operatingStartTime: "09:00",
+      operatingEndTime: "21:00",
+      operatingDays: ["MONDAY"],
+      slotUnitMinutes: 60,
+      classrooms: [
+        { floor: "5층", codes: ["501"] },
+        { floor: "5층", codes: ["502"] },
+      ],
+      status: "ACTIVE",
+    };
+
+    act(() => result.current.startEdit(detail));
+
+    expect(result.current.floors).toEqual([{ floor: "5층", rooms: ["501", "502"] }]);
+  });
+
   it("호실을 제거하면 해당 층 목록에서 사라진다", () => {
     const { result } = renderHook(() => useNewTimetableWizard({ activeClassroomGroups, onFinish: jest.fn() }));
 

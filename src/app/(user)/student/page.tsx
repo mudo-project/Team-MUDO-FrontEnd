@@ -26,10 +26,10 @@ export default async function Page({ searchParams }: paramsProps) {
     }
 
     return (
-        <main className="h-[calc(100dvh-52px)] overflow-hidden bg-[#FCFCFC] px-8 py-7">
-            <div className="flex w-full items-center gap-2.5">
+        <main className="h-[calc(100dvh-52px)] overflow-hidden bg-[#FCFCFC] px-4 py-4 sm:px-5 sm:py-5 md:px-6 md:py-6 lg:px-8 lg:py-7">
+            <div className="flex w-full items-center gap-1.5 sm:gap-2 md:gap-2.5">
                 <SearchBar page={true} />
-                <p className="pl-1 text-xs text-[#64748B]">총 {response.data?.content.length ?? 0}명</p>
+                <p className="hidden sm:block pl-1 text-xs text-[#64748B]">총 {response.data?.content.length ?? 0}명</p>
                 <CreateStudentButton />
             </div>
 

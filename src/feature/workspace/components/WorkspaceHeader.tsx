@@ -24,12 +24,6 @@ export default function WorkspaceHeader({ workspaceId }: { workspaceId: string }
     const pathName = usePathname().split('/')[3];
     const template = pathName.startsWith('repeat');
 
-    if (!workspaceData?.success || workspaceError) {
-        return (
-            <div>{workspaceData?.message || workspaceError}다시 시도해주세요.</div>
-        )
-    }
-
     return (
         <header className="min-h-[0px] border-b border-[#E7EAF0] bg-white px-2 pt-3 sm:px-2.5 md:px-4 lg:px-6 lg:pt-4">
             <div className="flex items-start sm:flex-row flex-col">
@@ -53,6 +47,7 @@ export default function WorkspaceHeader({ workspaceId }: { workspaceId: string }
                     }
                 </div>
             </div>
+            {!workspacePending && (!workspaceData?.success || workspaceError) && <div>{workspaceData?.message || workspaceError}다시 시도해주세요.</div>}
 
             <nav className="mt-2 flex h-8 items-end gap-2 sm:gap-3 md:mt-3 md:h-[34px] md:gap-5 lg:mt-4 lg:h-[36px] lg:gap-7">
                 <TaskNavLink href={`/workspace/${workspaceId}/daily`}>

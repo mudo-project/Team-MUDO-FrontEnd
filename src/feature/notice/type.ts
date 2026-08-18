@@ -1,8 +1,7 @@
-// 공지사항 작성 파일 응답값
+// 공지사항 작성 파일 요청값
 interface NoticeAttachmentRequest {
-    fileUrl: string;
+    fileId: number;
     fileName: string;
-    fileType?: string;
 }
 
 // 공지사항 작성 요청값

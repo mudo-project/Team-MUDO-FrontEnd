@@ -17,7 +17,7 @@ export default function PayrollAmountSummary({ summary }: PayrollAmountSummaryPr
             <div className="flex flex-col justify-center border-r border-[#E1EBE3] px-5">
                 <span className="text-[11px] text-[#718096]">총 공제액</span>
                 <strong className="mt-1 block text-[28px] leading-none tracking-[-0.04em] text-[#C0392B]">
-                    -{summary.totalDeductions.toLocaleString()} <span className="text-[13px]">원</span>
+                    {summary.totalDeductions > 0 ? "-" : ""}{summary.totalDeductions.toLocaleString()} <span className="text-[13px]">원</span>
                 </strong>
             </div>
             <div className="flex flex-col justify-center border-r border-[#E1EBE3] px-5">

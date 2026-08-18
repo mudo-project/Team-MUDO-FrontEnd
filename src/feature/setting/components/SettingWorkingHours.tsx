@@ -10,9 +10,14 @@ import SettingTimeSelect from "@/feature/setting/components/SettingTimeSelect";
 import { DEFAULT_WEEKDAY_EXCEPTIONS, toWorkingHoursPolicyWeekdays, type WeekdayException } from "@/feature/setting/utils";
 import { saveWorkingHoursPolicyAction } from "@/feature/setting/actions";
 
-export default function SettingWorkingHours() {
-  const [startTime, setStartTime] = useState("09:00");
-  const [endTime, setEndTime] = useState("18:00");
+type SettingWorkingHoursProps = {
+  initialStartTime?: string | null;
+  initialEndTime?: string | null;
+};
+
+export default function SettingWorkingHours({ initialStartTime, initialEndTime }: SettingWorkingHoursProps) {
+  const [startTime, setStartTime] = useState(initialStartTime ?? "09:00");
+  const [endTime, setEndTime] = useState(initialEndTime ?? "18:00");
   const [hasWeekdayException, setHasWeekdayException] = useState(false);
   const [weekdayExceptions, setWeekdayExceptions] = useState<WeekdayException[]>(DEFAULT_WEEKDAY_EXCEPTIONS);
   const [lateGraceMinutes, setLateGraceMinutes] = useState(10);

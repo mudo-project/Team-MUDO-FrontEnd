@@ -37,18 +37,10 @@ export default function WorkspaceCt({ workspaceId, date }: { workspaceId: string
     }, [workspaceData])
 
 
-    if (!workspaceData?.success || workspaceError) {
-        return (
-            <div>{workspaceData?.message || workspaceError}다시 시도해주세요.</div>
-        )
-    }
-
-
-
     return (
         <>
             <WorkspaceDailyHeader workspaceId={workspaceId} taskCount={workspaceData?.data?.taskCount} />
-
+            {!workspacePending && (!workspaceData?.success || workspaceError) && <div>{workspaceData?.message || workspaceError}다시 시도해주세요.</div>}
             <section className="px-2 py-4 sm:px-3 md:px-4 md:py-5 lg:px-6 h-[calc(100dvh-250px)] overflow-auto">
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-3 lg:gap-4">
                     <WorkList setSelectedTask={setSelectedTask} type='WAITING' task={groupedTasksMemo['WAITING']} workspaceId={workspaceId} />

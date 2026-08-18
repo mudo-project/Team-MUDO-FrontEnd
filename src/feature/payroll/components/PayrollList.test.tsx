@@ -60,14 +60,14 @@ describe("PayrollList", () => {
     });
 
     it("대상 직원이 없으면 안내 문구를 노출한다", () => {
-        render(<PayrollList isLoading={false} items={[]} onListChanged={jest.fn()} onToggleAll={jest.fn()} onToggleItem={jest.fn()} selectedItemIds={[]} />);
+        render(<PayrollList isLoading={false} items={[]} onListChanged={jest.fn()} />);
 
         expect(screen.getByText("조건에 맞는 직원이 없습니다.")).toBeInTheDocument();
     });
 
     it("미리보기를 클릭하면 상세를 조회해 패널을 연다", async () => {
         mockedGetPayrollAction.mockResolvedValue(detail);
-        render(<PayrollList isLoading={false} items={items} onListChanged={jest.fn()} onToggleAll={jest.fn()} onToggleItem={jest.fn()} selectedItemIds={[]} />);
+        render(<PayrollList isLoading={false} items={items} onListChanged={jest.fn()} />);
 
         fireEvent.click(screen.getByRole("button", { name: /미리보기/ }));
 
@@ -77,7 +77,7 @@ describe("PayrollList", () => {
 
     it("상세 조회에 실패하면 에러 토스트를 노출한다", async () => {
         mockedGetPayrollAction.mockRejectedValue(new Error("조회 실패"));
-        render(<PayrollList isLoading={false} items={items} onListChanged={jest.fn()} onToggleAll={jest.fn()} onToggleItem={jest.fn()} selectedItemIds={[]} />);
+        render(<PayrollList isLoading={false} items={items} onListChanged={jest.fn()} />);
 
         fireEvent.click(screen.getByRole("button", { name: /미리보기/ }));
 
@@ -91,7 +91,7 @@ describe("PayrollList", () => {
         mockedGetPayrollAction.mockResolvedValue({ payrollId: 20, version: 5 } as PayrollAggregateData);
         mockedCalculatePayrollAction.mockResolvedValue({ success: true, message: "급여를 계산하였습니다." });
         const onListChanged = jest.fn();
-        render(<PayrollList isLoading={false} items={items} onListChanged={onListChanged} onToggleAll={jest.fn()} onToggleItem={jest.fn()} selectedItemIds={[]} />);
+        render(<PayrollList isLoading={false} items={items} onListChanged={onListChanged} />);
 
         fireEvent.click(screen.getByRole("button", { name: /계산하기/ }));
         expect(screen.getByText("급여를 계산하시겠습니까?")).toBeInTheDocument();
@@ -110,7 +110,7 @@ describe("PayrollList", () => {
         mockedGetPayrollAction.mockResolvedValue({ payrollId: 20, version: 5 } as PayrollAggregateData);
         mockedCalculatePayrollAction.mockResolvedValue({ success: false, message: "급여 계산에 실패하였습니다." });
         const onListChanged = jest.fn();
-        render(<PayrollList isLoading={false} items={items} onListChanged={onListChanged} onToggleAll={jest.fn()} onToggleItem={jest.fn()} selectedItemIds={[]} />);
+        render(<PayrollList isLoading={false} items={items} onListChanged={onListChanged} />);
 
         fireEvent.click(screen.getByRole("button", { name: /계산하기/ }));
         fireEvent.click(screen.getAllByRole("button", { name: "계산하기" })[1]);
@@ -119,14 +119,5 @@ describe("PayrollList", () => {
             expect(toast.error).toHaveBeenCalledWith("급여 계산에 실패하였습니다.");
         });
         expect(onListChanged).not.toHaveBeenCalled();
-    });
-
-    it("전체선택 체크박스를 클릭하면 onToggleAll을 호출한다", () => {
-        const onToggleAll = jest.fn();
-        render(<PayrollList isLoading={false} items={items} onListChanged={jest.fn()} onToggleAll={onToggleAll} onToggleItem={jest.fn()} selectedItemIds={[]} />);
-
-        fireEvent.click(screen.getByRole("checkbox", { name: "전체 선택" }));
-
-        expect(onToggleAll).toHaveBeenCalled();
     });
 });

@@ -1,11 +1,12 @@
-import { format, startOfDay } from "date-fns";
+import { format, isSameDay, isWithinInterval, startOfDay } from "date-fns";
 import { ko } from "date-fns/locale";
 import { MEMO_COLORS, type MemoColor } from "@/feature/memo/components/MemoColorPicker";
 import type { ScheduleEvent } from "./scheduleTypes";
 
 type ScheduleFormValues = {
   title: string;
-  date: Date;
+  startDate: Date;
+  endDate: Date;
   allDay: boolean;
   startTime?: string;
   endTime?: string;
@@ -40,6 +41,33 @@ export function formatEventDateFull(date: Date): string {
   return format(date, "yyyy년 M월 d일 (EEEEEE)", { locale: ko });
 }
 
+// 하루짜리는 "M월 d일 (요일)", 여러 날이면 "M월 d일 ~ M월 d일"
+export function formatEventDateRange(event: ScheduleEvent): string {
+  if (isSameDay(event.startDate, event.endDate)) return formatEventDate(event.startDate);
+  return `${format(event.startDate, "M월 d일", { locale: ko })} ~ ${format(event.endDate, "M월 d일", { locale: ko })}`;
+}
+
+// 하루짜리는 "yyyy년 M월 d일 (요일)", 여러 날이면 양쪽 날짜를 모두 연도 포함으로 표기
+export function formatEventDateRangeFull(event: ScheduleEvent): string {
+  if (isSameDay(event.startDate, event.endDate)) return formatEventDateFull(event.startDate);
+  return `${formatEventDateFull(event.startDate)} ~ ${formatEventDateFull(event.endDate)}`;
+}
+
+// 목록 항목의 날짜·시간 한 줄 요약. 하루짜리는 "날짜 · 시간", 여러 날이고 종일이 아니면 각 날짜에 시간을 붙여 표기한다.
+export function formatEventRangeSummary(event: ScheduleEvent): string {
+  if (isSameDay(event.startDate, event.endDate)) {
+    return `${formatEventDate(event.startDate)} · ${formatEventTimeRange(event)}`;
+  }
+
+  if (event.allDay || !event.startTime || !event.endTime) return formatEventDateRange(event);
+
+  return `${format(event.startDate, "M월 d일", { locale: ko })} ${formatTimeLabel(event.startTime)} ~ ${format(event.endDate, "M월 d일", { locale: ko })} ${formatTimeLabel(event.endTime)}`;
+}
+
+export function isDateWithinEvent(date: Date, event: ScheduleEvent): boolean {
+  return isWithinInterval(date, { start: event.startDate, end: event.endDate });
+}
+
 function findColorByCode(code: string | null): MemoColor {
   return MEMO_COLORS.find((color) => color.code === code) ?? MEMO_COLORS[0];
 }
@@ -47,14 +75,16 @@ function findColorByCode(code: string | null): MemoColor {
 // API 응답(ScheduleEventData)을 화면에서 쓰는 ScheduleEvent 형태로 변환한다.
 export function toScheduleEvent(data: ScheduleEventData): ScheduleEvent {
   const startDate = new Date(data.eventStartAt);
+  const endDate = data.eventEndAt ? new Date(data.eventEndAt) : startDate;
 
   return {
     id: data.eventId,
     title: data.title,
-    date: startOfDay(startDate),
+    startDate: startOfDay(startDate),
+    endDate: startOfDay(endDate),
     allDay: data.allDay,
     startTime: data.allDay ? undefined : format(startDate, "HH:mm"),
-    endTime: data.allDay || !data.eventEndAt ? undefined : format(new Date(data.eventEndAt), "HH:mm"),
+    endTime: data.allDay || !data.eventEndAt ? undefined : format(endDate, "HH:mm"),
     color: findColorByCode(data.color),
     content: data.content ?? "",
     createdAt: format(new Date(data.createdAt), "yyyy.MM.dd"),
@@ -63,7 +93,8 @@ export function toScheduleEvent(data: ScheduleEventData): ScheduleEvent {
 
 // ScheduleCreateForm의 제출값을 캘린더 생성/수정 API 요청 바디로 변환한다.
 export function toScheduleRequestPayload(values: ScheduleFormValues): ScheduleCreateRequest {
-  const dateStr = format(values.date, "yyyy-MM-dd");
+  const startDateStr = format(values.startDate, "yyyy-MM-dd");
+  const endDateStr = format(values.endDate, "yyyy-MM-dd");
   const content = values.content.trim() ? values.content.trim() : undefined;
   const color = values.color.code;
 
@@ -71,7 +102,7 @@ export function toScheduleRequestPayload(values: ScheduleFormValues): ScheduleCr
     return {
       title: values.title,
       content,
-      eventStartAt: `${dateStr}T00:00:00`,
+      eventStartAt: `${startDateStr}T00:00:00`,
       allDay: true,
       color,
     };
@@ -80,8 +111,8 @@ export function toScheduleRequestPayload(values: ScheduleFormValues): ScheduleCr
   return {
     title: values.title,
     content,
-    eventStartAt: `${dateStr}T${values.startTime}:00`,
-    eventEndAt: `${dateStr}T${values.endTime}:00`,
+    eventStartAt: `${startDateStr}T${values.startTime}:00`,
+    eventEndAt: `${endDateStr}T${values.endTime}:00`,
     allDay: false,
     color,
   };

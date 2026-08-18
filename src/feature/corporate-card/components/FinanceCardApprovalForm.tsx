@@ -1,9 +1,11 @@
 'use client'
 
 import { Plus, X } from "lucide-react";
-import { useState } from "react";
-import type { FinanceCardApprover } from "../mockData";
-import { FINANCE_CARD_PURPOSE_OPTIONS } from "../mockData";
+import { useEffect, useState } from "react";
+import { getUserListAction } from "@/feature/auth/actions";
+import { useUserStore } from "@/store/useUserStore";
+import type { FinanceCardApprover } from "../constants";
+import { FINANCE_CARD_PURPOSE_OPTIONS } from "../constants";
 
 interface FinanceCardApprovalFormProps {
     expenseCategory: string;
@@ -24,15 +26,23 @@ export default function FinanceCardApprovalForm({
     isResubmission = false,
     submitLabel,
 }: FinanceCardApprovalFormProps) {
+    const userId = Number(useUserStore((state) => state.user.sub));
     const [assignedApprovers, setAssignedApprovers] = useState(approvers);
-    const [selectedApproverName, setSelectedApproverName] = useState("");
-    const approverCandidates = [
-        { name: "박서연", role: "팀장" },
-        { name: "최민호", role: "부장" },
-    ];
+    const [selectedApproverId, setSelectedApproverId] = useState("");
+    const [approverCandidates, setApproverCandidates] = useState<UserListResponse[]>([]);
 
-    const handleAddApprover = (name: string) => {
-        const candidate = approverCandidates.find((approver) => approver.name === name);
+    useEffect(() => {
+        const loadApproverCandidates = async () => {
+            const response = await getUserListAction();
+            const users = response.data ?? [];
+            setApproverCandidates(users.filter((user) => user.userId !== userId));
+        };
+
+        loadApproverCandidates();
+    }, [userId]);
+
+    const handleAddApprover = (candidateUserId: number) => {
+        const candidate = approverCandidates.find((approver) => approver.userId === candidateUserId);
 
         if (!candidate) {
             return;
@@ -44,7 +54,7 @@ export default function FinanceCardApprovalForm({
                 { ...candidate, order: currentApprovers.length + 1, isFinal: true, approvedAt: null },
             ];
         });
-        setSelectedApproverName("");
+        setSelectedApproverId("");
     };
 
     const handleRemoveApprover = (order: number) => {
@@ -100,7 +110,7 @@ export default function FinanceCardApprovalForm({
                             </>
                         )}
                         <span className={isResubmission ? "hidden" : undefined}>
-                            {approver.order}차 승인{approver.isFinal ? "(최종 승인자)" : ""} · {approver.name} · {approver.role}
+                            {approver.order}차 승인{approver.isFinal ? "(최종 승인자)" : ""} · {approver.name} · {approver.username}
                         </span>
                         <button
                             aria-label={`${approver.name} 결재선에서 제거`}
@@ -115,14 +125,15 @@ export default function FinanceCardApprovalForm({
                 {isResubmission && (
                     <div className="pt-1">
                         <div className="rounded-xl border border-dashed border-[#B6CFBA] px-3 py-2">
-                            <select className="h-6 w-full bg-white px-1 text-[13px] font-semibold text-[#4D856B] outline-none" onChange={(event) => { setSelectedApproverName(event.target.value); handleAddApprover(event.target.value); }} value={selectedApproverName}>
+                            <select className="h-6 w-full bg-white px-1 text-[13px] font-semibold text-[#4D856B] outline-none" onChange={(event) => { const candidateUserId = Number(event.target.value); setSelectedApproverId(event.target.value); handleAddApprover(candidateUserId); }} value={selectedApproverId}>
                                 <option disabled hidden value="">결재자 추가</option>
-                                {approverCandidates.map((candidate) => 
-                                    <option 
-                                        key={candidate.name} 
-                                        value={candidate.name}
+                                {approverCandidates.map((candidate) =>
+                                    <option
+                                        disabled={assignedApprovers.some((approver) => approver.userId === candidate.userId)}
+                                        key={candidate.userId}
+                                        value={candidate.userId}
                                     >
-                                        {candidate.name} · {candidate.role}
+                                        {candidate.name} ({candidate.username})
                                     </option>
                                 )}
                             </select>

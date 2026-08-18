@@ -102,13 +102,25 @@ export default function ViewStudentModal({ closeModal, studentId }: { closeModal
 
     if (isLoading) {
         return (
-            <div></div>
+            <div className="fixed top-0 left-0 z-999 flex h-screen w-screen items-center justify-center bg-black/35 p-5" onClick={closeModal}>
+                <section
+                    className="fixed top-1/2 left-1/2 z-1000 flex min-h-[300px] max-h-[550px] w-[90%] max-w-[560px] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center overflow-hidden rounded-[14px] bg-white shadow-[0_8px_40px_rgba(22,34,54,0.18)] md:w-3/5 lg:w-[560px]"
+                    onClick={(event) => event.stopPropagation()}>
+                    <p className="text-[13px] text-[#94A3B8]">학생 정보를 불러오는 중입니다.</p>
+                </section>
+            </div>
         )
     }
 
     if (error) {
         return (
-            <div>{error || '네트워크 오류가 발생했습니다.'} 잠시후 다시 시도해주세요.</div>
+            <div className="fixed top-0 left-0 z-999 flex h-screen w-screen items-center justify-center bg-black/35 p-5" onClick={closeModal}>
+                <section
+                    className="fixed top-1/2 left-1/2 z-1000 flex min-h-[300px] max-h-[550px] w-[90%] max-w-[560px] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center overflow-hidden rounded-[14px] bg-white px-6 text-center shadow-[0_8px_40px_rgba(22,34,54,0.18)] md:w-3/5 lg:w-[560px]"
+                    onClick={(event) => event.stopPropagation()}>
+                    <p className="text-[13px] text-[#C0483F]">{error || '네트워크 오류가 발생했습니다.'} 잠시후 다시 시도해주세요.</p>
+                </section>
+            </div>
         )
     }
 

@@ -12,7 +12,8 @@ import type { ScheduleEvent } from "../scheduleTypes";
 
 export type ScheduleFormSubmitValues = {
   title: string;
-  date: Date;
+  startDate: Date;
+  endDate: Date;
   allDay: boolean;
   startTime?: string;
   endTime?: string;
@@ -43,6 +44,7 @@ export default function ScheduleCreateForm({
   onSubmit,
 }: ScheduleCreateFormProps) {
   const [selectedColor, setSelectedColor] = useState<MemoColor>(schedule?.color ?? MEMO_COLORS[0]);
+
   const {
     register,
     handleSubmit,
@@ -52,7 +54,8 @@ export default function ScheduleCreateForm({
     resolver: zodResolver(scheduleCreateSchema),
     defaultValues: {
       title: schedule?.title ?? "",
-      date: format(schedule?.date ?? initialDate ?? new Date(), "yyyy-MM-dd"),
+      startDate: format(schedule?.startDate ?? initialDate ?? new Date(), "yyyy-MM-dd"),
+      endDate: format(schedule?.endDate ?? initialDate ?? new Date(), "yyyy-MM-dd"),
       allDay: schedule?.allDay ?? false,
       startTime: schedule?.startTime ?? "",
       endTime: schedule?.endTime ?? "",
@@ -65,7 +68,8 @@ export default function ScheduleCreateForm({
   const submit = (values: ScheduleCreateFormValues) => {
     onSubmit({
       title: values.title,
-      date: parseDateInput(values.date),
+      startDate: parseDateInput(values.startDate),
+      endDate: parseDateInput(values.endDate),
       allDay: values.allDay,
       startTime: values.allDay ? undefined : values.startTime,
       endTime: values.allDay ? undefined : values.endTime,
@@ -101,17 +105,31 @@ export default function ScheduleCreateForm({
             {errors.title && <p className="mt-1 text-[11px] text-[#C65A50]">{errors.title.message}</p>}
           </div>
 
-          <div>
-            <label className="mb-1.5 block text-[13px] font-medium text-[#344054]" htmlFor="schedule-date">
-              날짜
-            </label>
-            <input
-              className="h-11 w-full rounded-lg border border-[#DCE9DF] px-3 text-[13px] outline-none focus:border-[#4D9560]"
-              id="schedule-date"
-              type="date"
-              {...register("date")}
-            />
-            {errors.date && <p className="mt-1 text-[11px] text-[#C65A50]">{errors.date.message}</p>}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1.5 block text-[13px] font-medium text-[#344054]" htmlFor="schedule-start-date">
+                시작일
+              </label>
+              <input
+                className="h-11 w-full rounded-lg border border-[#DCE9DF] px-3 text-[13px] outline-none focus:border-[#4D9560]"
+                id="schedule-start-date"
+                type="date"
+                {...register("startDate")}
+              />
+              {errors.startDate && <p className="mt-1 text-[11px] text-[#C65A50]">{errors.startDate.message}</p>}
+            </div>
+            <div>
+              <label className="mb-1.5 block text-[13px] font-medium text-[#344054]" htmlFor="schedule-end-date">
+                종료일
+              </label>
+              <input
+                className="h-11 w-full rounded-lg border border-[#DCE9DF] px-3 text-[13px] outline-none focus:border-[#4D9560]"
+                id="schedule-end-date"
+                type="date"
+                {...register("endDate")}
+              />
+              {errors.endDate && <p className="mt-1 text-[11px] text-[#C65A50]">{errors.endDate.message}</p>}
+            </div>
           </div>
 
           <label className="flex items-center gap-2 text-[13px] font-medium text-[#344054]">

@@ -44,4 +44,10 @@ describe("classRegistrationSchema", () => {
       expect(result.error.issues[0].path).toEqual(["endTime"]);
     }
   });
+
+  it("같은 시(hour) 안에서 30분 뒤인 종료 시각은 유효하다", () => {
+    const result = classRegistrationSchema.safeParse({ ...validValues, startTime: "09:00", endTime: "09:30" });
+
+    expect(result.success).toBe(true);
+  });
 });

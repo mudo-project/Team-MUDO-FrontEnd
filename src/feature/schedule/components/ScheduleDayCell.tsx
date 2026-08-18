@@ -1,5 +1,5 @@
 import type { DayButtonProps } from "react-day-picker";
-import { isSameDay } from "date-fns";
+import { isDateWithinEvent } from "../scheduleFormat";
 import type { ScheduleEvent } from "../scheduleTypes";
 
 type ScheduleDayCellProps = DayButtonProps & {
@@ -7,7 +7,7 @@ type ScheduleDayCellProps = DayButtonProps & {
 };
 
 export default function ScheduleDayCell({ day, modifiers, events, ...props }: ScheduleDayCellProps) {
-  const dayEvents = events.filter((event) => isSameDay(event.date, day.date));
+  const dayEvents = events.filter((event) => isDateWithinEvent(day.date, event));
   const visibleEvents = dayEvents.slice(0, 3);
   const weekday = day.date.getDay();
 

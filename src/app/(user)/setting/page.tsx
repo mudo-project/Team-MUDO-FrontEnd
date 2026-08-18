@@ -3,14 +3,26 @@ import SettingWifi from "@/feature/setting/components/SettingWifi";
 import SettingPayday from "@/feature/setting/components/SettingPayday";
 import SettingAlarm from "@/feature/setting/components/SettingAlarm";
 import SettingGoogle from "@/feature/setting/components/SettingGoogle";
+import { getMyTodayAction } from "@/feature/attendance/actions";
 
-export default function SettingPage() {
+export default async function SettingPage() {
+  let initialStartTime: string | null = null;
+  let initialEndTime: string | null = null;
+
+  try {
+    const today = await getMyTodayAction();
+    initialStartTime = today.workStartTime.slice(0, 5);
+    initialEndTime = today.workEndTime.slice(0, 5);
+  } catch {
+    // 저장된 정책이 없거나 조회에 실패하면 기본값(09:00~18:00)을 그대로 둔다.
+  }
+
   return (
     <main className="h-[calc(100dvh-3.25rem)] overflow-hidden bg-[#FCFCFC] px-4 py-6 text-[#172033] sm:px-5 lg:px-8">
       <div className="h-full overflow-y-auto scrollbar-hide">
         <div className="mx-auto w-full max-w-[1740px] pb-8">
           <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(520px,1fr)] xl:gap-5">
-            <SettingWorkingHours />
+            <SettingWorkingHours initialStartTime={initialStartTime} initialEndTime={initialEndTime} />
 
             <div className="space-y-4 xl:space-y-5">
               <SettingWifi />

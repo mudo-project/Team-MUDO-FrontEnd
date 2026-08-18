@@ -35,35 +35,6 @@ type PayrollEmailDeliveryStatus = "PENDING" | "SENDING" | "RETRY_WAIT" | "SENT" 
 // 일괄 발송 배치 상태
 type PayrollEmailBatchStatus = "PENDING" | "PROCESSING" | "AWAITING_DELIVERY" | "COMPLETED";
 
-// 일괄 발송 대상 1건
-interface PayrollEmailDeliveryData {
-    deliveryId: number;
-    employeeId: number;
-    employeeName: string;
-    recipientEmailMasked: string;
-    status: PayrollEmailDeliveryStatus;
-    failureReason: string | null;
-}
-
-// 일괄 발송 결과
-interface PayrollEmailBatchResultData {
-    batchId: number;
-    yearMonth: string;
-    status: PayrollEmailBatchStatus;
-    summary: {
-        totalCount: number;
-        pendingCount: number;
-        sendingCount: number;
-        sentCount: number;
-        retryWaitCount: number;
-        unknownCount: number;
-        deliveredCount: number;
-        failedCount: number;
-        skippedCount: number;
-    };
-    deliveries: PayrollEmailDeliveryData[];
-}
-
 // 급여 지급일 유형
 type PayrollPayDayType = "FIXED_DAY" | "MONTH_END";
 

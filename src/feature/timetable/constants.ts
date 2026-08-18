@@ -1,6 +1,12 @@
 export const weekDayNames = ["일", "월", "화", "수", "목", "금", "토"];
 
-export const times = ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00"];
+export const times = Array.from({ length: 29 }, (_, index) => {
+  const totalMinutes = 8 * 60 + index * 30;
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+});
 
 export const startTimeOptions = times.slice(0, -1);
 export const endTimeOptions = times.slice(1);

@@ -22,6 +22,7 @@ type NewTimetableStepModalProps = {
   onNext: () => void;
   onPrev: () => void;
   onRemoveRoom: (floorIndex: number, room: string) => void;
+  onRenameFloor: (floorIndex: number, name: string) => void;
   onSelectTemplateOption: (option: "empty" | "previous") => void;
   isSubmitting?: boolean;
   selectedTemplateOption: "empty" | "previous" | null;
@@ -47,6 +48,7 @@ export default function NewTimetableStepModal({
   onNext,
   onPrev,
   onRemoveRoom,
+  onRenameFloor,
   onSelectTemplateOption,
   isSubmitting = false,
   selectedTemplateOption,
@@ -114,13 +116,14 @@ export default function NewTimetableStepModal({
           />
         }
         {step === 3 && 
-          <NewTimetableRoomSetupStep 
-            floors={floors} 
-            newRoomNames={newRoomNames} 
-            onAddFloor={onAddFloor} 
-            onAddRoom={onAddRoom} 
-            onChangeNewRoomName={onChangeNewRoomName} 
-            onRemoveRoom={onRemoveRoom} 
+          <NewTimetableRoomSetupStep
+            floors={floors}
+            newRoomNames={newRoomNames}
+            onAddFloor={onAddFloor}
+            onAddRoom={onAddRoom}
+            onChangeNewRoomName={onChangeNewRoomName}
+            onRemoveRoom={onRemoveRoom}
+            onRenameFloor={onRenameFloor}
           />
         }
         <footer className="flex justify-end gap-2 border-t border-[#E5EEE7] px-6 py-4">

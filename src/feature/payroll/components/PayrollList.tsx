@@ -12,18 +12,14 @@ interface PayrollListProps {
     isLoading: boolean;
     items: PayrollListItemData[];
     onListChanged: () => void;
-    onToggleAll: () => void;
-    onToggleItem: (employeeId: number) => void;
-    selectedItemIds: number[];
 }
 
-export default function PayrollList({ isLoading, items, onListChanged, onToggleAll, onToggleItem, selectedItemIds }: PayrollListProps) {
+export default function PayrollList({ isLoading, items, onListChanged }: PayrollListProps) {
     const [selectedDetail, setSelectedDetail] = useState<PayrollAggregateData | null>(null);
     const [isDetailLoading, setIsDetailLoading] = useState(false);
     const [calculatingItem, setCalculatingItem] = useState<PayrollListItemData | null>(null);
     const [isCalculating, setIsCalculating] = useState(false);
     const calculateModal = useModal();
-    const isAllSelected = items.length > 0 && items.every((item) => selectedItemIds.includes(item.employeeId));
 
     const handlePreview = async (payrollId: number) => {
         if (isDetailLoading) return;
@@ -71,7 +67,6 @@ export default function PayrollList({ isLoading, items, onListChanged, onToggleA
         <div className="relative mt-4 overflow-hidden rounded-xl border border-[#DCE9DF] bg-white">
             <table aria-label="급여 목록" className="w-full table-fixed text-left">
                 <colgroup>
-                    <col className="w-[54px]" />
                     <col className="w-[160px]" />
                     <col className="w-[100px]" />
                     <col className="w-[100px]" />
@@ -83,9 +78,6 @@ export default function PayrollList({ isLoading, items, onListChanged, onToggleA
                 </colgroup>
                 <thead className="border-b border-[#E1EBE3] text-[11px] font-medium text-[#94A3B8]">
                     <tr className="h-[50px]">
-                        <th className="px-5 text-center">
-                            <input aria-label="전체 선택" checked={isAllSelected} className="size-4 accent-[#172033]" onChange={onToggleAll} type="checkbox" />
-                        </th>
                         <th className="px-3">직원명</th>
                         <th className="px-3">고용형태</th>
                         <th className="px-3">지급합계</th>
@@ -101,17 +93,15 @@ export default function PayrollList({ isLoading, items, onListChanged, onToggleA
                 <tbody>
                     {items.map((item) => (
                         <PayrollListItem
-                            isSelected={selectedItemIds.includes(item.employeeId)}
                             item={item}
                             key={item.employeeId}
                             onCalculate={handleCalculate}
                             onPreview={handlePreview}
-                            onToggleSelect={onToggleItem}
                         />
                     ))}
                     {items.length === 0 && (
                         <tr>
-                            <td className="px-5 py-10 text-center text-[13px] text-[#94A3B8]" colSpan={9}>
+                            <td className="px-5 py-10 text-center text-[13px] text-[#94A3B8]" colSpan={8}>
                                 조건에 맞는 직원이 없습니다.
                             </td>
                         </tr>
