@@ -14,7 +14,15 @@ export type ExistingFile = {
     size?: string;
 };
 
-export default function NoticeFileUpload({ initialFiles }: { initialFiles?: ExistingFile[] }) {
+export default function NoticeFileUpload({
+    initialFiles,
+    disabled = false,
+    onFilesChange,
+}: {
+    initialFiles?: ExistingFile[];
+    disabled?: boolean;
+    onFilesChange?: (files: File[]) => void;
+}) {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const attachedFilesRef = useRef<AttachedFile[]>([]);
     const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([]);
@@ -22,6 +30,8 @@ export default function NoticeFileUpload({ initialFiles }: { initialFiles?: Exis
 
     useEffect(() => {
         attachedFilesRef.current = attachedFiles;
+        onFilesChange?.(attachedFiles.map((item) => item.file));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [attachedFiles]);
 
     useEffect(() => {
@@ -62,7 +72,7 @@ export default function NoticeFileUpload({ initialFiles }: { initialFiles?: Exis
     return (
         <div className="mt-4 w-full">
             <p className="pb-1.5 text-[13px] font-medium text-[#0F172A]">첨부</p>
-            <label className="flex h-[90px] w-full cursor-pointer flex-col items-center justify-center gap-1 rounded-[8px] border border-dashed border-[#D7E8DB] bg-[#FAFBFC] text-center">
+            <label className={`flex h-[90px] w-full flex-col items-center justify-center gap-1 rounded-[8px] border border-dashed border-[#D7E8DB] bg-[#FAFBFC] text-center ${disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}>
                 <Upload className="size-[18px] text-[#64748B]" strokeWidth={1.5} />
                 <span className="text-[12px] font-medium text-[#0F172A]">
                     사진·파일을 끌어다 놓거나 클릭해 첨부
@@ -72,6 +82,7 @@ export default function NoticeFileUpload({ initialFiles }: { initialFiles?: Exis
                 </span>
                 <input
                     className="hidden"
+                    disabled={disabled}
                     multiple
                     onChange={handleFileChange}
                     ref={fileInputRef}
@@ -101,7 +112,8 @@ export default function NoticeFileUpload({ initialFiles }: { initialFiles?: Exis
                             </span>
                             <button
                                 aria-label={`${file.name} 삭제`}
-                                className="shrink-0 text-[#C0C8D0] hover:cursor-pointer"
+                                className="shrink-0 text-[#C0C8D0] hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
+                                disabled={disabled}
                                 onClick={() => removeExistingFile(file.name)}
                                 type="button"
                             >
@@ -134,7 +146,8 @@ export default function NoticeFileUpload({ initialFiles }: { initialFiles?: Exis
                             </button>
                             <button
                                 aria-label={`${file.name} 삭제`}
-                                className="shrink-0 text-[#C0C8D0] hover:cursor-pointer"
+                                className="shrink-0 text-[#C0C8D0] hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
+                                disabled={disabled}
                                 onClick={() => removeFile(previewUrl)}
                                 type="button"
                             >

@@ -3,9 +3,12 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, X } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import useModal from "@/components/hooks/useModal";
+import { getFileDownloadUrlAction } from "@/feature/file/actions";
+import { uploadFiles } from "@/feature/file/uploadFiles";
 import { NoticeCreateFormValues, noticeCreateSchema } from "@/lib/noticeCreateSchema";
 import { createNoticeAction } from "../actions";
 import NoticeFileUpload from "./NoticeFileUpload";
@@ -13,6 +16,8 @@ import NoticeFileUpload from "./NoticeFileUpload";
 export default function NoticeCreateForm() {
     const modal = useModal();
     const router = useRouter();
+    const [files, setFiles] = useState<File[]>([]);
+    const [uploadedFileIds, setUploadedFileIds] = useState<Record<string, number>>({});
     const {
         register,
         handleSubmit,
@@ -25,18 +30,47 @@ export default function NoticeCreateForm() {
 
     const closeAndReset = () => {
         reset();
+        setFiles([]);
+        setUploadedFileIds({});
         modal.closeModal();
     };
 
     const onSubmit = async (values: NoticeCreateFormValues) => {
-        const result = await createNoticeAction(values.title, values.content, values.pinned);
+        try {
+            const uploadResult = await uploadFiles(files, uploadedFileIds);
+            setUploadedFileIds(uploadResult.uploadedFileIds);
 
-        if (result.success) {
+            const attachments = await Promise.all(
+                files.map(async (file, index) => {
+                    const fileId = uploadResult.fileIds[index];
+                    const downloadResult = await getFileDownloadUrlAction(fileId);
+
+                    if (!downloadResult.success || !downloadResult.data) {
+                        throw new Error(downloadResult.message);
+                    }
+
+                    return {
+                        fileUrl: downloadResult.data.downloadUrl,
+                        fileName: file.name,
+                        fileType: file.type || "application/octet-stream",
+                    };
+                })
+            );
+
+            const result = attachments.length > 0
+                ? await createNoticeAction(values.title, values.content, values.pinned, attachments)
+                : await createNoticeAction(values.title, values.content, values.pinned);
+
+            if (!result.success) {
+                toast.error(result.message);
+                return;
+            }
+
             toast.success(result.message);
             closeAndReset();
             router.refresh();
-        } else {
-            toast.error(result.message);
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : "공지사항 작성에 실패했습니다.");
         }
     };
 
@@ -105,7 +139,7 @@ export default function NoticeCreateForm() {
                             )}
                         </div>
 
-                        <NoticeFileUpload />
+                        <NoticeFileUpload disabled={isSubmitting} onFilesChange={setFiles} />
 
                         <div className="mt-4 flex items-start gap-2 hover:cursor-pointer">
                             <input className="mt-0.5 size-4 hover:cursor-pointer" id="notice-pinned" type="checkbox" {...register("pinned")} />
