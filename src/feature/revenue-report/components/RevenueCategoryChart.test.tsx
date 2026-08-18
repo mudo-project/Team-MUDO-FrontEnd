@@ -1,20 +1,15 @@
 import { render, screen } from "@testing-library/react";
 import RevenueCategoryChart from "./RevenueCategoryChart";
 
-jest.mock("recharts", () => ({
-  ResponsiveContainer: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  BarChart: ({ data }: { data: { label: string; amount: number }[] }) => (
+jest.mock("chart.js/auto", () => ({}));
+jest.mock("react-chartjs-2", () => ({
+  Bar: ({ data }: { data: { labels: string[] } }) => (
     <div data-testid="bar-chart">
-      {data.map((item) => (
-        <span key={item.label}>{item.label}</span>
+      {data.labels.map((label) => (
+        <span key={label}>{label}</span>
       ))}
     </div>
   ),
-  Bar: () => null,
-  XAxis: () => null,
-  YAxis: () => null,
-  CartesianGrid: () => null,
-  Tooltip: () => null,
 }));
 
 describe("RevenueCategoryChart", () => {
