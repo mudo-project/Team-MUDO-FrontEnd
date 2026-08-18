@@ -44,7 +44,6 @@ export default function WorkspaceRealtimeProvider({
                 syncWorkspace();
 
                 client?.subscribe(`/topic/workspaces/${workspaceId}`, (message) => {
-                    console.log('구독')
                     try {
                         const event = JSON.parse(message.body) as WorkspaceRealtimeEvent;
 
@@ -61,14 +60,11 @@ export default function WorkspaceRealtimeProvider({
                             case "COMMENT_UPDATED":
                             case "COMMENT_TOGGLED":
                             case "COMMENT_DELETED":
-                                // 목록의 댓글 완료 수 표시(completedCommentCount/commentCount)와
-                                // 업무 상세의 댓글 목록을 함께 갱신한다.
                                 syncWorkspace();
                                 syncTask(event.taskId);
                                 break;
                         }
                     } catch {
-                        // 파싱할 수 없는 메시지는 무시한다.
                     }
                 });
 
