@@ -1,7 +1,7 @@
 'use client'
 
 import { Download, Mail, Plus, RotateCw, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import useModal from "@/components/hooks/useModal";
 import TwoButtonModal from "@/components/ui/TwoButtonModal";
@@ -18,7 +18,10 @@ import {
     updatePayrollAction,
 } from "../actions";
 import { PAYROLL_EMPLOYMENT_TYPE_LABEL, PAYROLL_SALARY_TYPE_LABEL, PAYROLL_STATUS_BADGE_CLASS, PAYROLL_STATUS_LABEL } from "../statusStyles";
+import PayrollEmailDeliveryResultPanel from "./PayrollEmailDeliveryResultPanel";
 import PayrollRevisionHistory from "./PayrollRevisionHistory";
+
+const STATEMENT_POLL_INTERVAL_MS = 3000;
 
 interface PayrollDetailProps {
     detail: PayrollAggregateData;
@@ -71,6 +74,7 @@ export default function PayrollDetail({ detail: initialDetail, onClose, onListCh
     const [isMutating, setIsMutating] = useState(false);
     const [revisions, setRevisions] = useState<PayrollAggregateData[] | null>(null);
     const [isRevisionHistoryOpen, setIsRevisionHistoryOpen] = useState(false);
+    const [emailDeliveryResult, setEmailDeliveryResult] = useState<PayrollEmailDeliveryCreateData | null>(null);
     const confirmModal = useModal();
     const revisionModal = useModal();
     const retryModal = useModal();
@@ -87,6 +91,25 @@ export default function PayrollDetail({ detail: initialDetail, onClose, onListCh
         setMemo(nextDetail.memo ?? "");
         onListChanged();
     };
+
+    // 확정 직후 명세서는 PENDING으로 비동기 생성되므로, READY/FAILED로 바뀔 때까지 폴링해 재진입 없이 버튼을 노출한다.
+    useEffect(() => {
+        if (detail.statement?.status !== "PENDING") return;
+
+        const interval = setInterval(async () => {
+            try {
+                const nextDetail = await getPayrollAction(detail.payrollId);
+                setDetail(nextDetail);
+                if (nextDetail.statement?.status !== "PENDING") {
+                    onListChanged();
+                }
+            } catch {
+            }
+        }, STATEMENT_POLL_INTERVAL_MS);
+
+        return () => clearInterval(interval);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [detail.statement?.status, detail.payrollId]);
 
     const handleSaveMemo = async () => {
         if (isSavingMemo) return;
@@ -210,6 +233,9 @@ export default function PayrollDetail({ detail: initialDetail, onClose, onListCh
         }
 
         toast.success(result.message);
+        if (result.data) {
+            setEmailDeliveryResult(result.data);
+        }
     };
 
     return (
@@ -522,6 +548,13 @@ export default function PayrollDetail({ detail: initialDetail, onClose, onListCh
                     employeeName={detail.employee.name}
                     onClose={() => setIsRevisionHistoryOpen(false)}
                     revisions={revisions}
+                />
+            )}
+            {emailDeliveryResult && (
+                <PayrollEmailDeliveryResultPanel
+                    employeeName={detail.employee.name}
+                    onClose={() => setEmailDeliveryResult(null)}
+                    result={emailDeliveryResult}
                 />
             )}
         </div>

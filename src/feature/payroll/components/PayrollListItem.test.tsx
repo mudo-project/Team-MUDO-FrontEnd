@@ -18,7 +18,7 @@ describe("PayrollListItem", () => {
         render(
             <table>
                 <tbody>
-                    <PayrollListItem isSelected={false} item={baseItem} onCalculate={jest.fn()} onPreview={jest.fn()} onToggleSelect={jest.fn()} />
+                    <PayrollListItem item={baseItem} onCalculate={jest.fn()} onPreview={jest.fn()} />
                 </tbody>
             </table>,
         );
@@ -32,7 +32,7 @@ describe("PayrollListItem", () => {
         render(
             <table>
                 <tbody>
-                    <PayrollListItem isSelected={false} item={item} onCalculate={jest.fn()} onPreview={jest.fn()} onToggleSelect={jest.fn()} />
+                    <PayrollListItem item={item} onCalculate={jest.fn()} onPreview={jest.fn()} />
                 </tbody>
             </table>,
         );
@@ -46,7 +46,7 @@ describe("PayrollListItem", () => {
         render(
             <table>
                 <tbody>
-                    <PayrollListItem isSelected={false} item={item} onCalculate={jest.fn()} onPreview={jest.fn()} onToggleSelect={jest.fn()} />
+                    <PayrollListItem item={item} onCalculate={jest.fn()} onPreview={jest.fn()} />
                 </tbody>
             </table>,
         );
@@ -60,7 +60,7 @@ describe("PayrollListItem", () => {
         render(
             <table>
                 <tbody>
-                    <PayrollListItem isSelected={false} item={baseItem} onCalculate={jest.fn()} onPreview={onPreview} onToggleSelect={jest.fn()} />
+                    <PayrollListItem item={baseItem} onCalculate={jest.fn()} onPreview={onPreview} />
                 </tbody>
             </table>,
         );
@@ -76,7 +76,7 @@ describe("PayrollListItem", () => {
         render(
             <table>
                 <tbody>
-                    <PayrollListItem isSelected={false} item={item} onCalculate={onCalculate} onPreview={jest.fn()} onToggleSelect={jest.fn()} />
+                    <PayrollListItem item={item} onCalculate={onCalculate} onPreview={jest.fn()} />
                 </tbody>
             </table>,
         );
@@ -86,27 +86,12 @@ describe("PayrollListItem", () => {
         expect(onCalculate).toHaveBeenCalledWith(item);
     });
 
-    it("체크박스를 클릭하면 employeeId로 onToggleSelect를 호출한다", () => {
-        const onToggleSelect = jest.fn();
-        render(
-            <table>
-                <tbody>
-                    <PayrollListItem isSelected={false} item={baseItem} onCalculate={jest.fn()} onPreview={jest.fn()} onToggleSelect={onToggleSelect} />
-                </tbody>
-            </table>,
-        );
-
-        fireEvent.click(screen.getByRole("checkbox", { name: "김강사 선택" }));
-
-        expect(onToggleSelect).toHaveBeenCalledWith(1);
-    });
-
     it("정정 차수가 1보다 크면 정정 N차로 표시한다", () => {
         const item = { ...baseItem, revisionNo: 2 };
         render(
             <table>
                 <tbody>
-                    <PayrollListItem isSelected={false} item={item} onCalculate={jest.fn()} onPreview={jest.fn()} onToggleSelect={jest.fn()} />
+                    <PayrollListItem item={item} onCalculate={jest.fn()} onPreview={jest.fn()} />
                 </tbody>
             </table>,
         );

@@ -72,6 +72,24 @@ describe("PayrollPolicyForm", () => {
         });
     });
 
+    it("지급월 오프셋에 0 뒤에 숫자를 입력하면 선행 0을 제거해 보여준다", async () => {
+        mockedUpdatePayrollPolicyAction.mockResolvedValue({ success: true, message: "급여 정책이 저장되었습니다." });
+        render(<PayrollPolicyForm policy={policy} />);
+
+        fireEvent.change(screen.getByLabelText("지급월 오프셋"), { target: { value: "01" } });
+
+        expect(screen.getByLabelText("지급월 오프셋")).toHaveValue(1);
+
+        fireEvent.click(screen.getAllByRole("button", { name: "저장" })[0]);
+        fireEvent.click(screen.getAllByRole("button", { name: "저장" })[1]);
+
+        await waitFor(() => {
+            expect(updatePayrollPolicyAction).toHaveBeenCalledWith(
+                expect.objectContaining({ paymentMonthOffset: 1 }),
+            );
+        });
+    });
+
     it("저장에 실패하면 에러 토스트를 노출한다", async () => {
         mockedUpdatePayrollPolicyAction.mockResolvedValue({ success: false, message: "급여 정책 저장에 실패하였습니다." });
         render(<PayrollPolicyForm policy={policy} />);

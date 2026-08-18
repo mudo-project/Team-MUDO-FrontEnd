@@ -1,9 +1,11 @@
 'use client'
 
-import { Settings } from "lucide-react";
+import { History, Settings } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, useTransition } from "react";
-import { createPayrollEmailDeliveryAction, getPayrollsAction } from "../actions";
+import { toast } from "sonner";
+import { createPayrollEmailBatchAction, getPayrollsAction } from "../actions";
 import PayrollAmountSummary from "./PayrollAmountSummary";
 import PayrollCalendar from "./PayrollCalendar";
 import PayrollList from "./PayrollList";
@@ -16,7 +18,12 @@ interface PayrollManagementProps {
     initialYear: number;
 }
 
+function getLastEmailBatchStorageKey(year: number, month: number) {
+    return `payroll:lastEmailBatchId:${year}-${month}`;
+}
+
 export default function PayrollManagement({ initialData, initialMonth, initialYear }: PayrollManagementProps) {
+    const router = useRouter();
     const [data, setData] = useState(initialData);
     const [year, setYear] = useState(initialYear);
     const [month, setMonth] = useState(initialMonth);
@@ -24,12 +31,19 @@ export default function PayrollManagement({ initialData, initialMonth, initialYe
     const [statusFilter, setStatusFilter] = useState<PayrollStatusFilter>("전체");
     const [searchQuery, setSearchQuery] = useState("");
     const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
-    const [selectedItemIds, setSelectedItemIds] = useState<number[]>([]);
     const [loadError, setLoadError] = useState(false);
+    const [lastBatchId, setLastBatchId] = useState<number | null>(null);
     const [isLoading, startTransition] = useTransition();
 
     const calendarMonth = useMemo(() => new Date(year, month - 1, 1), [year, month]);
     const monthLabel = `${year}년 ${month}월`;
+
+    // 브라우저 localStorage(외부 저장소)에서 현재 연·월의 마지막 배치 발송 이력을 읽어와 동기화한다.
+    useEffect(() => {
+        const stored = localStorage.getItem(getLastEmailBatchStorageKey(year, month));
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setLastBatchId(stored ? Number(stored) : null);
+    }, [year, month]);
 
     useEffect(() => {
         const timeout = setTimeout(() => setDebouncedSearchQuery(searchQuery), 300);
@@ -51,7 +65,6 @@ export default function PayrollManagement({ initialData, initialMonth, initialYe
                 });
                 if (isCancelled) return;
                 setData(result);
-                setSelectedItemIds([]);
                 setLoadError(false);
             } catch {
                 if (!isCancelled) setLoadError(true);
@@ -82,25 +95,6 @@ export default function PayrollManagement({ initialData, initialMonth, initialYe
         setMonth(nextMonth.getMonth() + 1);
     };
 
-    const handleToggleItem = (employeeId: number) => {
-        setSelectedItemIds((itemIds) => (
-            itemIds.includes(employeeId)
-                ? itemIds.filter((id) => id !== employeeId)
-                : [...itemIds, employeeId]
-        ));
-    };
-
-    const handleToggleAll = () => {
-        const visibleItemIds = data.content.map((item) => item.employeeId);
-        const isAllVisibleItemsSelected = visibleItemIds.length > 0 && visibleItemIds.every((itemId) => selectedItemIds.includes(itemId));
-
-        setSelectedItemIds((itemIds) => (
-            isAllVisibleItemsSelected
-                ? itemIds.filter((itemId) => !visibleItemIds.includes(itemId))
-                : Array.from(new Set([...itemIds, ...visibleItemIds]))
-        ));
-    };
-
     const handleRefreshList = async () => {
         try {
             const result = await getPayrollsAction({
@@ -116,55 +110,18 @@ export default function PayrollManagement({ initialData, initialMonth, initialYe
         }
     };
 
-    const handleConfirmBatchSend = async (): Promise<PayrollEmailBatchResultData> => {
-        const selectedItems = data.content.filter((item) => selectedItemIds.includes(item.employeeId));
-        const deliveries: PayrollEmailDeliveryData[] = [];
+    const handleConfirmBatchSend = async () => {
+        const result = await createPayrollEmailBatchAction(year, month);
 
-        for (const item of selectedItems) {
-            if (item.payrollId === null || item.preparationStatus !== "CONFIRMED") {
-                deliveries.push({
-                    deliveryId: -item.employeeId,
-                    employeeId: item.employeeId,
-                    employeeName: item.employeeName,
-                    recipientEmailMasked: "-",
-                    status: "SKIPPED",
-                    failureReason: "급여가 확정되지 않았거나 명세서가 준비되지 않았습니다.",
-                });
-                continue;
-            }
-
-            const result = await createPayrollEmailDeliveryAction(item.payrollId);
-
-            deliveries.push({
-                deliveryId: result.data?.deliveryId ?? -item.employeeId,
-                employeeId: item.employeeId,
-                employeeName: item.employeeName,
-                recipientEmailMasked: "-",
-                status: result.success && result.data ? (result.data.status as PayrollEmailDeliveryStatus) : "FAILED",
-                failureReason: result.success ? null : result.message,
-            });
+        if (!result.success || !result.data) {
+            toast.error(result.message);
+            return;
         }
 
-        setSelectedItemIds([]);
-        await handleRefreshList();
-
-        return {
-            batchId: 0,
-            yearMonth: `${year}-${String(month).padStart(2, "0")}`,
-            status: "COMPLETED",
-            summary: {
-                totalCount: deliveries.length,
-                pendingCount: deliveries.filter((delivery) => delivery.status === "PENDING").length,
-                sendingCount: deliveries.filter((delivery) => delivery.status === "SENDING").length,
-                sentCount: deliveries.filter((delivery) => delivery.status === "SENT").length,
-                retryWaitCount: deliveries.filter((delivery) => delivery.status === "RETRY_WAIT").length,
-                unknownCount: deliveries.filter((delivery) => delivery.status === "UNKNOWN").length,
-                deliveredCount: deliveries.filter((delivery) => delivery.status === "DELIVERED").length,
-                failedCount: deliveries.filter((delivery) => delivery.status === "FAILED").length,
-                skippedCount: deliveries.filter((delivery) => delivery.status === "SKIPPED").length,
-            },
-            deliveries,
-        };
+        toast.success(result.message);
+        localStorage.setItem(getLastEmailBatchStorageKey(year, month), String(result.data.batchId));
+        setLastBatchId(result.data.batchId);
+        router.push(`/finance/payroll/email-batches/${result.data.batchId}`);
     };
 
     return (
@@ -184,8 +141,17 @@ export default function PayrollManagement({ initialData, initialMonth, initialYe
                 >
                     이번 달
                 </button>
+                {lastBatchId !== null && (
+                    <Link
+                        className="ml-auto flex h-9 items-center gap-1.5 rounded-lg border border-[#DCE9DF] bg-white px-3 text-[12px] font-semibold text-[#718096] hover:bg-[#F4F8F5]"
+                        href={`/finance/payroll/email-batches/${lastBatchId}`}
+                    >
+                        <History className="size-3.5" />
+                        {monthLabel} 발송 결과 보기
+                    </Link>
+                )}
                 <Link
-                    className="ml-auto flex h-9 items-center gap-1.5 rounded-lg border border-[#DCE9DF] bg-white px-3 text-[12px] font-semibold text-[#718096] hover:bg-[#F4F8F5]"
+                    className={`flex h-9 items-center gap-1.5 rounded-lg border border-[#DCE9DF] bg-white px-3 text-[12px] font-semibold text-[#718096] hover:bg-[#F4F8F5] ${lastBatchId !== null ? "" : "ml-auto"}`}
                     href="/finance/payroll/settings"
                 >
                     <Settings className="size-3.5" />
@@ -201,7 +167,6 @@ export default function PayrollManagement({ initialData, initialMonth, initialYe
                 onChangeStatusFilter={setStatusFilter}
                 onConfirmBatchSend={handleConfirmBatchSend}
                 searchQuery={searchQuery}
-                selectedCount={selectedItemIds.length}
                 statusFilter={statusFilter}
                 totalCount={data.totalElements}
             />
@@ -215,9 +180,6 @@ export default function PayrollManagement({ initialData, initialMonth, initialYe
                     isLoading={isLoading}
                     items={data.content}
                     onListChanged={handleRefreshList}
-                    onToggleAll={handleToggleAll}
-                    onToggleItem={handleToggleItem}
-                    selectedItemIds={selectedItemIds}
                 />
             )}
         </>

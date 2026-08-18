@@ -241,6 +241,51 @@ describe("PayrollDetail", () => {
         openSpy.mockRestore();
     });
 
+    it("이메일 발송 결과가 있으면 발송 결과 패널을 노출한다", async () => {
+        mockedCreatePayrollEmailDeliveryAction.mockResolvedValue({
+            success: true,
+            message: "이메일이 발송되었습니다.",
+            data: { deliveryId: 501, payrollId: 10, status: "PENDING", requestedAt: "2026-08-12T14:30:00", reused: false },
+        });
+        render(
+            <PayrollDetail
+                detail={buildDetail({ status: "CONFIRMED", statement: { statementId: 1, status: "READY", fileSize: 10240, generatedAt: "2026-08-01", failureReason: null } })}
+                onClose={jest.fn()}
+                onListChanged={jest.fn()}
+            />,
+        );
+
+        fireEvent.click(screen.getByRole("button", { name: /이메일 발송/ }));
+
+        expect(await screen.findByText("이메일 발송 결과")).toBeInTheDocument();
+        expect(screen.getByText("신규 발송")).toBeInTheDocument();
+    });
+
+    it("명세서가 PENDING이면 상태가 바뀔 때까지 폴링해 자동으로 갱신한다", async () => {
+        jest.useFakeTimers();
+        mockedGetPayrollAction.mockResolvedValue(
+            buildDetail({ status: "CONFIRMED", statement: { statementId: 1, status: "READY", fileSize: 10240, generatedAt: "2026-08-01", failureReason: null } })
+        );
+        const onListChanged = jest.fn();
+        render(
+            <PayrollDetail
+                detail={buildDetail({ status: "CONFIRMED", statement: { statementId: 1, status: "PENDING", fileSize: null, generatedAt: null, failureReason: null } })}
+                onClose={jest.fn()}
+                onListChanged={onListChanged}
+            />,
+        );
+
+        expect(screen.getByText("명세서를 생성하고 있습니다.")).toBeInTheDocument();
+
+        await jest.advanceTimersByTimeAsync(3000);
+
+        expect(getPayrollAction).toHaveBeenCalledWith(10);
+        expect(await screen.findByRole("button", { name: /이메일 발송/ })).toBeInTheDocument();
+        expect(onListChanged).toHaveBeenCalled();
+
+        jest.useRealTimers();
+    });
+
     it("명세서 상태가 FAILED면 실패 사유와 재시도 버튼을 노출하고 재시도 시 액션을 호출한다", async () => {
         mockedRetryPayrollStatementAction.mockResolvedValue({ success: true, message: "명세서 생성을 재시도합니다." });
         render(

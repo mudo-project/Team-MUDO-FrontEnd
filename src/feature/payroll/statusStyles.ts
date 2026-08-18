@@ -40,6 +40,13 @@ export const PAYROLL_EMAIL_STATUS_BADGE_CLASS: Record<PayrollEmailDeliveryStatus
     UNKNOWN: "bg-[#F1F3F6] text-[#64748B]",
 };
 
+export const PAYROLL_EMAIL_BATCH_STATUS_LABEL: Record<PayrollEmailBatchStatus, string> = {
+    PENDING: "대기 중",
+    PROCESSING: "발송 중",
+    AWAITING_DELIVERY: "결과 대기 중",
+    COMPLETED: "완료됨",
+};
+
 export const PAYROLL_SALARY_TYPE_LABEL: Record<PayrollSalaryType, string> = {
     MONTHLY: "월급제",
     HOURLY: "시급제",
