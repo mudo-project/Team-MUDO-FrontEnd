@@ -61,30 +61,46 @@ export default async function NoticeDetail({ id }: { id: string }) {
                         <div className="mt-4">
                             <p className="text-[12px] font-medium text-[#64748B]">파일 {notice.attachments.length}</p>
                             <div className="mt-2 flex flex-col gap-2">
-                                {notice.attachments.map((attachment) => (
-                                    <div
-                                        className="flex h-[58px] w-full items-center gap-2.5 rounded-[8px] border border-[#D7E8DB] bg-[#FCFCFC] px-3"
-                                        key={attachment.id}
-                                    >
-                                        <span className="flex size-7 shrink-0 items-center justify-center rounded-[6px] bg-[#EEF2FF] text-[9px] font-bold text-[#3B4A66]">
-                                            {getFileExtension(attachment.fileName)}
-                                        </span>
-                                        <span className="w-full min-w-0">
-                                            <strong className="block truncate text-[13px] font-normal text-[#0F172A]">
-                                                {attachment.fileName}
-                                            </strong>
-                                        </span>
+                                {notice.attachments.map((attachment) =>
+                                    attachment.fileType.startsWith("image/") ? (
                                         <a
-                                            aria-label={`${attachment.fileName} 다운로드`}
-                                            className="shrink-0 text-[#64748B] hover:cursor-pointer"
+                                            className="block w-fit"
                                             href={attachment.fileUrl}
+                                            key={attachment.id}
                                             rel="noreferrer"
                                             target="_blank"
                                         >
-                                            <Download className="size-4" strokeWidth={1.6} />
+                                            <img
+                                                alt={attachment.fileName}
+                                                className="max-h-60 max-w-full rounded-[8px] border border-[#D7E8DB]"
+                                                src={attachment.fileUrl}
+                                            />
                                         </a>
-                                    </div>
-                                ))}
+                                    ) : (
+                                        <div
+                                            className="flex h-[58px] w-full items-center gap-2.5 rounded-[8px] border border-[#D7E8DB] bg-[#FCFCFC] px-3"
+                                            key={attachment.id}
+                                        >
+                                            <span className="flex size-7 shrink-0 items-center justify-center rounded-[6px] bg-[#EEF2FF] text-[9px] font-bold text-[#3B4A66]">
+                                                {getFileExtension(attachment.fileName)}
+                                            </span>
+                                            <span className="w-full min-w-0">
+                                                <strong className="block truncate text-[13px] font-normal text-[#0F172A]">
+                                                    {attachment.fileName}
+                                                </strong>
+                                            </span>
+                                            <a
+                                                aria-label={`${attachment.fileName} 다운로드`}
+                                                className="shrink-0 text-[#64748B] hover:cursor-pointer"
+                                                href={attachment.fileUrl}
+                                                rel="noreferrer"
+                                                target="_blank"
+                                            >
+                                                <Download className="size-4" strokeWidth={1.6} />
+                                            </a>
+                                        </div>
+                                    )
+                                )}
                             </div>
                         </div>
                     </>
