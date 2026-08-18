@@ -7,7 +7,6 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import useModal from "@/components/hooks/useModal";
-import { getFileDownloadUrlAction } from "@/feature/file/actions";
 import { uploadFiles } from "@/feature/file/uploadFiles";
 import { NoticeCreateFormValues, noticeCreateSchema } from "@/lib/noticeCreateSchema";
 import { createNoticeAction } from "../actions";
@@ -40,22 +39,10 @@ export default function NoticeCreateForm() {
             const uploadResult = await uploadFiles(files, uploadedFileIds);
             setUploadedFileIds(uploadResult.uploadedFileIds);
 
-            const attachments = await Promise.all(
-                files.map(async (file, index) => {
-                    const fileId = uploadResult.fileIds[index];
-                    const downloadResult = await getFileDownloadUrlAction(fileId);
-
-                    if (!downloadResult.success || !downloadResult.data) {
-                        throw new Error(downloadResult.message);
-                    }
-
-                    return {
-                        fileUrl: downloadResult.data.downloadUrl,
-                        fileName: file.name,
-                        fileType: file.type || "application/octet-stream",
-                    };
-                })
-            );
+            const attachments = files.map((file, index) => ({
+                fileId: uploadResult.fileIds[index],
+                fileName: file.name,
+            }));
 
             const result = attachments.length > 0
                 ? await createNoticeAction(values.title, values.content, values.pinned, attachments)

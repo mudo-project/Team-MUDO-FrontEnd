@@ -14,7 +14,7 @@
 
 - 공지 작성 시 **제목·내용은 필수값**, **첨부파일·상단 고정은 선택값**이다.
 - 상단 고정된 공지는 목록 최상단에 위치하며 중요 표시·강조 표시가 함께 나타난다.
-- 상세조회 화면의 고정 등록/수정/삭제 버튼은 **작성자에게만** 노출되어야 한다(현재는 항상 노출 — 작성자 권한 판별 미구현).
+- 상세조회 화면의 고정 등록 버튼은 **작성자에게만** 노출된다(`getCurrentUserIdAction`으로 얻은 로그인 사용자 id와 `authorUserId`를 비교). 수정/삭제 버튼은 아직 이 판별이 적용되지 않아 누구에게나 노출된다.
 
 ### 진입점
 
@@ -118,7 +118,7 @@ Sidebar의 공지사항 메뉴(`src/components/layout/Sidebar.tsx`, `href: "/not
 | 모달 내부 스크롤 | 첨부파일이 많아 모달 내용이 길어짐 | 모달이 화면 밖으로 나가지 않고 내부에서 스크롤(스크롤바는 숨김) | 구현 완료 |
 | 필수값 검증 | 모달 등록 시 | 제목·내용 미입력 시 필드 아래 에러 메시지 표시 | 구현 완료 |
 | 공지 등록 저장 | 모달 `등록` 클릭 (검증 통과 시) | `createNoticeAction`으로 등록, 성공 시 모달 닫힘 + 목록 갱신, 실패 시 에러 메시지 표시(모달 유지) | 구현 완료 |
-| 첨부파일 서버 전송 | 공지 등록 시 | 선택한 파일을 업로드해 공지에 첨부 | 미구현 — 파일 업로드 API가 없어 첨부 UI는 로컬 미리보기까지만 동작 |
+| 첨부파일 서버 전송 | 공지 등록 시 | `src/feature/file`의 `uploadFiles()`로 presigned URL 발급 → S3 PUT → 파일 등록을 거쳐 `fileId`를 받고, `{fileId, fileName}` 배열을 `attachments`로 실어 `createNoticeAction` 호출 | 구현 완료(작성 시에만 — 수정 API는 첨부 필드를 받지 않아 수정 시 첨부 변경은 미구현) |
 
 ### 4.4 상세조회
 
@@ -129,7 +129,7 @@ Sidebar의 공지사항 메뉴(`src/components/layout/Sidebar.tsx`, `href: "/not
 | 고정 표시 | 해당 공지가 상단 고정 상태 | 상세조회 상단에 고정 배지 표시 | 구현 완료 |
 | 조회수/읽음수 표시 | 상세 진입 | 조회수, 읽음수(`N/전체`)를 노출 | 구현 완료 |
 | 이전/다음 계산 | 상세 진입 | 목록에서 현재 공지의 앞/뒤 항목을 찾아 표시 | 구현 완료 (한 번에 조회하는 목록 범위 내에서만 계산 — 전용 이전/다음 API는 없음) |
-| 작성자 전용 버튼 노출 제어 | — | 고정/수정/삭제 아이콘은 작성자에게만 보여야 함 | 미구현 — 현재는 누구에게나 노출됨 |
+| 작성자 전용 버튼 노출 제어 | — | 고정 아이콘은 로그인 사용자 id와 `authorUserId`가 같을 때만 노출 | 구현 완료(고정만) — 수정/삭제 아이콘은 아직 미적용, 누구에게나 노출됨 |
 
 ### 4.5 수정 / 삭제
 
@@ -188,7 +188,7 @@ Sidebar의 공지사항 메뉴(`src/components/layout/Sidebar.tsx`, `href: "/not
 | 상단 고정 여부 | `pinned` | — |
 | 조회수/읽음 | `viewCount`, `readerCount`, `totalRecipientCount` | `읽음 N/전체` 형태로 표시 |
 | 작성일 | `createdAt` | 상세조회에 표시(`updatedAt`은 미사용) |
-| 첨부파일 | `attachments: NoticeAttachmentData[]` | 각 항목은 `id`, `fileUrl`, `fileName`, `fileType`. 다운로드는 `fileUrl`을 그대로 사용 |
+| 첨부파일 | `attachments: NoticeAttachmentData[]` | 각 항목은 `id`(=`fileId`), `fileUrl`, `fileName`, `fileType`. 다운로드·이미지 미리보기는 `fileUrl`을 쓰지 않고 `id`로 `getFileDownloadUrlAction`을 호출해 받은 URL을 사용(`NoticeFileList`) |
 
 ---
 
@@ -204,18 +204,18 @@ Sidebar의 공지사항 메뉴(`src/components/layout/Sidebar.tsx`, `href: "/not
 | **NoticeSearch** | 제목 검색 입력. 기본 GET 폼 제출로 `/notice?keyword=...`로 이동한다(자바스크립트 불필요). 현재 검색어를 입력값에 유지 |
 | **NoticeList** | 공지 목록(서버 컴포넌트). `notices`, `keyword`를 props로 받는다. 목록이 비어 있으면 검색어 유무에 따라 안내 문구를 보여주고, 아니면 각 항목을 링크로 감싸 `/notice/[id]`로 이동시킨다. `NoticeListItem`을 쓰지 않고 항목 마크업을 직접 그림(아래 참고) |
 | **NoticeListItem** | 목록 항목 1건을 위해 준비된 컴포넌트지만 아직 쓰이지 않는 뼈대 — `NoticeList`가 항목 마크업을 직접 들고 있다 |
-| **NoticeCreateForm** | 클라이언트 컴포넌트. `공지 작성` 트리거 버튼과 작성 모달을 함께 소유. 제목·내용·상단고정은 `react-hook-form` + `zod`(`src/lib/noticeCreateSchema.ts`)로 검증하고, 통과하면 `createNoticeAction`을 호출한다. 첨부파일 입력은 `NoticeFileUpload`를 배치하지만 제출에는 포함되지 않는다(업로드 API 없음) |
+| **NoticeCreateForm** | 클라이언트 컴포넌트. `공지 작성` 트리거 버튼과 작성 모달을 함께 소유. 제목·내용·상단고정은 `react-hook-form` + `zod`(`src/lib/noticeCreateSchema.ts`)로 검증하고, 통과하면 `createNoticeAction`을 호출한다. `NoticeFileUpload`가 올려주는 File 목록을 `uploadFiles()`로 업로드해 받은 `fileId`를 `attachments`(`{fileId, fileName}[]`)로 실어 함께 전송한다 |
 | **NoticeFileUpload** | 클라이언트 컴포넌트. `NoticeCreateForm`/`NoticeEditForm`이 공유하는 첨부파일 UI. 새로 추가한 파일은 자체 상태로 관리하며 추가/미리보기/삭제가 가능하다. `initialFiles` prop으로 이미 저장된 파일을 목록에 미리 채운다(이 경우 파일명만 있고 삭제만 가능, 미리보기는 불가). 확장자 배지·크기 포맷 함수는 `src/lib/file.ts`에서 가져와 `NoticeDetail`과 공유한다 |
 | **NoticeEditForm** | 클라이언트 컴포넌트. `notice`를 props로 받아 `공지 수정`(연필 아이콘) 트리거와 수정 모달을 소유. 작성 모달과 동일한 스키마(`noticeCreateSchema`)로 제목·내용·상단고정을 검증한다. 제출 시 제목·내용은 수정 API로, 상단 고정은 (값이 바뀐 경우에만) 고정/고정해제 API로 각각 호출한다. `NoticeFileUpload`에 기존 첨부파일을 `initialFiles`로 전달 |
 | **NoticeDetailToolbar** | 클라이언트 컴포넌트. `notice`를 props로 받아 고정 배지 + 고정/수정/삭제 아이콘 버튼 행을 소유한다. 고정 배지와 핀 버튼이 같은 상태를 공유해야 해서 `NoticeDetail`에서 분리된 하나의 클라이언트 컴포넌트로 묶여 있다. 핀 아이콘 클릭 시 고정/고정해제 API 호출 결과를 반영하고, 삭제 아이콘 클릭 시 공지를 삭제하고 목록으로 이동한다. `NoticeEditForm`을 이 버튼 그룹 안에 둔다 |
 | **NoticeDetail** | 상세조회 화면 본문(서버 컴포넌트). `id`를 props로 받아 공지를 조회하고(없으면 "공지를 찾을 수 없습니다"), 목록에서 이전/다음 항목을 계산한다. 목록으로 링크, `NoticeDetailToolbar`, 작성자·작성일·조회수·읽음수, 본문, 첨부파일 목록, 이전/다음 네비게이션을 전부 이 컴포넌트 안에서 직접 그린다 |
-| **NoticeFileList** | 준비된 컴포넌트지만 아직 쓰이지 않는 뼈대 — `NoticeDetail`이 첨부파일 목록 렌더링을 직접 한다 |
+| **NoticeFileList** | 클라이언트 컴포넌트. `attachments`를 props로 받아 첨부파일 목록을 그린다. 이미지 첨부는 마운트 시 각 항목의 `id`(fileId)로 `getFileDownloadUrlAction`을 호출해 받은 URL로 `<img>` 미리보기를 띄우고, 그 외 파일은 파일명 + 다운로드 아이콘(클릭 시 같은 방식으로 URL을 조회해 새 탭으로 연다) |
 | **NoticeNavigation** | 준비된 컴포넌트지만 아직 쓰이지 않는 뼈대 — `NoticeDetail`이 이전/다음 링크를 직접 그린다 |
 
 > `memo` 도메인이 작성 폼과 수정 폼을 `MemoCreateForm` / `MemoEditForm`으로 분리한 것과 동일하게, 공지도 작성 폼과 수정 폼을 분리하는 구조다.
 > `memo` 도메인의 `MemoContainer`가 Header를 별도 컴포넌트로 분리하지 않은 것과 동일하게, 목록 화면(`page.tsx`)과 `NoticeDetail`도 각자의 Header 영역을 내부에 직접 작성한다.
-> `NoticeFileUpload`(작성/수정 폼의 첨부 UI)와 `NoticeFileList`(상세조회의 읽기 전용 목록, 아직 미사용)는 이름이 비슷하지만 역할이 다른 별개 컴포넌트다.
-> `NoticeListItem`, `NoticeFileList`, `NoticeNavigation`은 파일은 있지만 `NoticeList`/`NoticeDetail`이 해당 마크업을 직접 그리고 있어 실제로 쓰이지 않는다. 각 화면이 복잡해지면 그때 분리한다.
+> `NoticeFileUpload`(작성/수정 폼의 첨부 UI)와 `NoticeFileList`(상세조회의 읽기 전용 목록)는 이름이 비슷하지만 역할이 다른 별개 컴포넌트다.
+> `NoticeListItem`, `NoticeNavigation`은 파일은 있지만 `NoticeList`/`NoticeDetail`이 해당 마크업을 직접 그리고 있어 실제로 쓰이지 않는다. 각 화면이 복잡해지면 그때 분리한다.
 > `NoticeCreateForm`/`NoticeEditForm`은 `react-hook-form`의 `handleSubmit` 안에서 서버 액션을 직접 호출하는 방식을 쓴다(`<form action={...}>` + `useActionState` 방식이 아님) — zod 검증을 폼에서 직접 제어해야 하기 때문이다.
 > `NoticeDetailToolbar`의 `pinned` 상태는 `notice.pinned` prop이 바뀌면 렌더링 중에 동기화된다(수정 모달에서 상단 고정을 바꾼 뒤에도 배지가 최신 상태를 반영하도록).
 
@@ -241,8 +241,8 @@ notice/[id]/page.tsx               (상세조회 화면, /notice/[id])
 |---|---|---|
 | 공지 데이터 | 목록·상세조회·CRUD | 구현 완료 — `actions.ts` + `notice.service.ts`로 연동 |
 | 검색 상태 | 현재 검색어, 필터링된 목록 | 구현 완료 — URL의 `searchParams.keyword`로 관리 |
-| 첨부파일 업로드 | 새 파일을 서버에 올려 URL을 받아오는 절차 | 미구현 — 업로드 API 없음 |
-| 작성자 권한 판별 | 고정 등록/수정/삭제 버튼 노출 여부 결정 | 미구현 |
+| 첨부파일 업로드 | 새 파일을 서버에 올려 `fileId`를 받아오는 절차 | 구현 완료 — `src/feature/file`의 presigned URL 발급 → S3 PUT → 파일 등록 헬퍼(`uploadFiles()`) 재사용, 공지 작성 시에만 사용 |
+| 작성자 권한 판별 | 고정/수정/삭제 버튼 노출 여부 결정 | 고정 버튼만 구현 완료(`getCurrentUserIdAction`), 수정/삭제는 미구현 |
 
 ---
 
