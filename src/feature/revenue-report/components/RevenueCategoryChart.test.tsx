@@ -3,6 +3,7 @@ import RevenueCategoryChart from "./RevenueCategoryChart";
 
 jest.mock("chart.js", () => ({
   Chart: { register: jest.fn() },
+  BarController: {},
   CategoryScale: {},
   LinearScale: {},
   BarElement: {},
