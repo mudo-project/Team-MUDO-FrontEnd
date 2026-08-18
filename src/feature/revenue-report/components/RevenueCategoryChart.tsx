@@ -1,7 +1,9 @@
 'use client'
 
-import "chart.js/auto";
+import { BarElement, CategoryScale, Chart as ChartJS, LinearScale, Tooltip } from "chart.js";
 import { Bar } from "react-chartjs-2";
+
+ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip);
 
 interface RevenueCategoryChartProps {
     data: { category: string; amount: number }[];

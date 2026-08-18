@@ -1,7 +1,13 @@
 import { render, screen } from "@testing-library/react";
 import RevenueCategoryChart from "./RevenueCategoryChart";
 
-jest.mock("chart.js/auto", () => ({}));
+jest.mock("chart.js", () => ({
+  Chart: { register: jest.fn() },
+  CategoryScale: {},
+  LinearScale: {},
+  BarElement: {},
+  Tooltip: {},
+}));
 jest.mock("react-chartjs-2", () => ({
   Bar: ({ data }: { data: { labels: string[] } }) => (
     <div data-testid="bar-chart">
