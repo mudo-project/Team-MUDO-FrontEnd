@@ -21,6 +21,7 @@ const baseProps = {
   onNext: jest.fn(),
   onPrev: jest.fn(),
   onRemoveRoom: jest.fn(),
+  onRenameFloor: jest.fn(),
   onSelectTemplateOption: jest.fn(),
   selectedTemplateOption: null,
   slot: 30 as const,

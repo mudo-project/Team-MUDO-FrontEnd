@@ -84,8 +84,8 @@ describe("NewTimetableBasicInfoStep", () => {
       />
     );
 
-    fireEvent.click(screen.getByRole("radio", { name: "10분" }));
+    fireEvent.click(screen.getByRole("radio", { name: "1시간" }));
 
-    expect(onChangeSlot).toHaveBeenCalledWith(10);
+    expect(onChangeSlot).toHaveBeenCalledWith(60);
   });
 });

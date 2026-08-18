@@ -119,7 +119,7 @@ export default function NewTimetableBasicInfoStep({
         </fieldset>
         <fieldset>
           <legend className="mb-2 text-[13px] font-medium text-[#526071]">슬롯 단위</legend>
-          <div className="flex items-center gap-4 text-sm text-[#526071]">{([30, 10, 60] as const).map((slotOption) =>
+          <div className="flex items-center gap-4 text-sm text-[#526071]">{([30, 60] as const).map((slotOption) =>
             <label key={slotOption}>
               <input
                 checked={slot === slotOption}

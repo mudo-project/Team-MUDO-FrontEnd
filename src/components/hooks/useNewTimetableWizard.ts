@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { indexToDayOfWeek } from "@/feature/timetable/timetableFormat";
+import { indexToDayOfWeek, mergeFloorGroups } from "@/feature/timetable/timetableFormat";
 import type { FloorConfig } from "@/feature/timetable/viewModel";
 import type { NewTimetableBasicInfoFormValues } from "@/lib/newTimetableBasicInfoSchema";
 
@@ -45,7 +45,7 @@ export function useNewTimetableWizard({ activeClassroomGroups, onFinish }: UseNe
     setForm({ name: detail.name, startDate: detail.startDate, endDate: detail.endDate });
     setIsBasicInfoComplete(false);
     setSlot(detail.slotUnitMinutes as 10 | 30 | 60);
-    setFloors(detail.classrooms.map((group) => ({ floor: group.floor, rooms: [...group.codes] })));
+    setFloors(mergeFloorGroups(detail.classrooms.map((group) => ({ floor: group.floor, rooms: [...group.codes] }))));
     setOperatingStartTime(detail.operatingStartTime);
     setOperatingEndTime(detail.operatingEndTime);
     setOperatingDays(detail.operatingDays);
@@ -60,7 +60,7 @@ export function useNewTimetableWizard({ activeClassroomGroups, onFinish }: UseNe
 
   const selectTemplateOption = (option: "empty" | "previous") => {
     setSelectedTemplateOption(option);
-    setFloors(option === "empty" ? buildDefaultFloors() : activeClassroomGroups.map((group) => ({ floor: group.floor, rooms: [...group.rooms] })));
+    setFloors(option === "empty" ? buildDefaultFloors() : mergeFloorGroups(activeClassroomGroups.map((group) => ({ floor: group.floor, rooms: [...group.rooms] }))));
   };
 
   const addFloor = () => setFloors((current) => [...current, { floor: `${current.length + 1}층`, rooms: [`${current.length + 1}01`] }]);
@@ -76,8 +76,10 @@ export function useNewTimetableWizard({ activeClassroomGroups, onFinish }: UseNe
 
   const removeRoom = (floorIndex: number, roomName: string) => setFloors((current) => current.map((floor, index) => index === floorIndex ? { ...floor, rooms: floor.rooms.filter((room) => room !== roomName) } : floor));
   const changeNewRoomName = (floorIndex: number, value: string) => setNewRoomNames((current) => ({ ...current, [floorIndex]: value }));
+  const renameFloor = (floorIndex: number, name: string) => setFloors((current) => current.map((floor, index) => index === floorIndex ? { ...floor, floor: name } : floor));
 
   const finish = () => {
+    const mergedFloors = mergeFloorGroups(floors);
     const payload: TimetableSetCreateRequest = {
       name: form.name,
       startDate: form.startDate,
@@ -86,7 +88,7 @@ export function useNewTimetableWizard({ activeClassroomGroups, onFinish }: UseNe
       operatingEndTime,
       operatingDays,
       slotUnitMinutes: slot,
-      classrooms: floors.map((floor) => ({ floor: floor.floor, codes: floor.rooms })),
+      classrooms: mergedFloors.map((floor) => ({ floor: floor.floor, codes: floor.rooms })),
     };
 
     onFinish(payload, editingTimetableSetId);
@@ -109,6 +111,7 @@ export function useNewTimetableWizard({ activeClassroomGroups, onFinish }: UseNe
     newRoomNames,
     open,
     removeRoom,
+    renameFloor,
     selectedTemplateOption,
     selectTemplateOption,
     slot,
