@@ -104,4 +104,21 @@ describe("ScheduleBoard", () => {
 
     await waitFor(() => expect(mockedDeleteScheduleAction).toHaveBeenCalledWith(1));
   });
+
+  it("여러 날에 걸친 일정은 걸치는 모든 날짜 칸에 표시된다", async () => {
+    const multiDayEvent: ScheduleEventData = {
+      ...scheduleEventData,
+      eventId: 2,
+      title: "워크숍",
+      eventStartAt: "2026-08-10T00:00:00",
+      eventEndAt: "2026-08-12T00:00:00",
+      allDay: true,
+    };
+    mockedGetScheduleListAction.mockResolvedValue([multiDayEvent]);
+
+    renderBoard();
+
+    const pills = await screen.findAllByText("워크숍", { selector: "p" });
+    expect(pills).toHaveLength(3);
+  });
 });
