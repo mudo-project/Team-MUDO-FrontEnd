@@ -10,6 +10,7 @@ type AttachedFile = {
 };
 
 export type ExistingFile = {
+    id?: number;
     name: string;
     size?: string;
 };
@@ -18,10 +19,12 @@ export default function NoticeFileUpload({
     initialFiles,
     disabled = false,
     onFilesChange,
+    onExistingFilesChange,
 }: {
     initialFiles?: ExistingFile[];
     disabled?: boolean;
     onFilesChange?: (files: File[]) => void;
+    onExistingFilesChange?: (files: ExistingFile[]) => void;
 }) {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const attachedFilesRef = useRef<AttachedFile[]>([]);
@@ -33,6 +36,11 @@ export default function NoticeFileUpload({
         onFilesChange?.(attachedFiles.map((item) => item.file));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [attachedFiles]);
+
+    useEffect(() => {
+        onExistingFilesChange?.(existingFiles);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [existingFiles]);
 
     useEffect(() => {
         return () => {

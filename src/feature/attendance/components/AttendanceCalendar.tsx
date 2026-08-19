@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { addMonths, subMonths } from "date-fns";
+import { addMonths, format, subMonths } from "date-fns";
 import dynamic from "next/dynamic";
 
 const AttendanceDayPicker = dynamic(() => import("./AttendanceDayPicker"), {
@@ -42,7 +42,7 @@ export default function AttendanceCalendar({ month, days, pendingCorrectionDates
             <ChevronLeft className="size-4 text-[#718096]" />
           </button>
           <h2 id="calendar-title" className="text-[17px] font-bold">
-            {month.getFullYear()}년 {month.getMonth() + 1}월
+            {format(month, "yyyy년 M월")}
           </h2>
           <button aria-label="다음 달" type="button" onClick={() => onChangeMonth(addMonths(month, 1))}>
             <ChevronRight className="size-4 text-[#718096]" />

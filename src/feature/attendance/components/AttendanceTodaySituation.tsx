@@ -1,4 +1,4 @@
-import { TEAM_TODAY_STATUS_LABEL } from "../attendanceFormat";
+import { TEAM_TODAY_STATUS_LABEL, formatDateLabel } from "../attendanceFormat";
 
 type AttendanceTodaySituationProps = {
   team: AttendanceTeamTodayData;
@@ -23,7 +23,7 @@ export default function AttendanceTodaySituation({ team }: AttendanceTodaySituat
             오늘 팀 근태 현황
           </h1>
           <p className="mt-1 text-[10px] text-[#718096]">
-            {team.date} ({team.dayOfWeek}) · 정규 근무 {team.regularWorkStartTime} ~ {team.regularWorkEndTime}
+            {formatDateLabel(team.date)} · 정규 근무 {team.regularWorkStartTime} ~ {team.regularWorkEndTime}
           </p>
         </div>
         <div className="flex gap-5 text-right">

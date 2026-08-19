@@ -66,7 +66,7 @@ export const getMessagesAction = async (
     return getMessages(roomId, params);
 }
 
-// 업무지시 카드 목록조회 액션
+// 업무카드 목록조회 액션
 export const getTaskCardsAction = async (
     roomId: number,
     params?: MessengerTaskCardListParams
@@ -233,7 +233,7 @@ export const deleteMessageAction = async (
     }
 }
 
-// 업무지시 카드 등록 액션
+// 업무카드 등록 액션
 export const createTaskCardAction = async (
     roomId: number,
     content: string,
@@ -243,7 +243,7 @@ export const createTaskCardAction = async (
     if (!content.trim()) {
         return {
             success: false,
-            message: "업무지시 내용을 입력해주세요."
+            message: "업무카드 내용을 입력해주세요."
         };
     }
 
@@ -259,11 +259,11 @@ export const createTaskCardAction = async (
 
         return {
             success: true,
-            message: "업무지시가 등록되었습니다.",
+            message: "업무카드가 등록되었습니다.",
             cardId,
         };
     } catch (error) {
-        let errorMessage = "업무지시 등록에 실패하였습니다.";
+        let errorMessage = "업무카드 등록에 실패하였습니다.";
         if (error instanceof Error) {
             errorMessage = error.message;
         }
@@ -275,7 +275,7 @@ export const createTaskCardAction = async (
     }
 }
 
-// 업무지시 카드 수정 액션
+// 업무카드 수정 액션
 export const updateTaskCardAction = async (
     roomId: number,
     cardId: number,
@@ -286,7 +286,7 @@ export const updateTaskCardAction = async (
     if (!content.trim()) {
         return {
             success: false,
-            message: "업무지시 내용을 입력해주세요."
+            message: "업무카드 내용을 입력해주세요."
         };
     }
 
@@ -302,10 +302,10 @@ export const updateTaskCardAction = async (
 
         return {
             success: true,
-            message: "업무지시가 수정되었습니다."
+            message: "업무카드가 수정되었습니다."
         };
     } catch (error) {
-        let errorMessage = "업무지시 수정에 실패하였습니다.";
+        let errorMessage = "업무카드 수정에 실패하였습니다.";
         if (error instanceof Error) {
             errorMessage = error.message;
         }
@@ -317,7 +317,7 @@ export const updateTaskCardAction = async (
     }
 }
 
-// 업무지시 카드 삭제 액션
+// 업무카드 삭제 액션
 export const deleteTaskCardAction = async (
     roomId: number,
     cardId: number
@@ -327,10 +327,10 @@ export const deleteTaskCardAction = async (
 
         return {
             success: true,
-            message: "업무지시가 삭제되었습니다."
+            message: "업무카드가 삭제되었습니다."
         };
     } catch (error) {
-        let errorMessage = "업무지시 삭제에 실패하였습니다.";
+        let errorMessage = "업무카드 삭제에 실패하였습니다.";
         if (error instanceof Error) {
             errorMessage = error.message;
         }
@@ -342,7 +342,7 @@ export const deleteTaskCardAction = async (
     }
 }
 
-// 업무지시 완료 처리 액션
+// 업무카드 완료 처리 액션
 export const completeTaskCardAction = async (
     roomId: number,
     cardId: number

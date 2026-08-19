@@ -82,7 +82,8 @@ export const createNoticeAction = async (
 export const updateNoticeAction = async (
     noticeId: number,
     title: string,
-    content: string
+    content: string,
+    attachments?: NoticeAttachmentRequest[]
 ): Promise<NoticeActionState> => {
     if (!title.trim()) {
         return {
@@ -99,7 +100,7 @@ export const updateNoticeAction = async (
     }
 
     try {
-        await updateNotice(noticeId, { title, content });
+        await updateNotice(noticeId, { title, content, attachments });
 
         return {
             success: true,

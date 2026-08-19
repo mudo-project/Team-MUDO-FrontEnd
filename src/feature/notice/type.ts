@@ -2,6 +2,7 @@
 interface NoticeAttachmentRequest {
     fileId: number;
     fileName: string;
+    fileType?: string;
 }
 
 // 공지사항 작성 요청값
@@ -65,7 +66,7 @@ interface NoticeAttachmentData {
     id: number;
     fileUrl: string;
     fileName: string;
-    fileType: string;
+    fileType?: string;
 }
 
 // 공지사항 상세조회 응답 데이터값
@@ -113,4 +114,5 @@ interface NoticeReaderListResponse {
 interface NoticeUpdateRequest {
     title: string;
     content: string;
+    attachments?: NoticeAttachmentRequest[];
 }

@@ -1,6 +1,6 @@
-import { format } from "date-fns";
 import { Paperclip } from "lucide-react";
 import Link from "next/link";
+import { formatListDate } from "@/lib/date";
 
 export default function NoticeList({ notices, keyword }: { notices: NoticeListItemData[]; keyword?: string }) {
     if (notices.length === 0) {
@@ -46,7 +46,7 @@ export default function NoticeList({ notices, keyword }: { notices: NoticeListIt
                             {notice.hasAttachment && <Paperclip className="ml-auto h-3.5 w-3.5 shrink-0 text-[#64748B]" strokeWidth={1.6} />}
                         </div>
                         <span className="text-[11px] text-[#64748B]">{notice.authorName}</span>
-                        <time className="text-right text-[11px] text-[#64748B]">{format(new Date(notice.createdAt), "MM.dd")}</time>
+                        <time className="text-right text-[11px] text-[#64748B]">{formatListDate(notice.createdAt)}</time>
                     </Link>
                 </div>
             ))}

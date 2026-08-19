@@ -65,7 +65,7 @@ describe("MessageItem", () => {
         expect(screen.getByText("· 안읽음 2")).toBeInTheDocument();
     });
 
-    it("업무지시 항목은 업무지시 카드로 위임되어 렌더링된다", () => {
+    it("업무카드 항목은 업무카드로 위임되어 렌더링된다", () => {
         const item: FeedItem = {
             kind: "task",
             id: 1,
@@ -75,7 +75,7 @@ describe("MessageItem", () => {
                 id: 1,
                 assignerId: 1,
                 assignerName: "로그인 사용자",
-                content: "업무지시 내용",
+                content: "업무카드 내용",
                 dueDate: null,
                 assignees: [],
                 completedCount: 0,
@@ -88,7 +88,7 @@ describe("MessageItem", () => {
             <MessageItem item={item} currentUserId={1} roomId={1} onMessagesChange={jest.fn()} onTaskCardsChange={jest.fn()} />
         );
 
-        expect(screen.getByText("업무지시 내용")).toBeInTheDocument();
+        expect(screen.getByText("업무카드 내용")).toBeInTheDocument();
     });
 
     it("내 메시지를 우클릭하면 메뉴가 열리고, TEXT 메시지는 수정 항목을 노출한다", () => {

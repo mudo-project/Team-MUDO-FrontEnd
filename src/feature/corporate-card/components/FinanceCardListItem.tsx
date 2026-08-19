@@ -1,3 +1,4 @@
+import { format } from "date-fns";
 import { ChevronRight } from "lucide-react";
 import { FINANCE_CARD_STATUS_BADGE_CLASS, FINANCE_CARD_STATUS_LABEL } from "../statusStyles";
 
@@ -22,7 +23,7 @@ export default function FinanceCardListItem({ isSelected, item, onSelect, onTogg
                     type="checkbox"
                 />
             </td>
-            <td className="px-3 text-[12px] text-[#334155]">{item.approvedAt}</td>
+            <td className="px-3 text-[12px] text-[#334155]">{format(new Date(item.approvedAt), "yyyy.MM.dd HH:mm")}</td>
             <td className="px-3 text-[12px]">
                 <strong className="block font-semibold">{item.merchantName}</strong>
             </td>

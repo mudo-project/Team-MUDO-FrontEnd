@@ -1,7 +1,7 @@
 "use client";
 
 import { X } from "lucide-react";
-import { areIntervalsOverlapping, endOfMonth, startOfMonth } from "date-fns";
+import { areIntervalsOverlapping, endOfMonth, format, startOfMonth } from "date-fns";
 import ScheduleListItem from "./ScheduleListItem";
 import { formatEventDate, isDateWithinEvent } from "../scheduleFormat";
 import type { ScheduleEvent } from "../scheduleTypes";
@@ -26,11 +26,11 @@ export default function ScheduleList({ month, events, selectedDate, onClearSelec
   return (
     <section
       className="flex min-w-0 flex-col rounded-xl border border-[#DCE9DF] bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.02)] xl:min-h-0"
-      aria-label={`${month.getMonth() + 1}월 일정`}
+      aria-label={`${format(month, "M")}월 일정`}
     >
       <div className="flex items-center justify-between">
         <h2 className="text-[16px] font-bold">
-          {selectedDate ? formatEventDate(selectedDate) : `${month.getMonth() + 1}월 일정`}
+          {selectedDate ? formatEventDate(selectedDate) : `${format(month, "M")}월 일정`}
         </h2>
         {selectedDate ? (
           <button aria-label="날짜 선택 해제" className="text-[#718096]" type="button" onClick={onClearSelectedDate}>

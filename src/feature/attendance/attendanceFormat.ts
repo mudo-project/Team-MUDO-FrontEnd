@@ -1,4 +1,5 @@
-const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
+import { format } from "date-fns";
+import { ko } from "date-fns/locale";
 
 export function formatClockTime(value: string | null | undefined): string {
   if (!value) return "--:--";
@@ -11,13 +12,12 @@ export function formatClockTime(value: string | null | undefined): string {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "--:--";
 
-  return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+  return format(date, "HH:mm");
 }
 
 export function formatDateLabel(dateStr: string): string {
   const [year, month, day] = dateStr.split("-").map(Number);
-  const date = new Date(year, month - 1, day);
-  return `${year}년 ${month}월 ${day}일 (${WEEKDAYS[date.getDay()]})`;
+  return format(new Date(year, month - 1, day), "yyyy년 M월 d일 (EEEEE)", { locale: ko });
 }
 
 export function formatDateTimeLabel(value: string | null | undefined): string {
@@ -26,15 +26,15 @@ export function formatDateTimeLabel(value: string | null | undefined): string {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
 
-  return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일 (${WEEKDAYS[date.getDay()]}) ${formatClockTime(value)}`;
+  return format(date, "yyyy년 M월 d일 (EEEEE) HH:mm", { locale: ko });
 }
 
 export function formatDateWithWeekday(date: Date): string {
-  return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일 (${WEEKDAYS[date.getDay()]})`;
+  return format(date, "yyyy년 M월 d일 (EEEEE)", { locale: ko });
 }
 
 export function formatTimeOfDate(date: Date): string {
-  return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+  return format(date, "HH:mm");
 }
 
 export function formatElapsed(fromMs: number, toMs: number): string {
@@ -56,7 +56,7 @@ export function formatDuration(ms: number): string {
 }
 
 export function formatClockNow(date: Date): string {
-  return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}:${String(date.getSeconds()).padStart(2, "0")}`;
+  return format(date, "HH:mm:ss");
 }
 
 // 06:00 ~ 22:00까지 5분 단위 시각 선택지("오전/오후 h:mm" 라벨) — 근태 수정 요청 모달의 시각 select에 사용
@@ -66,10 +66,9 @@ export function generateTimeOptions(): { value: string; label: string }[] {
   for (let totalMinutes = 6 * 60; totalMinutes <= 22 * 60; totalMinutes += 5) {
     const hour = Math.floor(totalMinutes / 60);
     const minute = totalMinutes % 60;
-    const value = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
-    const period = hour < 12 ? "오전" : "오후";
-    const displayHour = hour % 12 === 0 ? 12 : hour % 12;
-    options.push({ value, label: `${period} ${displayHour}:${String(minute).padStart(2, "0")}` });
+    const time = new Date(2000, 0, 1, hour, minute);
+    const value = format(time, "HH:mm");
+    options.push({ value, label: format(time, "a h:mm", { locale: ko }) });
   }
 
   return options;

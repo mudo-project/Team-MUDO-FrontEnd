@@ -1,11 +1,13 @@
 'use client'
 
+import { format } from "date-fns";
 import { Plus, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import useModal from "@/components/hooks/useModal";
 import TwoButtonModal from "@/components/ui/TwoButtonModal";
 import { savePayrollCompensationAction } from "../actions";
+import { formatPeriod } from "../payrollFormat";
 import { PAYROLL_ALLOWANCE_TYPE_LABEL, PAYROLL_EMPLOYMENT_TYPE_LABEL, PAYROLL_SALARY_TYPE_LABEL } from "../statusStyles";
 
 interface PayrollCompensationDetailProps {
@@ -16,13 +18,8 @@ interface PayrollCompensationDetailProps {
     onSaved: (compensation: PayrollCompensationGetData) => void;
 }
 
-function formatPeriod(from: string, to: string | null) {
-    return `${from.replaceAll("-", ".")} ~ ${to ? to.replaceAll("-", ".") : "무기한"}`;
-}
-
 function todayMonthStart() {
-    const now = new Date();
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+    return `${format(new Date(), "yyyy-MM")}-01`;
 }
 
 export default function PayrollCompensationDetail({ compensation, employeeId, employeeName, onClose, onSaved }: PayrollCompensationDetailProps) {
