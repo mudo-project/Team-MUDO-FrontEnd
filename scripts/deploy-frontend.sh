@@ -104,7 +104,9 @@ HEALTHY=false
 for attempt in $(seq 1 30); do
   # Next.js 시작 중 연결 실패는 정상적인 재시도 대상으로 보고 HTTP 상태 코드만 수집한다.
   status_code=$(curl --silent --output /dev/null --write-out '%{http_code}' \
-    --max-time 2 http://127.0.0.1:3000/ || true)
+    --max-time 2 \
+    --header 'Host: ieum.store' \
+    http://127.0.0.1:3000/ || true)
   if [ "$status_code" = "200" ]; then
     HEALTHY=true
     break
