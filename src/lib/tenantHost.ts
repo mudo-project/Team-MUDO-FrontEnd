@@ -1,5 +1,5 @@
 export type FrontendTenant =
-    | { type: "root"; tenantCode: "academy-a" }
+    | { type: "root" }
     | { type: "tenant"; tenantCode: string }
     | { type: "local" };
 
@@ -11,7 +11,7 @@ export function parseFrontendHost(host: string): FrontendTenant {
     const normalizedHost = host.trim().toLowerCase().split(":", 1)[0];
 
     if (normalizedHost === ROOT_FRONTEND_HOST) {
-        return { type: "root", tenantCode: "academy-a" };
+        return { type: "root" };
     }
 
     if (normalizedHost === LOCAL_FRONTEND_HOST) {
