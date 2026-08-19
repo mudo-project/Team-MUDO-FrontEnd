@@ -117,6 +117,8 @@ export default function Sidebar() {
         };
     }, []);
 
+    const isAcademyOwner = user.role === "ACADEMY:OWNER";
+
     const menuItems: MenuItem[] = [
         { label: "알림", href: "/alarm", icon: 'BellRing', count: unreadNotificationCount },
         { label: "공지사항", href: "/notice", icon: 'Bell' },
@@ -132,7 +134,7 @@ export default function Sidebar() {
         { label: "출결 관리", href: "/rollbook", icon: 'UserRoundPen' },
         { label: "SMS 관리", href: "/message", icon: 'Mail' },
         { label: "시간표", href: "/timetable", icon: 'Grid2X2', dividerAfter: true },
-        { label: "매출 리포트", href: "/revenue-report", icon: 'TrendingUp' },
+        ...(isAcademyOwner ? [{ label: "매출 리포트", href: "/revenue-report", icon: 'TrendingUp' } as MenuItem] : []),
         { label: "구성원", href: "/members", icon: 'Users' },
         { label: "역할 설정", href: "/role", icon: 'Shield' },
         { label: "데이터 세팅", href: "/initial", icon: 'HardDriveDownload' },

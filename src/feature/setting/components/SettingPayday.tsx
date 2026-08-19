@@ -1,10 +1,19 @@
+"use client";
+
 import SettingCard from "@/feature/setting/components/SettingCard";
 import SectionHeading from "@/feature/setting/components/SectionHeading";
 import { generatePaydayOptions } from "@/feature/setting/utils";
+import { useUserStore } from "@/store/useUserStore";
 
 const PAYDAY_OPTIONS = generatePaydayOptions();
 
 export default function SettingPayday() {
+  const permissions = useUserStore((state) => state.permissions);
+
+  if (!permissions.includes("PAYROLL:MANAGE")) {
+    return null;
+  }
+
   return (
     <SettingCard>
       <SectionHeading title="급여 지급일 설정" description="매월 급여 명세서를 자동 발송할 날짜를 설정합니다." />

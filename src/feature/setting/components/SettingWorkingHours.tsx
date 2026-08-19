@@ -9,6 +9,7 @@ import SettingToggle from "@/feature/setting/components/SettingToggle";
 import SettingTimeSelect from "@/feature/setting/components/SettingTimeSelect";
 import { DEFAULT_WEEKDAY_EXCEPTIONS, toWorkingHoursPolicyWeekdays, type WeekdayException } from "@/feature/setting/utils";
 import { saveWorkingHoursPolicyAction } from "@/feature/setting/actions";
+import { useUserStore } from "@/store/useUserStore";
 
 type SettingWorkingHoursProps = {
   initialStartTime?: string | null;
@@ -16,12 +17,17 @@ type SettingWorkingHoursProps = {
 };
 
 export default function SettingWorkingHours({ initialStartTime, initialEndTime }: SettingWorkingHoursProps) {
+  const permissions = useUserStore((state) => state.permissions);
   const [startTime, setStartTime] = useState(initialStartTime ?? "09:00");
   const [endTime, setEndTime] = useState(initialEndTime ?? "18:00");
   const [hasWeekdayException, setHasWeekdayException] = useState(false);
   const [weekdayExceptions, setWeekdayExceptions] = useState<WeekdayException[]>(DEFAULT_WEEKDAY_EXCEPTIONS);
   const [lateGraceMinutes, setLateGraceMinutes] = useState(10);
   const [isSaving, setIsSaving] = useState(false);
+
+  if (!permissions.includes("ATTENDANCE:POLICY_MANAGE")) {
+    return null;
+  }
 
   function updateWeekdayException(day: WeekdayException["day"], patch: Partial<WeekdayException>) {
     setWeekdayExceptions((prev) =>

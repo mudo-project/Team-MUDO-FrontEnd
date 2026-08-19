@@ -5,6 +5,7 @@ import type { ClassItem, TimetableTemplate } from "@/feature/timetable/viewModel
 
 type ClassDetailModalProps = {
   activeTemplate: TimetableTemplate;
+  canManage: boolean;
   onClose: () => void;
   onDelete: () => void;
   onEdit: () => void;
@@ -13,6 +14,7 @@ type ClassDetailModalProps = {
 
 export default function ClassDetailModal({
   activeTemplate,
+  canManage,
   onClose,
   onDelete,
   onEdit,
@@ -58,10 +60,12 @@ export default function ClassDetailModal({
             </div>
           </dl>
         </div>
-        <footer className="flex justify-end gap-2 px-5 pb-4">
-          <button className="h-9 rounded-md border border-[#DCE9DF] px-3 text-sm text-[#526071]" onClick={onEdit} type="button">수정</button>
-          <button className="h-9 rounded-md bg-[#C46A62] px-3 text-sm font-semibold text-white" onClick={onDelete} type="button">삭제</button>
-        </footer>
+        {canManage && (
+          <footer className="flex justify-end gap-2 px-5 pb-4">
+            <button className="h-9 rounded-md border border-[#DCE9DF] px-3 text-sm text-[#526071]" onClick={onEdit} type="button">수정</button>
+            <button className="h-9 rounded-md bg-[#C46A62] px-3 text-sm font-semibold text-white" onClick={onDelete} type="button">삭제</button>
+          </footer>
+        )}
       </section>
     </div>
   );

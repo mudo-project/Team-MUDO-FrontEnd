@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import { useUserStore } from "@/store/useUserStore";
 import { getGoogleConnectionAction } from "../actions";
 import SettingGoogle from "./SettingGoogle";
 
@@ -9,8 +10,20 @@ jest.mock("../actions", () => ({
 const mockedGetGoogleConnectionAction = getGoogleConnectionAction as jest.Mock;
 
 describe("SettingGoogle", () => {
+  beforeEach(() => {
+    useUserStore.setState({ permissions: ["SHAREDFILE:MANAGE"] });
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
+  });
+
+  it("SHAREDFILE:MANAGE 권한이 없으면 카드를 노출하지 않는다", () => {
+    useUserStore.setState({ permissions: [] });
+
+    const { container } = render(<SettingGoogle />);
+
+    expect(container).toBeEmptyDOMElement();
   });
 
   it("연동된 계정이 없으면 연결되지 않음 배지를 표시한다", async () => {

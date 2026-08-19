@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { useUserStore } from "@/store/useUserStore";
 import {
   checkGoogleConnectionAction,
   getGoogleAuthorizationUrlAction,
@@ -48,8 +49,21 @@ const connectedData: GoogleConnectionData = {
 };
 
 describe("SettingGoogleConnection", () => {
+  beforeEach(() => {
+    useUserStore.setState({ permissions: ["SHAREDFILE:MANAGE"] });
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
+  });
+
+  it("SHAREDFILE:MANAGE 권한이 없으면 권한 안내 문구를 표시한다", () => {
+    useUserStore.setState({ permissions: [] });
+
+    render(<SettingGoogleConnection />);
+
+    expect(screen.getByText("구글 연동 관리 권한이 없습니다.")).toBeInTheDocument();
+    expect(mockedGetGoogleConnectionAction).not.toHaveBeenCalled();
   });
 
   it("조회가 끝나기 전에는 스피너만 표시한다", () => {

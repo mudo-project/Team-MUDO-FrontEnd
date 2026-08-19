@@ -7,11 +7,15 @@ import SettingCard from "@/feature/setting/components/SettingCard";
 import SectionHeading from "@/feature/setting/components/SectionHeading";
 import { getGoogleConnectionAction } from "@/feature/setting/actions";
 import { getGoogleConnectionBadge } from "@/feature/setting/utils";
+import { useUserStore } from "@/store/useUserStore";
 
 export default function SettingGoogle() {
+  const permissions = useUserStore((state) => state.permissions);
+  const hasPermission = permissions.includes("SHAREDFILE:MANAGE");
   const [status, setStatus] = useState<GoogleConnectionStatus | null>(null);
 
   useEffect(() => {
+    if (!hasPermission) return;
     let ignore = false;
 
     getGoogleConnectionAction()
@@ -25,7 +29,11 @@ export default function SettingGoogle() {
     return () => {
       ignore = true;
     };
-  }, []);
+  }, [hasPermission]);
+
+  if (!hasPermission) {
+    return null;
+  }
 
   const badge = getGoogleConnectionBadge(status);
 

@@ -3,6 +3,7 @@
 import useModal from "@/components/hooks/useModal";
 import { MemberAttendanceStatus, MemberListData } from "../type";
 import ViewMembersModal from "./modal/ViewMembersModal";
+import { format } from "date-fns";
 
 const attendanceStatus = {
     PRESENT: { label: "출근", className: "bg-[#EAF5EE] text-[#246B40]" },
@@ -32,7 +33,7 @@ export default function MemberItem({ member }: { member: MemberListData }) {
                 </div>
                 <span className="col-span-1 text-[11px] sm:text-[12px]">{member.roleName ?? "-"}</span>
                 <span className="col-span-1 text-[11px] sm:text-[12px]">{member.phone}</span>
-                <span className="col-span-1 hidden sm:block">{member.joinedAt}</span>
+                <span className="col-span-1 hidden sm:block">{format(member.joinedAt, 'yyyy-MM-dd')}</span>
                 <span className="col-span-1 hidden sm:block">
                     <span className={`inline-flex min-h-5 items-center rounded-full px-2 text-[10px] font-semibold ${status.className}`}>
                         {status.label}

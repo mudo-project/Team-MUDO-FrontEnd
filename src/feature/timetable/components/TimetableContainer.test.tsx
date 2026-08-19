@@ -8,6 +8,7 @@ import {
   getTimetableSetListAction,
   getTimetableSlotListAction,
 } from "../actions";
+import { useUserStore } from "@/store/useUserStore";
 import TimetableContainer from "./TimetableContainer";
 
 jest.mock("../actions", () => ({
@@ -83,7 +84,31 @@ const renderContainer = () => {
 };
 
 describe("TimetableContainer", () => {
+  beforeEach(() => {
+    useUserStore.setState({ permissions: ["TIMETABLE:MANAGE"] });
+  });
+
   afterEach(() => jest.clearAllMocks());
+
+  it("TIMETABLE:MANAGE 권한이 없으면 수업 등록/시간표 관리 버튼을 노출하지 않는다", async () => {
+    useUserStore.setState({ permissions: [] });
+    mockedGetTimetableSetListAction.mockResolvedValue([template]);
+    mockedGetTimetableSetDetailAction.mockResolvedValue(templateDetail);
+    mockedGetTimetableSlotListAction.mockResolvedValue([slot]);
+
+    renderContainer();
+
+    await screen.findByRole("button", { name: "공통미적 수업 상세" });
+
+    expect(screen.queryByRole("button", { name: "수업 등록" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "시간표 관리" })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "공통미적 수업 상세" }));
+
+    expect(await screen.findByRole("heading", { name: "공통미적" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "수정" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "삭제" })).not.toBeInTheDocument();
+  });
 
   it("템플릿 목록 조회에 실패하면 에러 메시지를 표시한다", async () => {
     mockedGetTimetableSetListAction.mockRejectedValue(new Error("실패"));

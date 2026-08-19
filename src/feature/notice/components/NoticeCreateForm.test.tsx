@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { toast } from "sonner";
+import { useUserStore } from "@/store/useUserStore";
 import { createNoticeAction } from "../actions";
 import NoticeCreateForm from "./NoticeCreateForm";
 
@@ -28,8 +29,20 @@ const openModal = () => {
 };
 
 describe("NoticeCreateForm", () => {
+    beforeEach(() => {
+        useUserStore.setState({ permissions: ["NOTICE:WRITE"] });
+    });
+
     afterEach(() => {
         jest.clearAllMocks();
+    });
+
+    it("NOTICE:WRITE 권한이 없으면 공지 작성 버튼을 노출하지 않는다", () => {
+        useUserStore.setState({ permissions: [] });
+
+        const { container } = render(<NoticeCreateForm />);
+
+        expect(container).toBeEmptyDOMElement();
     });
 
     it("제목과 내용을 입력하지 않고 등록하면 에러 메시지를 노출한다", async () => {

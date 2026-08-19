@@ -79,12 +79,28 @@ describe("NoticeEditForm", () => {
         fireEvent.click(screen.getByRole("button", { name: "수정" }));
 
         await waitFor(() => {
-            expect(updateNoticeAction).toHaveBeenCalledWith(1, "수정된 제목", "기존 내용");
+            expect(updateNoticeAction).toHaveBeenCalledWith(1, "수정된 제목", "기존 내용", []);
         });
         expect(pinNoticeAction).not.toHaveBeenCalled();
         expect(unpinNoticeAction).not.toHaveBeenCalled();
         expect(toast.success).toHaveBeenCalledWith("공지사항이 수정되었습니다.");
         expect(refresh).toHaveBeenCalled();
+    });
+
+    it("기존 첨부파일을 모두 삭제하고 수정하면 attachments를 빈 배열로 명시해 보낸다", async () => {
+        mockedUpdateNoticeAction.mockResolvedValue({ success: true, message: "공지사항이 수정되었습니다." });
+        const noticeWithAttachment: NoticeDetailData = {
+            ...baseNotice,
+            attachments: [{ id: 1, fileUrl: "https://example.com/a.pdf", fileName: "안내.pdf", fileType: "application/pdf" }],
+        };
+        openModal(noticeWithAttachment);
+
+        fireEvent.click(screen.getByRole("button", { name: "안내.pdf 삭제" }));
+        fireEvent.click(screen.getByRole("button", { name: "수정" }));
+
+        await waitFor(() => {
+            expect(updateNoticeAction).toHaveBeenCalledWith(1, "기존 제목", "기존 내용", []);
+        });
     });
 
     it("상단 고정을 체크하고 수정하면 고정 API를 함께 호출한다", async () => {

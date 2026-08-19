@@ -11,14 +11,17 @@ import {
   getCurrentIpAction,
   getWifiIpListAction,
 } from "@/feature/setting/actions";
+import { useUserStore } from "@/store/useUserStore";
 
 export default function SettingWifi() {
+  const permissions = useUserStore((state) => state.permissions);
   const [ipInput, setIpInput] = useState("");
   const [noteInput, setNoteInput] = useState("");
   const [checkedIp, setCheckedIp] = useState<string | null>(null);
   const [wifiIps, setWifiIps] = useState<WifiIpListItemData[]>([]);
   const [isChecking, setIsChecking] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const hasPermission = permissions.includes("ATTENDANCE:WIFI_IP_MANAGE");
 
   const fetchWifiIps = useCallback(() => {
     return getWifiIpListAction()
@@ -30,8 +33,13 @@ export default function SettingWifi() {
   }, []);
 
   useEffect(() => {
+    if (!hasPermission) return;
     void fetchWifiIps();
-  }, [fetchWifiIps]);
+  }, [fetchWifiIps, hasPermission]);
+
+  if (!hasPermission) {
+    return null;
+  }
 
   const trimmedIpInput = ipInput.trim();
   const isRegistered =

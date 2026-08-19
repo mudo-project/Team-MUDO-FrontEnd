@@ -1,10 +1,18 @@
+import PaginationPrev from "@/components/ui/PaginationPrev";
 import { ApprovalActionResult, getApprovalTemplateListAction } from "@/feature/approval/actions";
 import ApprovalNavBar from "@/feature/approval/components/ApprovalNavBar";
 import TemplateItem from "@/feature/approval/components/TemplateItem";
 import { ApprovalPageData, ApprovalTemplateListData } from "@/feature/approval/type";
 
+interface paramsProps {
+    searchParams: Promise<{
+        page: string;
+    }>
+}
 
-export default async function Page() {
+export default async function Page({ searchParams }: paramsProps) {
+    const { page } = await searchParams;
+
     const response: ApprovalActionResult<ApprovalPageData<ApprovalTemplateListData>> = await getApprovalTemplateListAction();
 
     return (
@@ -27,11 +35,15 @@ export default async function Page() {
                         <p className="col-span-3">결재 라인</p>
                         <p className="col-span-1">생성일</p>
                     </div>
-                    {response.data?.content.map((content) => {
-                        return <TemplateItem key={content.id} content={content} />
-                    })}
+                    <div className="h-[calc(100dvh-240px)] overflow-auto">
+                        {response.data?.content.map((content) => {
+                            return <TemplateItem key={content.id} content={content} />
+                        })}
+                    </div>
+
                 </section>
             )}
+            <PaginationPrev url='student' page={page} hasNext={response.data?.hasNext} />
 
         </main>
     );
