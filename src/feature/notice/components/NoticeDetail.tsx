@@ -1,6 +1,6 @@
-import { format } from "date-fns";
 import { ArrowLeft, ChevronDown, ChevronUp } from "lucide-react";
 import Link from "next/link";
+import { formatDetailDate } from "@/lib/date";
 import { getNoticeDetailAction, getNoticeListAction } from "../actions";
 import NoticeDetailToolbar from "./NoticeDetailToolbar";
 import NoticeFileList from "./NoticeFileList";
@@ -42,7 +42,7 @@ export default async function NoticeDetail({ id }: { id: string }) {
                     </span>
                     <span>{notice.authorRole} {notice.authorName}</span>
                     <span>·</span>
-                    <span>{format(new Date(notice.createdAt), "yyyy.MM.dd HH:mm")}</span>
+                    <span>{formatDetailDate(notice.createdAt)}</span>
                     <span>·</span>
                     <span>조회 {notice.viewCount}</span>
                     <span>·</span>

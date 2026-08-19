@@ -241,9 +241,9 @@ describe("getTaskCards", () => {
     });
 
     it("응답이 실패하면 에러 메시지와 함께 예외를 던진다", async () => {
-        mockedFetch.mockResolvedValue(failJsonResponse("업무지시 카드 목록 조회에 실패하였습니다."));
+        mockedFetch.mockResolvedValue(failJsonResponse("업무카드 목록 조회에 실패하였습니다."));
 
-        await expect(getTaskCards(1)).rejects.toThrow("업무지시 카드 목록 조회에 실패하였습니다.");
+        await expect(getTaskCards(1)).rejects.toThrow("업무카드 목록 조회에 실패하였습니다.");
     });
 });
 
@@ -264,10 +264,10 @@ describe("createTaskCard", () => {
     });
 
     it("응답이 실패하면 에러 메시지와 함께 예외를 던진다", async () => {
-        mockedFetch.mockResolvedValue(failJsonResponse("업무지시 카드 등록에 실패하였습니다."));
+        mockedFetch.mockResolvedValue(failJsonResponse("업무카드 등록에 실패하였습니다."));
 
         await expect(createTaskCard(1, { content: "내용", assigneeIds: [1] })).rejects.toThrow(
-            "업무지시 카드 등록에 실패하였습니다."
+            "업무카드 등록에 실패하였습니다."
         );
     });
 });
@@ -287,10 +287,10 @@ describe("updateTaskCard", () => {
     });
 
     it("응답이 실패하면 에러 메시지와 함께 예외를 던진다", async () => {
-        mockedFetch.mockResolvedValue(failJsonResponse("업무지시 카드 수정에 실패하였습니다."));
+        mockedFetch.mockResolvedValue(failJsonResponse("업무카드 수정에 실패하였습니다."));
 
         await expect(updateTaskCard(1, 2, { content: "내용", assigneeIds: [1] })).rejects.toThrow(
-            "업무지시 카드 수정에 실패하였습니다."
+            "업무카드 수정에 실패하였습니다."
         );
     });
 });
@@ -306,9 +306,9 @@ describe("deleteTaskCard", () => {
     });
 
     it("응답이 실패하면 에러 메시지와 함께 예외를 던진다", async () => {
-        mockedFetch.mockResolvedValue(failJsonResponse("업무지시 카드 삭제에 실패하였습니다."));
+        mockedFetch.mockResolvedValue(failJsonResponse("업무카드 삭제에 실패하였습니다."));
 
-        await expect(deleteTaskCard(1, 2)).rejects.toThrow("업무지시 카드 삭제에 실패하였습니다.");
+        await expect(deleteTaskCard(1, 2)).rejects.toThrow("업무카드 삭제에 실패하였습니다.");
     });
 });
 
@@ -351,8 +351,8 @@ describe("completeTaskCard", () => {
     });
 
     it("응답이 실패하면 에러 메시지와 함께 예외를 던진다", async () => {
-        mockedFetch.mockResolvedValue(failJsonResponse("업무지시 완료 처리에 실패하였습니다."));
+        mockedFetch.mockResolvedValue(failJsonResponse("업무카드 완료 처리에 실패하였습니다."));
 
-        await expect(completeTaskCard(1, 2)).rejects.toThrow("업무지시 완료 처리에 실패하였습니다.");
+        await expect(completeTaskCard(1, 2)).rejects.toThrow("업무카드 완료 처리에 실패하였습니다.");
     });
 });

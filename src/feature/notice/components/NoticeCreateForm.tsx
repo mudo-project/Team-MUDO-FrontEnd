@@ -42,6 +42,7 @@ export default function NoticeCreateForm() {
             const attachments = files.map((file, index) => ({
                 fileId: uploadResult.fileIds[index],
                 fileName: file.name,
+                fileType: file.type || "application/octet-stream",
             }));
 
             const result = attachments.length > 0

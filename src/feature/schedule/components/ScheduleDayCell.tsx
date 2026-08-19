@@ -1,3 +1,4 @@
+import { format } from "date-fns";
 import type { DayButtonProps } from "react-day-picker";
 import { isDateWithinEvent } from "../scheduleFormat";
 import type { ScheduleEvent } from "../scheduleTypes";
@@ -25,7 +26,7 @@ export default function ScheduleDayCell({ day, modifiers, events, ...props }: Sc
           ${modifiers.selected ? "bg-[#4D9560] text-white" : ""}
         `}
       >
-        {day.date.getDate()}
+        {format(day.date, "d")}
       </span>
       <div className="flex min-w-0 flex-col gap-1">
         {visibleEvents.map((event) => (

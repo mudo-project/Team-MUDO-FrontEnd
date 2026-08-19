@@ -44,12 +44,12 @@ describe("SentTaskList", () => {
         expect(screen.getByText("1/2")).toBeInTheDocument();
     });
 
-    it("카드 본문을 클릭하면 업무지시 상세조회 모달이 열린다", () => {
+    it("카드 본문을 클릭하면 업무카드 상세조회 모달이 열린다", () => {
         const items: RoomTaskCard[] = [{ roomId: 1, roomName: "1반", card: buildCard({}) }];
         render(<SentTaskList items={items} currentUserId={1} onChange={jest.fn()} />);
 
         fireEvent.click(screen.getByText("보강 교실 변경 안내 부탁드립니다"));
 
-        expect(screen.getByRole("button", { name: "업무지시 상세조회 닫기" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "업무카드 상세조회 닫기" })).toBeInTheDocument();
     });
 });

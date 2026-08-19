@@ -64,7 +64,7 @@ export default function TaskDetailModal({ card, currentUserId, roomId, roomName,
                 <div className="flex items-center gap-1.5">
                     <span className="flex items-center gap-1 text-[14px] font-bold text-[#0F172A]">
                         <CheckSquare className="size-4 text-[#2C8D50]" strokeWidth={1.8} />
-                        업무지시
+                        업무카드
                     </span>
                     <span className="text-[13px] text-[#94A3B8]">{roomName ? `· ${roomName} · ` : "· "}{card.assignerName}</span>
                     {isOwner && (
@@ -86,7 +86,7 @@ export default function TaskDetailModal({ card, currentUserId, roomId, roomName,
                         </span>
                     )}
                     <button
-                        aria-label="업무지시 상세조회 닫기"
+                        aria-label="업무카드 상세조회 닫기"
                         className={`${isOwner ? "ml-3" : "ml-auto"} flex size-[18px] shrink-0 items-center justify-center text-[#64748B]`}
                         onClick={onClose}
                         type="button"
@@ -163,8 +163,8 @@ export default function TaskDetailModal({ card, currentUserId, roomId, roomName,
             {deleteModal.isModal && (
                 <div className="relative z-[1100]">
                     <TwoButtonModal
-                        title="업무지시 삭제"
-                        content="이 업무지시를 삭제하시겠습니까?"
+                        title="업무카드 삭제"
+                        content="이 업무카드를 삭제하시겠습니까?"
                         closeModal={deleteModal.closeModal}
                         activeModal={deleteModal.activeModal}
                     />

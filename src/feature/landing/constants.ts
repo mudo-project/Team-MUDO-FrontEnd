@@ -94,7 +94,7 @@ export const FEATURE_PILLARS: FeaturePillar[] = [
         icon: MessageSquare,
         title: "협업 관리",
         description: "일정·소통·자료 공유를 하나로 연결하는 협업 환경",
-        items: ["메신저 · 업무지시 카드", "공지사항", "공유 폴더", "메모"],
+        items: ["메신저 · 업무카드", "공지사항", "공유 폴더", "메모"],
     },
     {
         icon: Wallet,

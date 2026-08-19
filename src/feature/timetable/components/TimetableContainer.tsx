@@ -1,5 +1,6 @@
 "use client";
 
+import { format } from "date-fns";
 import { toPng } from "html-to-image";
 import { Plus } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
@@ -38,7 +39,7 @@ import {
 import type { ClassItem, TemplateStatus, TimetableTemplate } from "@/feature/timetable/viewModel";
 import type { ClassRegistrationFormValues } from "@/lib/classRegistrationSchema";
 
-const formatMonthDay = (date: Date) => `${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`;
+const formatMonthDay = (date: Date) => format(date, "MM.dd");
 
 const getShiftedWeekStart = (startDate: Date, amount: number) => {
   const nextStartDate = new Date(startDate);

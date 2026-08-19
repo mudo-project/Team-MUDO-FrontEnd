@@ -1,5 +1,6 @@
 import { Plus, X } from "lucide-react";
 import { modalSurfaceClass } from "@/feature/timetable/constants";
+import { formatTemplateDateRange } from "@/feature/timetable/timetableFormat";
 import type { TemplateStatus } from "@/feature/timetable/viewModel";
 
 type TimetableManagementModalProps = {
@@ -50,7 +51,7 @@ export default function TimetableManagementModal({
               <div>
                 <strong className="block text-base text-[#273548]">{template.name}</strong>
                 <span className="mt-1 block text-[13px] text-[#94A3B8]">
-                  {template.startDate} ~ {template.endDate} · {classCounts[template.timetableSetId] ?? 0}개 수업
+                  {formatTemplateDateRange(template)} · {classCounts[template.timetableSetId] ?? 0}개 수업
                 </span>
               </div>
               <div className="relative flex items-center gap-3">

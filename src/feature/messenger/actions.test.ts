@@ -235,7 +235,7 @@ describe("createTaskCardAction", () => {
     it("내용이 비어있으면 service를 호출하지 않고 실패 결과를 반환한다", async () => {
         const result = await createTaskCardAction(1, "   ", [1]);
 
-        expect(result).toEqual({ success: false, message: "업무지시 내용을 입력해주세요." });
+        expect(result).toEqual({ success: false, message: "업무카드 내용을 입력해주세요." });
         expect(createTaskCard).not.toHaveBeenCalled();
     });
 
@@ -252,7 +252,7 @@ describe("createTaskCardAction", () => {
         const result = await createTaskCardAction(1, "보강 안내", [2], "2026-08-20");
 
         expect(createTaskCard).toHaveBeenCalledWith(1, { content: "보강 안내", dueDate: "2026-08-20", assigneeIds: [2] });
-        expect(result).toEqual({ success: true, message: "업무지시가 등록되었습니다.", cardId: 9 });
+        expect(result).toEqual({ success: true, message: "업무카드가 등록되었습니다.", cardId: 9 });
     });
 
     it("service 호출이 실패하면 에러 메시지를 담아 실패 결과를 반환한다", async () => {
@@ -270,7 +270,7 @@ describe("updateTaskCardAction", () => {
     it("내용이 비어있으면 service를 호출하지 않고 실패 결과를 반환한다", async () => {
         const result = await updateTaskCardAction(1, 2, "   ", [1]);
 
-        expect(result).toEqual({ success: false, message: "업무지시 내용을 입력해주세요." });
+        expect(result).toEqual({ success: false, message: "업무카드 내용을 입력해주세요." });
         expect(updateTaskCard).not.toHaveBeenCalled();
     });
 
@@ -287,7 +287,7 @@ describe("updateTaskCardAction", () => {
         const result = await updateTaskCardAction(1, 2, "수정 내용", [3]);
 
         expect(updateTaskCard).toHaveBeenCalledWith(1, 2, { content: "수정 내용", dueDate: undefined, assigneeIds: [3] });
-        expect(result).toEqual({ success: true, message: "업무지시가 수정되었습니다." });
+        expect(result).toEqual({ success: true, message: "업무카드가 수정되었습니다." });
     });
 
     it("service 호출이 실패하면 에러 메시지를 담아 실패 결과를 반환한다", async () => {
@@ -308,7 +308,7 @@ describe("deleteTaskCardAction", () => {
         const result = await deleteTaskCardAction(1, 2);
 
         expect(deleteTaskCard).toHaveBeenCalledWith(1, 2);
-        expect(result).toEqual({ success: true, message: "업무지시가 삭제되었습니다." });
+        expect(result).toEqual({ success: true, message: "업무카드가 삭제되었습니다." });
     });
 
     it("service 호출이 실패하면 에러 메시지를 담아 실패 결과를 반환한다", async () => {

@@ -1,9 +1,11 @@
 'use client'
 
+import { format } from "date-fns";
 import { X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { saveCorporateCardExpenseAction, submitCorporateCardExpenseAction } from "../actions";
+import type { FinanceCardApprover } from "../constants";
 import FinanceCardApprovalForm from "./FinanceCardApprovalForm";
 
 interface FinanceCardDetailProps {
@@ -16,7 +18,7 @@ interface FinanceCardDetailProps {
 function UsageDetailCard({ item, showAmountInHeader = false }: { item: CorporateCardTransactionData; showAmountInHeader?: boolean }) {
     const installmentLabel = item.installmentMonths > 0 ? `${item.installmentMonths}개월` : "일시불";
     const rows: [string, string][] = [
-        ["승인일시", item.approvedAt],
+        ["승인일시", format(new Date(item.approvedAt), "yyyy.MM.dd HH:mm")],
         ["카드", `${item.cardName} · ${item.cardNumberMasked}`],
         ["승인번호", item.approvalNumber],
         ["할부", installmentLabel],
@@ -72,6 +74,7 @@ function RejectionNotice() {
 export default function FinanceCardDetail({ item, onClose, onSaved, onSubmitted }: FinanceCardDetailProps) {
     const [expenseCategory, setExpenseCategory] = useState(item?.expenseCategory ?? "");
     const [purpose, setPurpose] = useState(item?.purpose ?? "");
+    const [approvers, setApprovers] = useState<FinanceCardApprover[]>([]);
     const [isSaving, setIsSaving] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -104,7 +107,13 @@ export default function FinanceCardDetail({ item, onClose, onSaved, onSubmitted 
         if (isSubmitting) return;
 
         setIsSubmitting(true);
-        const result = await submitCorporateCardExpenseAction(item.transactionId, expenseCategory, purpose);
+        const approverIds = approvers.map((approver) => approver.userId);
+        const result = await submitCorporateCardExpenseAction(
+            item.transactionId,
+            expenseCategory,
+            purpose,
+            approverIds.length > 0 ? approverIds : undefined
+        );
         setIsSubmitting(false);
 
         if (!result.success) {
@@ -143,6 +152,7 @@ export default function FinanceCardDetail({ item, onClose, onSaved, onSubmitted 
                             approvers={[]}
                             expenseCategory={expenseCategory}
                             isResubmission={true}
+                            onChangeApprovers={setApprovers}
                             onChangeExpenseCategory={setExpenseCategory}
                             onChangePurpose={setPurpose}
                             purpose={purpose}

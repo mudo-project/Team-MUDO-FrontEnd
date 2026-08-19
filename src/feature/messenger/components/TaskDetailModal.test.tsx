@@ -123,7 +123,7 @@ describe("TaskDetailModal", () => {
     });
 
     it("삭제 버튼 클릭 후 확인하면 삭제 액션을 호출하고 모달을 닫는다", async () => {
-        mockedDeleteTaskCardAction.mockResolvedValue({ success: true, message: "업무지시가 삭제되었습니다." });
+        mockedDeleteTaskCardAction.mockResolvedValue({ success: true, message: "업무카드가 삭제되었습니다." });
         const onClose = jest.fn();
         const onTaskCardsChange = jest.fn();
         render(
@@ -142,13 +142,13 @@ describe("TaskDetailModal", () => {
         await waitFor(() => {
             expect(deleteTaskCardAction).toHaveBeenCalledWith(5, 1);
         });
-        expect(toast.success).toHaveBeenCalledWith("업무지시가 삭제되었습니다.");
+        expect(toast.success).toHaveBeenCalledWith("업무카드가 삭제되었습니다.");
         expect(onTaskCardsChange).toHaveBeenCalled();
         expect(onClose).toHaveBeenCalled();
     });
 
     it("삭제에 실패하면 에러 토스트를 노출하고 모달을 유지한다", async () => {
-        mockedDeleteTaskCardAction.mockResolvedValue({ success: false, message: "업무지시 삭제에 실패하였습니다." });
+        mockedDeleteTaskCardAction.mockResolvedValue({ success: false, message: "업무카드 삭제에 실패하였습니다." });
         const onClose = jest.fn();
         render(
             <TaskDetailModal
@@ -164,12 +164,12 @@ describe("TaskDetailModal", () => {
         fireEvent.click(screen.getByRole("button", { name: "확인" }));
 
         await waitFor(() => {
-            expect(toast.error).toHaveBeenCalledWith("업무지시 삭제에 실패하였습니다.");
+            expect(toast.error).toHaveBeenCalledWith("업무카드 삭제에 실패하였습니다.");
         });
         expect(onClose).not.toHaveBeenCalled();
     });
 
-    it("수정 버튼을 클릭하면 업무지시 수정 모달로 전환된다", async () => {
+    it("수정 버튼을 클릭하면 업무카드 수정 모달로 전환된다", async () => {
         render(
             <TaskDetailModal
                 card={buildCard({ assignerId: 1 })}
@@ -182,6 +182,6 @@ describe("TaskDetailModal", () => {
 
         fireEvent.click(screen.getByRole("button", { name: "수정" }));
 
-        expect(await screen.findByRole("heading", { name: "업무지시 수정" })).toBeInTheDocument();
+        expect(await screen.findByRole("heading", { name: "업무카드 수정" })).toBeInTheDocument();
     });
 });

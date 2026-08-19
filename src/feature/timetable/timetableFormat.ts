@@ -1,6 +1,12 @@
+import { format } from "date-fns";
 import { weekDayNames } from "@/feature/timetable/constants";
 import type { ClassItem, FloorConfig, TimetableTemplate } from "@/feature/timetable/viewModel";
 import type { ClassRegistrationFormValues } from "@/lib/classRegistrationSchema";
+
+// 템플릿 시작일~종료일을 "yyyy.MM.dd ~ yyyy.MM.dd"로 표시합니다.
+export function formatTemplateDateRange(template: { startDate: string; endDate: string }): string {
+  return `${format(new Date(template.startDate), "yyyy.MM.dd")} ~ ${format(new Date(template.endDate), "yyyy.MM.dd")}`;
+}
 
 // weekDayNames(["일", "월", ..., "토"]) 인덱스 <-> API DayOfWeek 매핑
 export const indexToDayOfWeek: DayOfWeek[] = [

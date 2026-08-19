@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
-import { addMonths, subMonths } from "date-fns";
+import { addMonths, format, subMonths } from "date-fns";
 import dynamic from "next/dynamic";
 import ScheduleDatePicker from "./ScheduleDatePicker";
 import type { ScheduleEvent } from "../scheduleTypes";
@@ -29,7 +29,7 @@ export default function ScheduleCalendar({
   onAddClick,
 }: ScheduleCalendarProps) {
   return (
-    <section className="flex min-w-0 flex-col xl:min-h-0" aria-label={`${month.getFullYear()}년 ${month.getMonth() + 1}월 일정`}>
+    <section className="flex min-w-0 flex-col xl:min-h-0" aria-label={`${format(month, "yyyy년 M월")} 일정`}>
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
           <button

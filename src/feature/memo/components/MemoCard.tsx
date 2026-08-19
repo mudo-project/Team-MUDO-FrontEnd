@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { format } from "date-fns";
 import { EllipsisVertical } from "lucide-react";
 import { toast } from "sonner";
 import { changeMemoColorAction, deleteMemoAction, updateMemoAction } from "../actions";
@@ -18,11 +19,7 @@ type MemoCardProps = {
 type MenuMode = "menu" | "color" | "delete";
 
 function formatMemoDate(isoDate: string): string {
-  const date = new Date(isoDate);
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-
-  return `${month}.${day}`;
+  return format(new Date(isoDate), "MM.dd");
 }
 
 export default function MemoCard({ memos, createForm, isLoading, onRefresh }: MemoCardProps) {

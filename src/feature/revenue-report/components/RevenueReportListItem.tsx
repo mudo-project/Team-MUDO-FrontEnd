@@ -1,15 +1,11 @@
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
+import { formatTargetMonth } from "../revenueReportFormat";
 
 interface RevenueReportListItemProps {
     reportId: number;
     targetMonth: string;
     read: boolean;
-}
-
-function formatTargetMonth(targetMonth: string) {
-    const [year, month] = targetMonth.split("-");
-    return `${year}년 ${Number(month)}월`;
 }
 
 export default function RevenueReportListItem({ reportId, targetMonth, read }: RevenueReportListItemProps) {

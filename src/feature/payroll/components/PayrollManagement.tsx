@@ -1,5 +1,6 @@
 'use client'
 
+import { format } from "date-fns";
 import { History, Settings } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -36,7 +37,7 @@ export default function PayrollManagement({ initialData, initialMonth, initialYe
     const [isLoading, startTransition] = useTransition();
 
     const calendarMonth = useMemo(() => new Date(year, month - 1, 1), [year, month]);
-    const monthLabel = `${year}년 ${month}월`;
+    const monthLabel = format(calendarMonth, "yyyy년 M월");
 
     // 브라우저 localStorage(외부 저장소)에서 현재 연·월의 마지막 배치 발송 이력을 읽어와 동기화한다.
     useEffect(() => {
