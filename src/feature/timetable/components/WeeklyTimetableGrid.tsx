@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import type { RefObject } from "react";
 import { gradeLabels } from "@/feature/timetable/constants";
 import type { ClassItem } from "@/feature/timetable/viewModel";
 
@@ -10,6 +11,7 @@ type WeeklyTimetableGridDay = {
 };
 
 type WeeklyTimetableGridProps = {
+  captureRef?: RefObject<HTMLDivElement | null>;
   classes: ClassItem[];
   days: WeeklyTimetableGridDay[];
   gridColumns: string;
@@ -22,6 +24,7 @@ type WeeklyTimetableGridProps = {
 };
 
 export default function WeeklyTimetableGrid({
+  captureRef,
   classes,
   days,
   gridColumns,
@@ -37,7 +40,7 @@ export default function WeeklyTimetableGrid({
   return (
     <section
       aria-label="주간 시간표"
-      className="min-w-0 max-w-full overflow-hidden rounded-xl border border-[#DCE9DF] bg-white"
+      className="min-w-0 max-w-full overflow-hidden rounded-xl border border-[#A9BDB2] bg-white"
     >
       <div
         data-testid="weekly-timetable-scroll"
@@ -50,16 +53,16 @@ export default function WeeklyTimetableGrid({
         }}
         ref={scrollRef}
       >
-        <div className="w-max min-w-[2240px] max-h-[calc(100dvh-14rem)] overflow-y-auto scrollbar-hide" role="table" aria-label="2026년 8월 첫째 주 시간표">
+        <div className="w-max min-w-[2240px] max-h-[calc(100dvh-14rem)] overflow-y-auto scrollbar-hide" ref={captureRef} role="table" aria-label="2026년 8월 첫째 주 시간표">
           <div 
-            className="grid border-b border-[#DCE9DF]" 
+            className="grid border-b border-[#A9BDB2]" 
             role="row" 
             style={{ gridTemplateColumns: gridColumns }}
           >
             <div className="bg-[#F8FAF9]" />
             {days.map(({ name, date }, index) =>
               <div
-                className="border-l border-[#DCE9DF] px-3 py-2 text-center text-[13px]"
+                className="border-l border-[#A9BDB2] px-3 py-2 text-center text-[13px]"
                 role="columnheader"
                 key={name}
               >
@@ -73,7 +76,7 @@ export default function WeeklyTimetableGrid({
             role="row" 
             style={{ gridTemplateColumns: gridColumns }}
           >
-            <div className="relative border-r border-[#DCE9DF] bg-[#FCFCFC]" style={{ height: `${slotCount * rowHeight + 28}px` }}>
+            <div className="relative border-r border-[#A9BDB2] bg-[#FCFCFC]" style={{ height: `${slotCount * rowHeight + 28}px` }}>
               {times.map((time, index) =>
                 <span
                   className="absolute left-0 w-full -translate-y-1/2 pr-2 text-right text-[10px] text-[#A1ACBA]"
@@ -85,12 +88,12 @@ export default function WeeklyTimetableGrid({
               )}
             </div>
             {days.map(({ name, rooms, dayOfWeek }) => (
-              <div className="border-l border-[#DCE9DF]" key={name}>
+              <div className="border-l border-[#A9BDB2]" key={name}>
                 <div 
-                  className="grid border-b border-[#DCE9DF] bg-[#F3F6F4] text-center text-[10px] font-medium text-[#718096]" 
+                  className="grid border-b border-[#A9BDB2] bg-[#F3F6F4] text-center text-[10px] font-medium text-[#718096]" 
                   style={{ gridTemplateColumns: `repeat(${Math.max(visibleRooms.length, 1)}, minmax(72px, 1fr))` }}
                 >
-                  {visibleRooms.map((room) => <span className="border-r border-[#DCE9DF] py-1.5 last:border-r-0" key={room}>{room}</span>)}
+                  {visibleRooms.map((room) => <span className="border-r border-[#A9BDB2] py-1.5 last:border-r-0" key={room}>{room}</span>)}
                 </div>
                 <div
                   data-testid="weekly-timetable-grid"
@@ -99,7 +102,7 @@ export default function WeeklyTimetableGrid({
                     height: `${slotCount * rowHeight}px`,
                     gridTemplateColumns: `repeat(${Math.max(visibleRooms.length, 1)}, minmax(72px, 1fr))`,
                     gridTemplateRows: `repeat(${slotCount}, ${rowHeight}px)`,
-                    backgroundImage: `repeating-linear-gradient(to right, transparent 0, transparent calc(${100 / Math.max(visibleRooms.length, 1)}% - 1px), #E8EFEB calc(${100 / Math.max(visibleRooms.length, 1)}% - 1px), #E8EFEB ${100 / Math.max(visibleRooms.length, 1)}%), repeating-linear-gradient(to bottom, transparent 0, transparent ${rowHeight - 1}px, #E8EFEB ${rowHeight - 1}px, #E8EFEB ${rowHeight}px)`,
+                    backgroundImage: `repeating-linear-gradient(to right, transparent 0, transparent calc(${100 / Math.max(visibleRooms.length, 1)}% - 1px), #CBD8D0 calc(${100 / Math.max(visibleRooms.length, 1)}% - 1px), #CBD8D0 ${100 / Math.max(visibleRooms.length, 1)}%), repeating-linear-gradient(to bottom, transparent 0, transparent ${rowHeight - 1}px, #CBD8D0 ${rowHeight - 1}px, #CBD8D0 ${rowHeight}px)`,
                   }}
                 >
                   {classes.filter((item) => item.day === dayOfWeek && isClassVisible(item)).map((item) => {

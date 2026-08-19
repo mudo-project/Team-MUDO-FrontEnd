@@ -1,7 +1,9 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { toPng } from "html-to-image";
 import {
   deleteTimetableSlotAction,
+  exportTimetableSetAction,
   getTimetableSetDetailAction,
   getTimetableSetListAction,
   getTimetableSlotListAction,
@@ -23,6 +25,10 @@ jest.mock("../actions", () => ({
 
 jest.mock("sonner", () => ({
   toast: { error: jest.fn(), success: jest.fn() },
+}));
+
+jest.mock("html-to-image", () => ({
+  toPng: jest.fn().mockResolvedValue("data:image/png;base64,xxx"),
 }));
 
 const template: TimetableSetListData = {
@@ -63,6 +69,8 @@ const mockedGetTimetableSetListAction = getTimetableSetListAction as jest.Mock;
 const mockedGetTimetableSetDetailAction = getTimetableSetDetailAction as jest.Mock;
 const mockedGetTimetableSlotListAction = getTimetableSlotListAction as jest.Mock;
 const mockedDeleteTimetableSlotAction = deleteTimetableSlotAction as jest.Mock;
+const mockedExportTimetableSetAction = exportTimetableSetAction as jest.Mock;
+const mockedToPng = toPng as jest.Mock;
 
 const renderContainer = () => {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -164,5 +172,57 @@ describe("TimetableContainer", () => {
     fireEvent.click(await screen.findByRole("button", { name: "수정" }));
 
     expect(await screen.findByLabelText("강사")).toHaveValue("최T");
+  });
+
+  it("템플릿 기간 안의 오늘 날짜가 속한 주를 표시한다", async () => {
+    jest.useFakeTimers().setSystemTime(new Date("2026-08-20T00:00:00"));
+
+    mockedGetTimetableSetListAction.mockResolvedValue([template]);
+    mockedGetTimetableSetDetailAction.mockResolvedValue(templateDetail);
+    mockedGetTimetableSlotListAction.mockResolvedValue([slot]);
+
+    renderContainer();
+
+    await screen.findByRole("button", { name: "공통미적 수업 상세" });
+
+    const headerTexts = screen.getAllByRole("columnheader").map((header) => header.textContent ?? "");
+
+    expect(headerTexts[0]).toContain("08.16");
+    expect(headerTexts[6]).toContain("08.22");
+
+    jest.useRealTimers();
+  });
+
+  it("요일 헤더는 시작일의 요일과 무관하게 항상 일~토 순서로 표시된다", async () => {
+    mockedGetTimetableSetListAction.mockResolvedValue([template]);
+    mockedGetTimetableSetDetailAction.mockResolvedValue(templateDetail);
+    mockedGetTimetableSlotListAction.mockResolvedValue([slot]);
+
+    renderContainer();
+
+    await screen.findByRole("button", { name: "공통미적 수업 상세" });
+
+    const headerTexts = screen.getAllByRole("columnheader").map((header) => header.textContent ?? "");
+
+    ["일", "월", "화", "수", "목", "금", "토"].forEach((name, index) => {
+      expect(headerTexts[index]).toContain(name);
+    });
+  });
+
+  it("이미지(PNG)로 내보내기를 클릭하면 백엔드 호출 없이 그리드를 캡처해 다운로드한다", async () => {
+    mockedGetTimetableSetListAction.mockResolvedValue([template]);
+    mockedGetTimetableSetDetailAction.mockResolvedValue(templateDetail);
+    mockedGetTimetableSlotListAction.mockResolvedValue([slot]);
+
+    renderContainer();
+
+    await screen.findByRole("button", { name: "공통미적 수업 상세" });
+
+    fireEvent.click(screen.getByRole("button", { name: "내보내기" }));
+    fireEvent.click(await screen.findByRole("button", { name: /이미지\(PNG\)/ }));
+
+    await waitFor(() => expect(mockedToPng).toHaveBeenCalled());
+    expect(mockedExportTimetableSetAction).not.toHaveBeenCalled();
+    expect(mockedToPng).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ backgroundColor: "#ffffff" }));
   });
 });
