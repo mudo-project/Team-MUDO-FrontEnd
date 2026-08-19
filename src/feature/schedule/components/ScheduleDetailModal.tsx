@@ -1,6 +1,7 @@
 "use client";
 
 import { Calendar, Clock, X } from "lucide-react";
+import { useUserStore } from "@/store/useUserStore";
 import { formatEventDateRangeFull, formatEventTimeRange } from "../scheduleFormat";
 import type { ScheduleEvent } from "../scheduleTypes";
 
@@ -12,6 +13,9 @@ type ScheduleDetailModalProps = {
 };
 
 export default function ScheduleDetailModal({ event, onClose, onEdit, onDelete }: ScheduleDetailModalProps) {
+  const permissions = useUserStore((state) => state.permissions);
+  const canManage = permissions.includes("CALENDAR:MANAGE");
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="dialog" aria-modal="true">
       <div className="flex w-full max-w-[440px] flex-col rounded-2xl bg-white p-6">
@@ -46,18 +50,20 @@ export default function ScheduleDetailModal({ event, onClose, onEdit, onDelete }
         <div className="mt-4 border-t border-[#EEF2F1] pt-4">
           <div className="flex items-center justify-between">
             <span className="text-[11px] text-[#94A3B8]">작성일 {event.createdAt}</span>
-            <div className="flex items-center gap-2">
-              <button className="h-9 px-2 text-[13px] font-medium text-[#C65A50]" type="button" onClick={onDelete}>
-                삭제
-              </button>
-              <button
-                className="h-9 rounded-lg border border-[#DCE9DF] bg-white px-3 text-[13px] font-medium text-[#344054]"
-                type="button"
-                onClick={onEdit}
-              >
-                수정
-              </button>
-            </div>
+            {canManage && (
+              <div className="flex items-center gap-2">
+                <button className="h-9 px-2 text-[13px] font-medium text-[#C65A50]" type="button" onClick={onDelete}>
+                  삭제
+                </button>
+                <button
+                  className="h-9 rounded-lg border border-[#DCE9DF] bg-white px-3 text-[13px] font-medium text-[#344054]"
+                  type="button"
+                  onClick={onEdit}
+                >
+                  수정
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

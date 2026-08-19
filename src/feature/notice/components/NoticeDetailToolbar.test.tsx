@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { toast } from "sonner";
 import { getCurrentUserIdAction } from "@/feature/messenger/actions";
+import { useUserStore } from "@/store/useUserStore";
 import { deleteNoticeAction, pinNoticeAction, unpinNoticeAction } from "../actions";
 import NoticeDetailToolbar from "./NoticeDetailToolbar";
 
@@ -55,18 +56,17 @@ describe("NoticeDetailToolbar", () => {
         jest.clearAllMocks();
     });
 
-    it("작성자가 아니면 고정 버튼을 노출하지 않는다", async () => {
-        mockedGetCurrentUserIdAction.mockResolvedValue(999);
+    it("NOTICE:PIN 권한이 없으면 고정 버튼을 노출하지 않는다", async () => {
+        useUserStore.setState({ permissions: [] });
+        mockedGetCurrentUserIdAction.mockResolvedValue(10);
         render(<NoticeDetailToolbar notice={baseNotice} />);
 
-        await waitFor(() => {
-            expect(getCurrentUserIdAction).toHaveBeenCalled();
-        });
-
+        await waitFor(() => expect(getCurrentUserIdAction).toHaveBeenCalled());
         expect(screen.queryByRole("button", { name: "상단 고정" })).not.toBeInTheDocument();
     });
 
-    it("작성자면 고정 버튼을 노출한다", async () => {
+    it("NOTICE:PIN 권한이 있으면 고정 버튼을 노출한다", async () => {
+        useUserStore.setState({ permissions: ["NOTICE:PIN"] });
         mockedGetCurrentUserIdAction.mockResolvedValue(10);
         render(<NoticeDetailToolbar notice={baseNotice} />);
 
@@ -74,11 +74,12 @@ describe("NoticeDetailToolbar", () => {
     });
 
     it("고정 버튼을 클릭하면 고정 API를 호출하고 배지를 노출한다", async () => {
+        useUserStore.setState({ permissions: ["NOTICE:PIN"] });
         mockedGetCurrentUserIdAction.mockResolvedValue(10);
         mockedPinNoticeAction.mockResolvedValue({ success: true, message: "공지사항이 상단에 고정되었습니다." });
         render(<NoticeDetailToolbar notice={baseNotice} />);
 
-        fireEvent.click(await screen.findByRole("button", { name: "상단 고정" }));
+        fireEvent.click(screen.getByRole("button", { name: "상단 고정" }));
 
         await waitFor(() => {
             expect(pinNoticeAction).toHaveBeenCalledWith(1);
@@ -88,11 +89,12 @@ describe("NoticeDetailToolbar", () => {
     });
 
     it("이미 고정된 공지에서 고정 해제 버튼을 클릭하면 고정 해제 API를 호출한다", async () => {
+        useUserStore.setState({ permissions: ["NOTICE:PIN"] });
         mockedGetCurrentUserIdAction.mockResolvedValue(10);
         mockedUnpinNoticeAction.mockResolvedValue({ success: true, message: "공지사항 고정이 해제되었습니다." });
         render(<NoticeDetailToolbar notice={{ ...baseNotice, pinned: true }} />);
 
-        fireEvent.click(await screen.findByRole("button", { name: "상단 고정 해제" }));
+        fireEvent.click(screen.getByRole("button", { name: "상단 고정 해제" }));
 
         await waitFor(() => {
             expect(unpinNoticeAction).toHaveBeenCalledWith(1);
@@ -100,7 +102,26 @@ describe("NoticeDetailToolbar", () => {
         expect(toast.success).toHaveBeenCalledWith("공지사항 고정이 해제되었습니다.");
     });
 
+    it("작성자가 아니면 수정/삭제 버튼을 노출하지 않는다", async () => {
+        useUserStore.setState({ permissions: [] });
+        mockedGetCurrentUserIdAction.mockResolvedValue(999);
+        render(<NoticeDetailToolbar notice={baseNotice} />);
+
+        await waitFor(() => expect(getCurrentUserIdAction).toHaveBeenCalled());
+        expect(screen.queryByRole("button", { name: "공지 수정" })).not.toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: "공지 삭제" })).not.toBeInTheDocument();
+    });
+
+    it("작성자면 수정/삭제 버튼을 노출한다", async () => {
+        useUserStore.setState({ permissions: [] });
+        mockedGetCurrentUserIdAction.mockResolvedValue(10);
+        render(<NoticeDetailToolbar notice={baseNotice} />);
+
+        expect(await screen.findByRole("button", { name: "공지 삭제" })).toBeInTheDocument();
+    });
+
     it("삭제 아이콘 클릭 후 확인하면 삭제 API를 호출하고 목록으로 이동한다", async () => {
+        useUserStore.setState({ permissions: [] });
         mockedGetCurrentUserIdAction.mockResolvedValue(10);
         mockedDeleteNoticeAction.mockResolvedValue({ success: true, message: "공지사항이 삭제되었습니다." });
         render(<NoticeDetailToolbar notice={baseNotice} />);
@@ -116,6 +137,7 @@ describe("NoticeDetailToolbar", () => {
     });
 
     it("삭제에 실패하면 에러 토스트를 노출하고 목록으로 이동하지 않는다", async () => {
+        useUserStore.setState({ permissions: [] });
         mockedGetCurrentUserIdAction.mockResolvedValue(10);
         mockedDeleteNoticeAction.mockResolvedValue({ success: false, message: "공지사항 삭제에 실패하였습니다." });
         render(<NoticeDetailToolbar notice={baseNotice} />);

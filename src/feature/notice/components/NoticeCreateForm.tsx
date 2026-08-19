@@ -9,10 +9,12 @@ import { toast } from "sonner";
 import useModal from "@/components/hooks/useModal";
 import { uploadFiles } from "@/feature/file/uploadFiles";
 import { NoticeCreateFormValues, noticeCreateSchema } from "@/lib/noticeCreateSchema";
+import { useUserStore } from "@/store/useUserStore";
 import { createNoticeAction } from "../actions";
 import NoticeFileUpload from "./NoticeFileUpload";
 
 export default function NoticeCreateForm() {
+    const permissions = useUserStore((state) => state.permissions);
     const modal = useModal();
     const router = useRouter();
     const [files, setFiles] = useState<File[]>([]);
@@ -26,6 +28,10 @@ export default function NoticeCreateForm() {
         resolver: zodResolver(noticeCreateSchema),
         defaultValues: { title: "", content: "", pinned: false },
     });
+
+    if (!permissions.includes("NOTICE:WRITE")) {
+        return null;
+    }
 
     const closeAndReset = () => {
         reset();
