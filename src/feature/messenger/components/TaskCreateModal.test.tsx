@@ -76,7 +76,7 @@ describe("TaskCreateModal", () => {
     it("필수값을 입력하고 등록하면 등록 액션을 호출한다", async () => {
         mockedGetChatRoomMembersAction.mockResolvedValue(members);
         mockedGetCurrentUserIdAction.mockResolvedValue(1);
-        mockedCreateTaskCardAction.mockResolvedValue({ success: true, message: "업무지시가 등록되었습니다.", cardId: 5 });
+        mockedCreateTaskCardAction.mockResolvedValue({ success: true, message: "업무카드가 등록되었습니다.", cardId: 5 });
         const onClose = jest.fn();
         const onCreated = jest.fn();
         render(<TaskCreateModal roomId={1} onClose={onClose} onCreated={onCreated} />);
@@ -89,7 +89,7 @@ describe("TaskCreateModal", () => {
         await waitFor(() => {
             expect(createTaskCardAction).toHaveBeenCalledWith(1, "보강 안내 부탁드립니다", [2], undefined);
         });
-        expect(toast.success).toHaveBeenCalledWith("업무지시가 등록되었습니다.");
+        expect(toast.success).toHaveBeenCalledWith("업무카드가 등록되었습니다.");
         expect(onCreated).toHaveBeenCalled();
         expect(onClose).toHaveBeenCalled();
     });
@@ -97,7 +97,7 @@ describe("TaskCreateModal", () => {
     it("editingCard가 있으면 수정 모드로 값이 채워지고 수정 액션을 호출한다", async () => {
         mockedGetChatRoomMembersAction.mockResolvedValue(members);
         mockedGetCurrentUserIdAction.mockResolvedValue(1);
-        mockedUpdateTaskCardAction.mockResolvedValue({ success: true, message: "업무지시가 수정되었습니다." });
+        mockedUpdateTaskCardAction.mockResolvedValue({ success: true, message: "업무카드가 수정되었습니다." });
         const editingCard: MessengerTaskCardItemData = {
             id: 7,
             assignerId: 1,
@@ -112,7 +112,7 @@ describe("TaskCreateModal", () => {
         };
         render(<TaskCreateModal roomId={1} onClose={jest.fn()} onCreated={jest.fn()} editingCard={editingCard} />);
 
-        expect(await screen.findByRole("heading", { name: "업무지시 수정" })).toBeInTheDocument();
+        expect(await screen.findByRole("heading", { name: "업무카드 수정" })).toBeInTheDocument();
         expect(screen.getByDisplayValue("기존 내용")).toBeInTheDocument();
         expect(await screen.findByRole("button", { name: "김지수 담당자 제거" })).toBeInTheDocument();
 
@@ -121,7 +121,7 @@ describe("TaskCreateModal", () => {
         await waitFor(() => {
             expect(updateTaskCardAction).toHaveBeenCalledWith(1, 7, "기존 내용", [2], "2026-08-20");
         });
-        expect(toast.success).toHaveBeenCalledWith("업무지시가 수정되었습니다.");
+        expect(toast.success).toHaveBeenCalledWith("업무카드가 수정되었습니다.");
     });
 
     it("등록에 실패하면 에러 토스트를 노출하고 모달을 유지한다", async () => {

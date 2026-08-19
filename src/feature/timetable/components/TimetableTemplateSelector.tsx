@@ -1,5 +1,6 @@
 import { ChevronDown, Plus } from "lucide-react";
 
+import { formatTemplateDateRange } from "../timetableFormat";
 import type { TemplateStatus } from "../viewModel";
 
 type TimetableTemplateSelectorProps = {
@@ -11,9 +12,6 @@ type TimetableTemplateSelectorProps = {
   onToggle: () => void;
   templates: TimetableSetListData[];
 };
-
-const formatTemplateDateRange = (template: TimetableSetListData) =>
-  `${template.startDate} ~ ${template.endDate}`;
 
 export default function TimetableTemplateSelector({
   activeTemplate,

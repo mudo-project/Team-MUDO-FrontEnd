@@ -12,7 +12,7 @@ export default function NoticeFileList({ attachments }: { attachments: NoticeAtt
 
     useEffect(() => {
         attachments
-            .filter((attachment) => attachment.fileType.startsWith("image/"))
+            .filter((attachment) => Boolean(attachment.fileType?.startsWith("image/")))
             .forEach(async (attachment) => {
                 const result = await getFileDownloadUrlAction(attachment.id);
                 if (result.success && result.data) {
@@ -38,7 +38,7 @@ export default function NoticeFileList({ attachments }: { attachments: NoticeAtt
     return (
         <div className="mt-2 flex flex-col gap-2">
             {attachments.map((attachment) =>
-                attachment.fileType.startsWith("image/") ? (
+                Boolean(attachment.fileType?.startsWith("image/")) ? (
                     imageUrls[attachment.id] ? (
                         <a className="block w-fit" href={imageUrls[attachment.id]} key={attachment.id} rel="noreferrer" target="_blank">
                             <img

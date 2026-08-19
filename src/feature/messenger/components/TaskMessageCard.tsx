@@ -26,7 +26,7 @@ export default function TaskMessageCard({ card, own, currentUserId, roomId, onTa
             <div className="flex items-center justify-between text-[9px] text-[#64748B]">
                 <span className="flex items-center gap-1 text-[#2C8D50]">
                     <CheckSquare className="size-3" />
-                    업무지시
+                    업무카드
                 </span>
                 <span>{card.assignerName} · {formatTimeOnly(card.createdAt)}</span>
             </div>

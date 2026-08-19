@@ -148,7 +148,7 @@ export const deleteMessage = async (roomId: number, messageId: number): Promise<
     }
 }
 
-// 업무지시 카드 목록조회 API
+// 업무카드 목록조회 API
 export const getTaskCards = async (
     roomId: number,
     params?: MessengerTaskCardListParams
@@ -166,7 +166,7 @@ export const getTaskCards = async (
     if (!response.ok) {
         const message = await getErrorMessage(
             response,
-            "업무지시 카드 목록 조회에 실패하였습니다."
+            "업무카드 목록 조회에 실패하였습니다."
         );
 
         throw new Error(message);
@@ -177,7 +177,7 @@ export const getTaskCards = async (
     return resData.data;
 }
 
-// 업무지시 카드 등록 API
+// 업무카드 등록 API
 export const createTaskCard = async (
     roomId: number,
     payload: MessengerTaskCardCreateRequest
@@ -190,7 +190,7 @@ export const createTaskCard = async (
     if (!response.ok) {
         const message = await getErrorMessage(
             response,
-            "업무지시 카드 등록에 실패하였습니다."
+            "업무카드 등록에 실패하였습니다."
         );
 
         throw new Error(message);
@@ -201,7 +201,7 @@ export const createTaskCard = async (
     return resData.data.cardId;
 }
 
-// 업무지시 카드 수정 API
+// 업무카드 수정 API
 export const updateTaskCard = async (
     roomId: number,
     cardId: number,
@@ -215,14 +215,14 @@ export const updateTaskCard = async (
     if (!response.ok) {
         const message = await getErrorMessage(
             response,
-            "업무지시 카드 수정에 실패하였습니다."
+            "업무카드 수정에 실패하였습니다."
         );
 
         throw new Error(message);
     }
 }
 
-// 업무지시 카드 삭제 API
+// 업무카드 삭제 API
 export const deleteTaskCard = async (roomId: number, cardId: number): Promise<void> => {
     const response = await fetchWithAuth(`/api/messenger/rooms/${roomId}/task-cards/${cardId}`, {
         method: "DELETE",
@@ -231,7 +231,7 @@ export const deleteTaskCard = async (roomId: number, cardId: number): Promise<vo
     if (!response.ok) {
         const message = await getErrorMessage(
             response,
-            "업무지시 카드 삭제에 실패하였습니다."
+            "업무카드 삭제에 실패하였습니다."
         );
 
         throw new Error(message);
@@ -260,7 +260,7 @@ export const searchUsers = async (keyword?: string): Promise<MessengerUserSearch
     return resData.data;
 }
 
-// 업무지시 완료 처리 API
+// 업무카드 완료 처리 API
 export const completeTaskCard = async (roomId: number, cardId: number): Promise<void> => {
     const response = await fetchWithAuth(`/api/messenger/rooms/${roomId}/task-cards/${cardId}/complete`, {
         method: "PATCH",
@@ -269,7 +269,7 @@ export const completeTaskCard = async (roomId: number, cardId: number): Promise<
     if (!response.ok) {
         const message = await getErrorMessage(
             response,
-            "업무지시 완료 처리에 실패하였습니다."
+            "업무카드 완료 처리에 실패하였습니다."
         );
 
         throw new Error(message);

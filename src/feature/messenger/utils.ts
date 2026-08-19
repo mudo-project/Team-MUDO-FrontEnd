@@ -1,3 +1,6 @@
+import { format, isSameDay as dateFnsIsSameDay } from "date-fns";
+import { ko } from "date-fns/locale";
+
 export type TaskCompletionMessage = {
     kind: "task-completion";
     id: number;
@@ -8,7 +11,7 @@ export type TaskCompletionMessage = {
     total: number;
 };
 
-// 채팅방 내 메시지/업무지시 카드를 등록 시각 기준으로 합친 통합 피드 항목입니다.
+// 채팅방 내 메시지/업무카드를 등록 시각 기준으로 합친 통합 피드 항목입니다.
 export type FeedTextItem = {
     kind: "text";
     id: number;
@@ -41,7 +44,7 @@ export function getFeedSearchText(item: FeedItem): string {
     return item.card.content;
 }
 
-// 여러 채팅방의 업무지시 카드를 하나로 모아 보여줄 때 쓰는 항목입니다.
+// 여러 채팅방의 업무카드를 하나로 모아 보여줄 때 쓰는 항목입니다.
 export type RoomTaskCard = {
     roomId: number;
     roomName: string;
@@ -58,38 +61,27 @@ export function formatChatTime(iso: string | null): string {
     if (!iso) return "";
 
     const date = new Date(iso);
-    const now = new Date();
-    const isToday = date.toDateString() === now.toDateString();
 
-    if (isToday) return formatTimeOnly(iso);
+    if (dateFnsIsSameDay(date, new Date())) return formatTimeOnly(iso);
 
-    return `${date.getMonth() + 1}.${date.getDate()} ${formatTimeOnly(iso)}`;
+    return format(date, "M.d a h:mm", { locale: ko });
 }
 
 // 채팅방 대화 피드에서 쓰는, 날짜 없이 시각만 표시하는 포맷입니다(날짜는 별도 구분선으로 표시).
 export function formatTimeOnly(iso: string | null): string {
     if (!iso) return "";
 
-    const date = new Date(iso);
-    const hours = date.getHours();
-    const minutes = date.getMinutes().toString().padStart(2, "0");
-    const period = hours < 12 ? "오전" : "오후";
-    const displayHours = hours % 12 === 0 ? 12 : hours % 12;
-
-    return `${period} ${displayHours}:${minutes}`;
+    return format(new Date(iso), "a h:mm", { locale: ko });
 }
-
-const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 
 // 채팅방 대화 피드의 날짜 구분선에 쓰는 "YYYY년 M월 D일 (요일)" 포맷입니다.
 export function formatFeedDateDivider(iso: string): string {
-    const date = new Date(iso);
-    return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일 (${WEEKDAYS[date.getDay()]})`;
+    return format(new Date(iso), "yyyy'년' M'월' d'일' (EEEEE)", { locale: ko });
 }
 
 // 두 ISO 시각이 같은 날짜인지 비교합니다.
 export function isSameDay(isoA: string, isoB: string): boolean {
-    return new Date(isoA).toDateString() === new Date(isoB).toDateString();
+    return dateFnsIsSameDay(new Date(isoA), new Date(isoB));
 }
 
 

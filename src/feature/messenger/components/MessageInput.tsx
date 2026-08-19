@@ -111,7 +111,7 @@ export default function MessageInput({ roomId, onMessageSent, onTaskCreated }: M
                                 <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-[#EAF5EE] text-[#2C8D50]">
                                     <CheckSquare className="size-3.5" strokeWidth={1.8} />
                                 </span>
-                                <span className="text-[11px] font-semibold text-[#2C8D50]">업무지시</span>
+                                <span className="text-[11px] font-semibold text-[#2C8D50]">업무카드</span>
                                 <span className="ml-auto truncate text-[10px] text-[#94A3B8]">채팅방에 업무 카드 등록</span>
                             </button>
                             <button

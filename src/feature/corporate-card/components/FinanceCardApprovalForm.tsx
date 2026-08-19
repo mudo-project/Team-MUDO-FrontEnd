@@ -13,6 +13,7 @@ interface FinanceCardApprovalFormProps {
     purpose: string;
     onChangePurpose: (value: string) => void;
     approvers: FinanceCardApprover[];
+    onChangeApprovers?: (approvers: FinanceCardApprover[]) => void;
     isResubmission?: boolean;
     submitLabel?: string;
 }
@@ -23,6 +24,7 @@ export default function FinanceCardApprovalForm({
     purpose,
     onChangePurpose,
     approvers,
+    onChangeApprovers,
     isResubmission = false,
     submitLabel,
 }: FinanceCardApprovalFormProps) {
@@ -48,25 +50,24 @@ export default function FinanceCardApprovalForm({
             return;
         }
 
-        setAssignedApprovers((currentApprovers) => {
-            return [
-                ...currentApprovers.map((approver, index) => ({ ...approver, order: index + 1, isFinal: false })),
-                { ...candidate, order: currentApprovers.length + 1, isFinal: true, approvedAt: null },
-            ];
-        });
+        const nextApprovers = [
+            ...assignedApprovers.map((approver, index) => ({ ...approver, order: index + 1, isFinal: false })),
+            { ...candidate, order: assignedApprovers.length + 1, isFinal: true, approvedAt: null },
+        ];
+        setAssignedApprovers(nextApprovers);
+        onChangeApprovers?.(nextApprovers);
         setSelectedApproverId("");
     };
 
     const handleRemoveApprover = (order: number) => {
-        setAssignedApprovers((currentApprovers) => {
-            const remainingApprovers = currentApprovers.filter((approver) => approver.order !== order);
-
-            return remainingApprovers.map((approver, index) => ({
-                ...approver,
-                order: index + 1,
-                isFinal: index === remainingApprovers.length - 1,
-            }));
-        });
+        const remainingApprovers = assignedApprovers.filter((approver) => approver.order !== order);
+        const nextApprovers = remainingApprovers.map((approver, index) => ({
+            ...approver,
+            order: index + 1,
+            isFinal: index === remainingApprovers.length - 1,
+        }));
+        setAssignedApprovers(nextApprovers);
+        onChangeApprovers?.(nextApprovers);
     };
 
     return (

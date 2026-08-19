@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
+import { formatTargetMonth } from "../revenueReportFormat";
 import RevenueSummaryTiles from "./RevenueSummaryTiles";
 import RevenuePreviousMonthCompare from "./RevenuePreviousMonthCompare";
 import RevenueCategoryChart from "./RevenueCategoryChart";
@@ -17,11 +18,6 @@ interface RevenueReportDetailProps {
         byLecture: { lectureName: string; teacherName: string; studentCount: number; actualRevenue: number }[];
         byTeacher: { teacherName: string; lectureCount: number; studentCount: number; actualRevenue: number }[];
     };
-}
-
-function formatTargetMonth(targetMonth: string) {
-    const [year, month] = targetMonth.split("-");
-    return `${year}년 ${Number(month)}월`;
 }
 
 export default function RevenueReportDetail({ targetMonth, report, snapshot }: RevenueReportDetailProps) {

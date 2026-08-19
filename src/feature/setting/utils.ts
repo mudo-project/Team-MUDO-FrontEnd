@@ -1,3 +1,5 @@
+import { format } from "date-fns";
+
 export function generateHalfHourOptions(): string[] {
     const options: string[] = [];
 
@@ -71,8 +73,5 @@ export function getGoogleConnectionBadge(status: GoogleConnectionStatus | null):
 
 // 구글 연동 응답의 ISO 시각(연결일시/토큰만료일시/마지막확인일시)을 "YYYY.MM.DD HH:mm"로 표시
 export function formatGoogleDateTime(iso: string): string {
-    const date = new Date(iso);
-    const pad = (value: number) => value.toString().padStart(2, "0");
-
-    return `${date.getFullYear()}.${pad(date.getMonth() + 1)}.${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    return format(new Date(iso), "yyyy.MM.dd HH:mm");
 }

@@ -4,16 +4,12 @@ import { RotateCw } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { getPayrollEmailBatchResultAction } from "../actions";
+import { formatYearMonth } from "../payrollFormat";
 import { PAYROLL_EMAIL_BATCH_STATUS_LABEL, PAYROLL_EMAIL_STATUS_BADGE_CLASS, PAYROLL_EMAIL_STATUS_LABEL } from "../statusStyles";
 
 interface PayrollEmailBatchResultViewProps {
     batchId: number;
     initialResult: PayrollEmailBatchResultDetailData;
-}
-
-function formatYearMonth(payrollYearMonth: string) {
-    const [year, month] = payrollYearMonth.split("-");
-    return `${year}년 ${Number(month)}월`;
 }
 
 export default function PayrollEmailBatchResultView({ batchId, initialResult }: PayrollEmailBatchResultViewProps) {

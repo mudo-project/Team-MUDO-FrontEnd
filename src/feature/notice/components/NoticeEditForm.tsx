@@ -3,16 +3,24 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Pencil, X } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import useModal from "@/components/hooks/useModal";
+import { uploadFiles } from "@/feature/file/uploadFiles";
 import { NoticeCreateFormValues, noticeCreateSchema } from "@/lib/noticeCreateSchema";
 import { pinNoticeAction, unpinNoticeAction, updateNoticeAction } from "../actions";
-import NoticeFileUpload from "./NoticeFileUpload";
+import NoticeFileUpload, { ExistingFile } from "./NoticeFileUpload";
+
+const toInitialExistingFiles = (notice: NoticeDetailData): ExistingFile[] =>
+    notice.attachments.map((attachment) => ({ id: attachment.id, name: attachment.fileName }));
 
 export default function NoticeEditForm({ notice }: { notice: NoticeDetailData }) {
     const modal = useModal();
     const router = useRouter();
+    const [files, setFiles] = useState<File[]>([]);
+    const [existingFiles, setExistingFiles] = useState<ExistingFile[]>(() => toInitialExistingFiles(notice));
+    const [uploadedFileIds, setUploadedFileIds] = useState<Record<string, number>>({});
     const {
         register,
         handleSubmit,
@@ -29,31 +37,55 @@ export default function NoticeEditForm({ notice }: { notice: NoticeDetailData })
 
     const closeAndReset = () => {
         reset();
+        setFiles([]);
+        setUploadedFileIds({});
+        setExistingFiles(toInitialExistingFiles(notice));
         modal.closeModal();
     };
 
     const onSubmit = async (values: NoticeCreateFormValues) => {
-        const result = await updateNoticeAction(notice.id, values.title, values.content);
+        try {
+            const uploadResult = await uploadFiles(files, uploadedFileIds);
+            setUploadedFileIds(uploadResult.uploadedFileIds);
 
-        if (!result.success) {
-            toast.error(result.message);
-            return;
-        }
+            const keptAttachments = existingFiles
+                .filter((file) => file.id !== undefined)
+                .map((file) => ({ fileId: file.id as number, fileName: file.name }));
 
-        if (values.pinned !== notice.pinned) {
-            const pinResult = values.pinned
-                ? await pinNoticeAction(notice.id)
-                : await unpinNoticeAction(notice.id);
+            const newAttachments = files.map((file, index) => ({
+                fileId: uploadResult.fileIds[index],
+                fileName: file.name,
+                fileType: file.type || "application/octet-stream",
+            }));
 
-            if (!pinResult.success) {
-                toast.error(pinResult.message);
+            const attachments = [...keptAttachments, ...newAttachments];
+
+            const result = attachments.length > 0
+                ? await updateNoticeAction(notice.id, values.title, values.content, attachments)
+                : await updateNoticeAction(notice.id, values.title, values.content);
+
+            if (!result.success) {
+                toast.error(result.message);
                 return;
             }
-        }
 
-        toast.success(result.message);
-        closeAndReset();
-        router.refresh();
+            if (values.pinned !== notice.pinned) {
+                const pinResult = values.pinned
+                    ? await pinNoticeAction(notice.id)
+                    : await unpinNoticeAction(notice.id);
+
+                if (!pinResult.success) {
+                    toast.error(pinResult.message);
+                    return;
+                }
+            }
+
+            toast.success(result.message);
+            closeAndReset();
+            router.refresh();
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : "공지사항 수정에 실패했습니다.");
+        }
     };
 
     return (
@@ -122,7 +154,10 @@ export default function NoticeEditForm({ notice }: { notice: NoticeDetailData })
                         </div>
 
                         <NoticeFileUpload
-                            initialFiles={notice.attachments.map((attachment) => ({ name: attachment.fileName }))}
+                            disabled={isSubmitting}
+                            initialFiles={toInitialExistingFiles(notice)}
+                            onExistingFilesChange={setExistingFiles}
+                            onFilesChange={setFiles}
                         />
 
                         <div className="mt-4 flex items-start gap-2 hover:cursor-pointer">

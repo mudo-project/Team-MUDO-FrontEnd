@@ -1,8 +1,8 @@
 "use client";
 
-import { format } from "date-fns";
 import { X } from "lucide-react";
 import { useEffect, useRef } from "react";
+import { formatListDate } from "@/lib/date";
 
 interface AlarmListProps {
     alarms: NotificationItemData[];
@@ -63,7 +63,7 @@ export default function AlarmList({ alarms, hasNext, onItemClick, onDelete, onLo
                         </span>
                     </button>
                     <time className="text-right text-[11px] text-[#64748B]">
-                        {format(new Date(alarm.createdAt), "MM.dd")}
+                        {formatListDate(alarm.createdAt)}
                     </time>
                     <button
                         aria-label="알림 삭제"

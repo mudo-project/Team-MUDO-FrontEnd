@@ -117,19 +117,19 @@ interface MessengerMessageListResponse {
     data: MessengerMessageListData;
 }
 
-// 업무지시 카드 등록 요청값
+// 업무카드 등록 요청값
 interface MessengerTaskCardCreateRequest {
     content: string;
     dueDate?: string | null;
     assigneeIds: number[];
 }
 
-// 업무지시 카드 등록 응답 데이터
+// 업무카드 등록 응답 데이터
 interface MessengerTaskCardCreateData {
     cardId: number;
 }
 
-// 업무지시 카드 등록 응답값
+// 업무카드 등록 응답값
 interface MessengerTaskCardCreateResponse {
     status: number;
     code: string;
@@ -137,28 +137,28 @@ interface MessengerTaskCardCreateResponse {
     data: MessengerTaskCardCreateData;
 }
 
-// 업무지시 카드 수정 요청값
+// 업무카드 수정 요청값
 interface MessengerTaskCardUpdateRequest {
     content: string;
     dueDate?: string | null;
     assigneeIds: number[];
 }
 
-// 업무지시 카드 목록조회 요청 파라미터
+// 업무카드 목록조회 요청 파라미터
 interface MessengerTaskCardListParams {
     cursorCreatedAt?: string;
     cursorCardId?: number;
     size?: number;
 }
 
-// 업무지시 카드 담당자 데이터
+// 업무카드 담당자 데이터
 interface MessengerTaskCardAssigneeData {
     userId: number;
     name: string;
     completedAt: string | null;
 }
 
-// 업무지시 카드 목록조회 응답 항목
+// 업무카드 목록조회 응답 항목
 interface MessengerTaskCardItemData {
     id: number;
     assignerId: number;
@@ -172,7 +172,7 @@ interface MessengerTaskCardItemData {
     createdAt: string;
 }
 
-// 업무지시 카드 목록조회 데이터값
+// 업무카드 목록조회 데이터값
 interface MessengerTaskCardListData {
     content: MessengerTaskCardItemData[];
     hasNext: boolean;
@@ -180,7 +180,7 @@ interface MessengerTaskCardListData {
     nextCursorCardId: number | null;
 }
 
-// 업무지시 카드 목록조회 응답값
+// 업무카드 목록조회 응답값
 interface MessengerTaskCardListResponse {
     status: number;
     code: string;

@@ -2,6 +2,7 @@
 
 import { Download, Mail, Plus, RotateCw, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { format } from "date-fns";
 import { toast } from "sonner";
 import useModal from "@/components/hooks/useModal";
 import TwoButtonModal from "@/components/ui/TwoButtonModal";
@@ -18,6 +19,7 @@ import {
     updatePayrollAction,
 } from "../actions";
 import { PAYROLL_EMPLOYMENT_TYPE_LABEL, PAYROLL_SALARY_TYPE_LABEL, PAYROLL_STATUS_BADGE_CLASS, PAYROLL_STATUS_LABEL } from "../statusStyles";
+import { formatYearMonth } from "../payrollFormat";
 import PayrollEmailDeliveryResultPanel from "./PayrollEmailDeliveryResultPanel";
 import PayrollRevisionHistory from "./PayrollRevisionHistory";
 
@@ -27,11 +29,6 @@ interface PayrollDetailProps {
     detail: PayrollAggregateData;
     onClose: () => void;
     onListChanged: () => void;
-}
-
-function formatYearMonth(yearMonth: string) {
-    const [year, month] = yearMonth.split("-");
-    return `${year}년 ${Number(month)}월`;
 }
 
 function LineItemRow({ item, onDelete }: { item: PayrollLineItemData; onDelete?: () => void }) {
@@ -256,7 +253,7 @@ export default function PayrollDetail({ detail: initialDetail, onClose, onListCh
                             <X className="size-[18px] text-[#718096]" />
                         </button>
                     </div>
-                    <p className="mt-2 text-[12px] text-[#94A3B8]">지급 예정일 {detail.scheduledPayDate.replaceAll("-", ".")}</p>
+                    <p className="mt-2 text-[12px] text-[#94A3B8]">지급 예정일 {format(new Date(detail.scheduledPayDate), "yyyy.MM.dd")}</p>
                 </header>
 
                 <div className="min-h-0 flex-1 overflow-y-auto px-7 py-6">
