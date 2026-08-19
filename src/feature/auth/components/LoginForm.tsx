@@ -38,7 +38,7 @@ export default function LoginForm() {
             if (state.data?.mustChangePw) {
                 route.push('/password-setup');
             } else {
-                route.push('/role');
+                route.push('/notice');
             }
 
         } else {

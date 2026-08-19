@@ -2,7 +2,6 @@
 
 import { useSidebarStore } from "@/store/useSidebarStore";
 import NavLink from "./NavLink";
-import { GraduationCap } from "lucide-react";
 import CloseSidebar from "./CloseSidebar";
 import OpenMemo from "./OpenMemo";
 import { useEffect, useRef, useState } from "react";
@@ -35,7 +34,8 @@ export type MenuHref =
     | "/members"
     | "/role"
     | "/initial"
-    | "/setting";
+    | "/setting"
+    | '/superadmin';
 
 interface MenuItem {
     label: string;
@@ -90,7 +90,6 @@ export default function Sidebar() {
                     setUnreadNotificationCount(count);
                 }
             } catch {
-                // 조회 실패 시 뱃지는 0으로 유지한다.
             }
         };
 

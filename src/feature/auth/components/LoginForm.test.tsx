@@ -92,7 +92,7 @@ describe("LoginForm", () => {
         expect(submittedFormData.get("password")).toBe("pw1234");
     });
 
-    it("로그인에 성공하고 비밀번호를 변경할 필요가 없으면 역할 선택 화면으로 이동한다", async () => {
+    it("로그인에 성공하고 비밀번호를 변경할 필요가 없으면 공지 화면으로 이동한다", async () => {
         mockedLoginAction.mockResolvedValue({
             success: true,
             message: "로그인에 성공했습니다.",
@@ -110,7 +110,7 @@ describe("LoginForm", () => {
         await waitFor(() => {
             expect(toast.success).toHaveBeenCalledWith("로그인에 성공했습니다.");
         });
-        expect(push).toHaveBeenCalledWith("/role");
+        expect(push).toHaveBeenCalledWith("/notice");
         expect(useUserStore.getState().permissions).toEqual(["APPROVAL:TEMPLATE_MANAGE"]);
     });
 
