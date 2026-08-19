@@ -17,6 +17,7 @@ import CommentBar from "./CommentBar";
 import TaskComment from "./TaskComment";
 import TaskDeleteButton from "./TaskDeleteButton";
 import { toast } from "sonner";
+import { format } from "date-fns";
 
 const statusLabel: Record<WorkspaceTaskStatus, string> = {
     WAITING: "대기",
@@ -115,7 +116,7 @@ export default function ViewTask({
                         </h2>
                         {task && (
                             <p className="mt-0.5 text-[10px] leading-[15px] text-[#B0B8C1]">
-                                등록 · {task.creator.name} · {task.createdAt}
+                                등록 · {task.creator.name} · {format(task.createdAt, 'yyyy-MM-dd')}
                             </p>
                         )}
                     </div>
@@ -204,7 +205,7 @@ export default function ViewTask({
 
                                 <dt className="text-[#94A3B8]">상태 변경</dt>
                                 <dd className="text-[#64748B]">
-                                    {task.lastStatusChangedAt ?? "변경 이력 없음"}
+                                    {format(String(task.lastStatusChangedAt), 'yyyy-MM-dd') ?? "변경 이력 없음"}
                                 </dd>
                             </dl>
 

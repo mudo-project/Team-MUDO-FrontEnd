@@ -8,6 +8,7 @@ import { LectureDetailData } from "../../type";
 import LectureDeleteButton from "../LectureDeleteButton";
 import LectureUpdateButton from "../LectureUpdateButton";
 import { useUserStore } from "@/store/useUserStore";
+import { format } from "date-fns";
 
 interface ViewLectureModalProps {
     closeModal: () => void;
@@ -103,7 +104,7 @@ export default function ViewLectureModal({ closeModal, lectureId }: ViewLectureM
                                     ))}
                                 </div>
                             </section>
-                            <p className="mt-[22px] text-[11px] text-[#CBD5E1]">등록일시 {detail.createdAt.slice(0, 10)}</p>
+                            <p className="mt-[22px] text-[11px] text-[#CBD5E1]">등록일시 {format(new Date(detail.createdAt), "yyyy-MM-dd")}</p>
                         </div>
                     </>
                 )}
