@@ -112,4 +112,19 @@ describe("CreateWorkspaceModal", () => {
         ).toBeInTheDocument();
         expect(closeModal).not.toHaveBeenCalled();
     });
+
+    it("참여자 검색 결과를 모달에 잘리지 않는 최상위 목록으로 표시하고 선택한다", async () => {
+        mockedGetUserListAction.mockResolvedValue({
+            success: true,
+            message: "조회했습니다.",
+            data: [{ userId: 1, name: "김민수", username: "minsu" }],
+        });
+        const { closeModal } = renderModal();
+
+        fireEvent.focus(screen.getByPlaceholderText("이름으로 검색"));
+        fireEvent.click(await screen.findByRole("button", { name: /김민수/ }));
+
+        expect(screen.getByRole("button", { name: "김민수 참여자 제거" })).toBeInTheDocument();
+        expect(closeModal).not.toHaveBeenCalled();
+    });
 });

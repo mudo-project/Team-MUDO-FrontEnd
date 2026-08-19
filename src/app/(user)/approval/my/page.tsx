@@ -12,9 +12,11 @@ interface paramsProps {
 
 
 export default async function Page({ searchParams }: paramsProps) {
-    const { page } = await searchParams;
+    const { page = "0" } = await searchParams;
+    const parsedPage = Number(page);
+    const currentPage = Number.isInteger(parsedPage) && parsedPage >= 0 ? parsedPage : 0;
 
-    const response = await getSubmittedApprovalListAction();
+    const response = await getSubmittedApprovalListAction(currentPage);
     const approvals = response.data?.content ?? [];
 
     return (
@@ -25,7 +27,7 @@ export default async function Page({ searchParams }: paramsProps) {
             {!response.success && <p className="mt-5 text-[12px] text-red-500">{response.message}</p>}
             {response.success && approvals.length > 0 && <ApprovalList approvals={approvals} type='my' />}
             {response.success && approvals.length === 0 && <NoneApproval />}
-            <PaginationPrev url='student' page={page} hasNext={response.data?.hasNext} />
+            <PaginationPrev url="approval/my" page={currentPage} hasNext={response.data?.hasNext} />
 
         </main>
     );

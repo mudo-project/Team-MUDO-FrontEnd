@@ -11,9 +11,11 @@ interface paramsProps {
 }
 
 export default async function Page({ searchParams }: paramsProps) {
-    const { page } = await searchParams;
+    const { page = "0" } = await searchParams;
+    const parsedPage = Number(page);
+    const currentPage = Number.isInteger(parsedPage) && parsedPage >= 0 ? parsedPage : 0;
 
-    const response: ApprovalActionResult<ApprovalPageData<ApprovalTemplateListData>> = await getApprovalTemplateListAction();
+    const response: ApprovalActionResult<ApprovalPageData<ApprovalTemplateListData>> = await getApprovalTemplateListAction(currentPage);
 
     return (
         <main className="min-h-[calc(100dvh-52px)] w-full bg-[#FCFCFC] px-2 py-4 sm:px-2.5 md:px-4 md:py-5 lg:px-8 lg:py-7">
@@ -43,7 +45,7 @@ export default async function Page({ searchParams }: paramsProps) {
 
                 </section>
             )}
-            <PaginationPrev url='student' page={page} hasNext={response.data?.hasNext} />
+            <PaginationPrev url="approval/templates" page={currentPage} hasNext={response.data?.hasNext} />
 
         </main>
     );

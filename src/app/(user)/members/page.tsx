@@ -60,7 +60,12 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
                     )}
                 </div>
             </section>
-            <PaginationPrev url='members' page={page} hasNext={memberResponse.data?.hasNext} />
+            <PaginationPrev
+                url="members"
+                page={Number.isInteger(parsedPage) && parsedPage >= 0 ? parsedPage : 0}
+                hasNext={memberResponse.data?.hasNext}
+                searchParams={{ keyword, roleId }}
+            />
 
         </main>
     );

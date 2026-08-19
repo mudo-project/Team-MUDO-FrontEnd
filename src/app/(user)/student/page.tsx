@@ -13,10 +13,12 @@ interface paramsProps {
 
 export default async function Page({ searchParams }: paramsProps) {
     const { page = '0', keyword } = await searchParams;
+    const parsedPage = Number(page);
+    const currentPage = Number.isInteger(parsedPage) && parsedPage >= 0 ? parsedPage : 0;
     let response;
     try {
-        response = await getStudentListAction(keyword, Number(page));
-    } catch (error) {
+        response = await getStudentListAction(keyword, currentPage);
+    } catch {
         return (
             <div>
                 네트워크 오류가 발생하였습니다.
@@ -40,7 +42,7 @@ export default async function Page({ searchParams }: paramsProps) {
                     <StudentList students={response.data?.content ?? []} />
                 )}
             </div>
-            <PaginationPrev url='student' page={page} hasNext={response.data?.hasNext} />
+            <PaginationPrev url="student" page={currentPage} hasNext={response.data?.hasNext} searchParams={{ keyword }} />
         </main>
     );
 }
