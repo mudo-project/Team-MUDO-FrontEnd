@@ -17,13 +17,20 @@ import CommentBar from "./CommentBar";
 import TaskComment from "./TaskComment";
 import TaskDeleteButton from "./TaskDeleteButton";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import { format, isValid, parseISO } from "date-fns";
 
 const statusLabel: Record<WorkspaceTaskStatus, string> = {
     WAITING: "대기",
     IN_PROGRESS: "진행중",
     COMPLETED: "완료",
     DELAYED: "지연",
+};
+
+const formatTaskDate = (value?: string) => {
+    if (!value) return null;
+
+    const date = parseISO(value);
+    return isValid(date) ? format(date, "yyyy-MM-dd") : null;
 };
 
 interface ViewTaskProps {
@@ -205,7 +212,7 @@ export default function ViewTask({
 
                                 <dt className="text-[#94A3B8]">상태 변경</dt>
                                 <dd className="text-[#64748B]">
-                                    {format(String(task.lastStatusChangedAt), 'yyyy-MM-dd') ?? "변경 이력 없음"}
+                                    {formatTaskDate(task.lastStatusChangedAt) ?? "변경 이력 없음"}
                                 </dd>
                             </dl>
 
