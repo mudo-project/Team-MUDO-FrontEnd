@@ -14,10 +14,12 @@ export default function RollLectureList({ lectures }: { lectures: LectureListIte
                 <p className="col-span-3 md:block hidden">시간표</p>
                 <p className="col-span-2 text-center sm:block hidden">수강생</p>
             </div>
+            <div className="h-[calc(100dvh-230px)] min-h-0 overflow-y-auto">
 
-            {lectures.length === 0 ? (
-                <p className="py-8 md:py-10 lg:py-12 text-center text-[12px] md:text-[13px] text-[#94A3B8]">조회된 강의가 없습니다.</p>
-            ) : lectures.map((lecture) => <RollLectureItem key={lecture.id} lecture={lecture} />)}
+                {lectures.length === 0 ? (
+                    <p className="py-8 md:py-10 lg:py-12 text-center text-[12px] md:text-[13px] text-[#94A3B8]">조회된 강의가 없습니다.</p>
+                ) : lectures.map((lecture) => <RollLectureItem key={lecture.id} lecture={lecture} />)}
+            </div>
         </section>
     );
 }

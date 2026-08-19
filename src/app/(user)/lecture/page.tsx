@@ -9,6 +9,7 @@ import {
     getLectureTermsAction,
 } from "@/feature/lecture/actions";
 import { LectureListQuery } from "@/feature/lecture/type";
+import PaginationPrev from "@/components/ui/PaginationPrev";
 
 type LecturePageSearchParams = Record<string, string | string[] | undefined>;
 
@@ -60,6 +61,8 @@ export default async function LecturePage({ searchParams }: { searchParams: Prom
                 {!lectureResponse.success && <p className="mt-4 text-[13px] text-[#C0483F]">{lectureResponse.message}</p>}
                 <LectureList lectures={lectures} />
             </div>
+            <PaginationPrev url='members' page={String(lectureResponse.data?.page)} hasNext={lectureResponse.data?.hasNext} />
+
         </main>
     );
 }
