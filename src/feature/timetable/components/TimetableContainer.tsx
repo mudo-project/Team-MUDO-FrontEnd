@@ -1,7 +1,8 @@
 "use client";
 
+import { toPng } from "html-to-image";
 import { Plus } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useNewTimetableWizard } from "@/components/hooks/useNewTimetableWizard";
@@ -43,6 +44,22 @@ const getShiftedWeekStart = (startDate: Date, amount: number) => {
   const nextStartDate = new Date(startDate);
   nextStartDate.setDate(startDate.getDate() + amount);
   return nextStartDate;
+};
+
+// 요일 순서(일~토)를 고정하기 위해 주어진 날짜가 속한 주의 일요일을 구한다.
+const getWeekStartSunday = (date: Date) => getShiftedWeekStart(date, -date.getDay());
+
+const getStartOfDay = (date: Date) => {
+  const copy = new Date(date);
+  copy.setHours(0, 0, 0, 0);
+  return copy;
+};
+
+// 오늘 날짜를 템플릿 기간 안으로 맞춘다(진행 중이 아닌 템플릿은 시작일/종료일로 대체).
+const clampDateToRange = (date: Date, min: Date, max: Date) => {
+  if (date.getTime() < min.getTime()) return min;
+  if (date.getTime() > max.getTime()) return max;
+  return date;
 };
 
 const getTemplateStatus = (status: TimetableSetStatus): TemplateStatus => {
@@ -88,6 +105,74 @@ const downloadBase64File = (base64: string, mimeType: string, filename: string) 
   URL.revokeObjectURL(url);
 };
 
+// html-to-image가 SVG(foreignObject)로 복제해 그리는 과정에서 CSS Grid의 fr/minmax 트랙을
+// 제대로 계산하지 못해 첫 번째 열만 남고 나머지가 무너지는 경우가 있다. 캡처 직전에 실제
+// 렌더링된 픽셀 폭을 읽어 각 그리드의 gridTemplateColumns을 고정값으로 바꿔 두면 이 문제를 피할 수 있다.
+const freezeGridColumns = (node: HTMLElement) => {
+  const restores: Array<() => void> = [];
+
+  const freezeByOwnChildren = (grid: HTMLElement) => {
+    const widths = Array.from(grid.children).map((child) => `${child.getBoundingClientRect().width}px`);
+
+    if (widths.length === 0) return;
+
+    const previous = grid.style.gridTemplateColumns;
+
+    grid.style.gridTemplateColumns = widths.join(" ");
+    restores.push(() => { grid.style.gridTemplateColumns = previous; });
+  };
+
+  node.querySelectorAll<HTMLElement>('[role="row"]').forEach(freezeByOwnChildren);
+
+  // 강의실 헤더(요일별 열 폭의 기준)와 그 아래 수업 카드 그리드는 같은 열 구성을 공유해야 한다.
+  node.querySelectorAll<HTMLElement>('[data-testid="weekly-timetable-grid"]').forEach((bodyGrid) => {
+    const roomHeader = bodyGrid.previousElementSibling as HTMLElement | null;
+
+    if (!roomHeader) return;
+
+    const widths = Array.from(roomHeader.children).map((child) => `${child.getBoundingClientRect().width}px`);
+
+    if (widths.length === 0) return;
+
+    const columns = widths.join(" ");
+    const previousHeader = roomHeader.style.gridTemplateColumns;
+    const previousBody = bodyGrid.style.gridTemplateColumns;
+
+    roomHeader.style.gridTemplateColumns = columns;
+    bodyGrid.style.gridTemplateColumns = columns;
+    restores.push(() => {
+      roomHeader.style.gridTemplateColumns = previousHeader;
+      bodyGrid.style.gridTemplateColumns = previousBody;
+    });
+  });
+
+  return () => restores.forEach((restore) => restore());
+};
+
+// 스크롤·높이 제한 없이 시간표 전체를 이미지로 캡처해 바로 다운로드시킨다.
+const downloadGridAsPng = async (node: HTMLElement, filename: string) => {
+  const previousMaxHeight = node.style.maxHeight;
+  const previousOverflowY = node.style.overflowY;
+
+  node.style.maxHeight = "none";
+  node.style.overflowY = "visible";
+
+  const restoreGridColumns = freezeGridColumns(node);
+
+  try {
+    const dataUrl = await toPng(node, { backgroundColor: "#ffffff", pixelRatio: 2 });
+    const link = document.createElement("a");
+
+    link.href = dataUrl;
+    link.download = filename;
+    link.click();
+  } finally {
+    restoreGridColumns();
+    node.style.maxHeight = previousMaxHeight;
+    node.style.overflowY = previousOverflowY;
+  }
+};
+
 export default function TimetableContainer() {
   const [isTemplateMenuOpen, setIsTemplateMenuOpen] = useState(false);
   const [isClassRegistrationOpen, setIsClassRegistrationOpen] = useState(false);
@@ -99,6 +184,7 @@ export default function TimetableContainer() {
   const [courseSearch, setCourseSearch] = useState("");
   const [selectedSlotId, setSelectedSlotId] = useState<number | null>(null);
   const [editingSlotId, setEditingSlotId] = useState<number | null>(null);
+  const gridCaptureRef = useRef<HTMLDivElement>(null);
 
   const queryClient = useQueryClient();
 
@@ -263,6 +349,30 @@ export default function TimetableContainer() {
     onError: () => toast.error("시간표 내보내기에 실패하였습니다."),
   });
 
+  const pngExportMutation = useMutation({
+    mutationFn: async () => {
+      if (!gridCaptureRef.current || !activeTemplate) {
+        throw new Error("내보낼 시간표가 없습니다.");
+      }
+
+      await downloadGridAsPng(gridCaptureRef.current, `${activeTemplate.title}.png`);
+    },
+    onSuccess: () => {
+      toast.success("이미지로 내보냈습니다.");
+      setIsExportMenuOpen(false);
+    },
+    onError: () => toast.error("이미지로 내보내기에 실패하였습니다."),
+  });
+
+  const handleExport = (format: TimetableExportFormat) => {
+    if (format === "PNG") {
+      pngExportMutation.mutate();
+      return;
+    }
+
+    exportMutation.mutate(format);
+  };
+
   const wizard = useNewTimetableWizard({
     activeClassroomGroups: activeTemplate?.classroomGroups ?? [],
     onFinish: (payload, editingTimetableSetId) => timetableSetMutation.mutate({ payload, editingTimetableSetId }),
@@ -287,7 +397,9 @@ export default function TimetableContainer() {
     : [];
   const timetableGridColumns = `68px repeat(7, minmax(${Math.max(visibleRoomColumns.length, 1) * 72}px, 1fr))`;
 
-  const weekStart = activeTemplate ? activeTemplate.startDate : null;
+  const weekStart = activeTemplate
+    ? getWeekStartSunday(clampDateToRange(getStartOfDay(new Date()), activeTemplate.startDate, activeTemplate.endDate))
+    : null;
   const currentDays = activeTemplate && weekStart
     ? Array.from({ length: 7 }, (_, index) => {
       const date = getShiftedWeekStart(weekStart, index);
@@ -402,9 +514,9 @@ export default function TimetableContainer() {
                 수업 등록
               </button>
               <TimetableExportMenu
-                isExporting={exportMutation.isPending}
+                isExporting={exportMutation.isPending || pngExportMutation.isPending}
                 isOpen={isExportMenuOpen}
-                onExport={(format) => exportMutation.mutate(format)}
+                onExport={handleExport}
                 onToggle={() => setIsExportMenuOpen((isOpen) => !isOpen)}
               />
               <button
@@ -451,6 +563,7 @@ export default function TimetableContainer() {
               />
 
               <WeeklyTimetableGrid
+                captureRef={gridCaptureRef}
                 classes={activeClasses}
                 days={currentDays}
                 gridColumns={timetableGridColumns}

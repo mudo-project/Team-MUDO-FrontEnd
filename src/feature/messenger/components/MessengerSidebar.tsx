@@ -57,7 +57,7 @@ export default function MessengerSidebar() {
                     </button>
 
                     {isTaskMenuOpen && (
-                        <div className="absolute top-[calc(100%+6px)] left-1/2 z-20 flex w-[260px] -translate-x-1/2 overflow-hidden rounded-[10px] border border-[#D7E8DB] bg-white shadow-[0_12px_24px_rgba(22,34,54,0.18)]">
+                        <div className="absolute top-[calc(100%+6px)] left-1/2 z-20 flex w-[200px] -translate-x-1/2 overflow-hidden rounded-[10px] border border-[#D7E8DB] bg-white shadow-[0_12px_24px_rgba(22,34,54,0.18)]">
                             <button
                                 className="flex-1 px-3 py-3 text-center text-[13px] font-medium whitespace-nowrap text-[#0F172A] hover:bg-[#EEF3F0] hover:text-[#2C8D50]"
                                 onClick={() => handleSelectTaskView("received")}
