@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { createScheduleAction, deleteScheduleAction, getScheduleListAction } from "../actions";
 import { MEMO_COLORS } from "@/feature/memo/components/MemoColorPicker";
+import { useUserStore } from "@/store/useUserStore";
 import ScheduleBoard from "./ScheduleBoard";
 
 jest.mock("../actions", () => ({
@@ -44,7 +45,21 @@ const renderBoard = () => {
 };
 
 describe("ScheduleBoard", () => {
+  beforeEach(() => {
+    useUserStore.setState({ permissions: ["CALENDAR:MANAGE"] });
+  });
+
   afterEach(() => jest.clearAllMocks());
+
+  it("CALENDAR:MANAGE 권한이 없으면 일정 추가 버튼을 노출하지 않는다", async () => {
+    useUserStore.setState({ permissions: [] });
+    mockedGetScheduleListAction.mockResolvedValue([]);
+
+    renderBoard();
+
+    await screen.findByText("이 달에 등록된 일정이 없습니다.");
+    expect(screen.queryByRole("button", { name: "일정 추가" })).not.toBeInTheDocument();
+  });
 
   it("일정 목록 조회에 실패하면 에러 메시지를 표시한다", async () => {
     mockedGetScheduleListAction.mockRejectedValue(new Error("실패"));

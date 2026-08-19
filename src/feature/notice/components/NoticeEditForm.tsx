@@ -60,9 +60,10 @@ export default function NoticeEditForm({ notice }: { notice: NoticeDetailData })
 
             const attachments = [...keptAttachments, ...newAttachments];
 
-            const result = attachments.length > 0
-                ? await updateNoticeAction(notice.id, values.title, values.content, attachments)
-                : await updateNoticeAction(notice.id, values.title, values.content);
+            // attachments는 항상 전체 목록으로 명시적으로 보낸다(부분 추가/삭제가 아닌 전체 교체).
+            // 빈 배열([])도 그대로 보내야 첨부파일 전체 삭제가 반영된다 — 필드를 생략하면
+            // 서버가 기존 첨부파일을 그대로 유지한다.
+            const result = await updateNoticeAction(notice.id, values.title, values.content, attachments);
 
             if (!result.success) {
                 toast.error(result.message);

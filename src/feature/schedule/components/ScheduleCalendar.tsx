@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { addMonths, format, subMonths } from "date-fns";
 import dynamic from "next/dynamic";
 import ScheduleDatePicker from "./ScheduleDatePicker";
+import { useUserStore } from "@/store/useUserStore";
 import type { ScheduleEvent } from "../scheduleTypes";
 
 const ScheduleDayPicker = dynamic(() => import("./ScheduleDayPicker"), {
@@ -28,6 +29,9 @@ export default function ScheduleCalendar({
   onSelectDate,
   onAddClick,
 }: ScheduleCalendarProps) {
+  const permissions = useUserStore((state) => state.permissions);
+  const canManage = permissions.includes("CALENDAR:MANAGE");
+
   return (
     <section className="flex min-w-0 flex-col xl:min-h-0" aria-label={`${format(month, "yyyy년 M월")} 일정`}>
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -64,14 +68,16 @@ export default function ScheduleCalendar({
             오늘
           </button>
         </div>
-        <button
-          className="inline-flex h-11 items-center justify-center gap-1.5 rounded-lg bg-[#12182B] px-4 text-[12px] font-semibold text-white"
-          type="button"
-          onClick={onAddClick}
-        >
-          <Plus className="size-4" strokeWidth={2.2} />
-          일정 추가
-        </button>
+        {canManage && (
+          <button
+            className="inline-flex h-11 items-center justify-center gap-1.5 rounded-lg bg-[#12182B] px-4 text-[12px] font-semibold text-white"
+            type="button"
+            onClick={onAddClick}
+          >
+            <Plus className="size-4" strokeWidth={2.2} />
+            일정 추가
+          </button>
+        )}
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-[#DCE9DF] bg-white">

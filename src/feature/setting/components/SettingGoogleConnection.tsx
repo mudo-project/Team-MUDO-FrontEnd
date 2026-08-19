@@ -12,6 +12,7 @@ import {
   getGoogleAuthorizationUrlAction,
   getGoogleConnectionAction,
 } from "@/feature/setting/actions";
+import { useUserStore } from "@/store/useUserStore";
 
 type ConnectionStatus = "not-connected" | "connected" | "expiring" | "expired" | "failed";
 
@@ -75,6 +76,8 @@ function openGoogleAuthorizationPopup(authorizationUrl: string): Window | null {
 }
 
 export default function SettingGoogleConnection() {
+  const permissions = useUserStore((state) => state.permissions);
+  const hasPermission = permissions.includes("SHAREDFILE:MANAGE");
   const [connection, setConnection] = useState<GoogleConnectionData | null>(null);
   const [isLoadingConnection, setIsLoadingConnection] = useState(true);
   const [isConnecting, setIsConnecting] = useState(false);
@@ -101,6 +104,8 @@ export default function SettingGoogleConnection() {
   }, []);
 
   useEffect(() => {
+    if (!hasPermission) return;
+
     void fetchConnection().finally(() => setIsLoadingConnection(false));
 
     return () => {
@@ -108,10 +113,12 @@ export default function SettingGoogleConnection() {
         window.clearInterval(pollIntervalRef.current);
       }
     };
-  }, [fetchConnection]);
+  }, [fetchConnection, hasPermission]);
 
   // OAuth 콜백 팝업(SettingGoogleConnectionCallback)이 postMessage로 결과를 알려주면 즉시 상태를 다시 조회한다.
   useEffect(() => {
+    if (!hasPermission) return;
+
     function handleMessage(event: MessageEvent) {
       if (event.origin !== "https://ieum.store") return;
       if (event.data?.source !== "google-oauth-connection") return;
@@ -126,7 +133,15 @@ export default function SettingGoogleConnection() {
 
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
-  }, [fetchConnection]);
+  }, [fetchConnection, hasPermission]);
+
+  if (!hasPermission) {
+    return (
+      <section className="rounded-xl border border-[#DCE9DF] bg-white p-6 text-center text-sm text-[#7B879B] shadow-[0_1px_2px_rgba(15,23,42,0.02)] lg:p-7">
+        구글 연동 관리 권한이 없습니다.
+      </section>
+    );
+  }
 
   async function handleConnect() {
     setIsConnecting(true);

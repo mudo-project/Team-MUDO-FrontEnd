@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { useUserStore } from "@/store/useUserStore";
 import {
   createWifiIpAction,
   deleteWifiIpAction,
@@ -29,10 +30,19 @@ const mockedDeleteWifiIpAction = deleteWifiIpAction as jest.Mock;
 describe("SettingWifi", () => {
   beforeEach(() => {
     mockedGetWifiIpListAction.mockResolvedValue([]);
+    useUserStore.setState({ permissions: ["ATTENDANCE:WIFI_IP_MANAGE"] });
   });
 
   afterEach(() => {
     jest.clearAllMocks();
+  });
+
+  it("ATTENDANCE:WIFI_IP_MANAGE 권한이 없으면 카드를 노출하지 않는다", () => {
+    useUserStore.setState({ permissions: [] });
+
+    const { container } = render(<SettingWifi />);
+
+    expect(container).toBeEmptyDOMElement();
   });
 
   it("마운트 시 등록된 와이파이 IP 목록을 조회해 표시한다", async () => {

@@ -7,16 +7,19 @@ import { toast } from "sonner";
 import useModal from "@/components/hooks/useModal";
 import TwoButtonModal from "@/components/ui/TwoButtonModal";
 import { getCurrentUserIdAction } from "@/feature/messenger/actions";
+import { useUserStore } from "@/store/useUserStore";
 import { deleteNoticeAction, pinNoticeAction, unpinNoticeAction } from "../actions";
 import NoticeEditForm from "./NoticeEditForm";
 
 export default function NoticeDetailToolbar({ notice }: { notice: NoticeDetailData }) {
     const router = useRouter();
+    const permissions = useUserStore((state) => state.permissions);
     const [pinned, setPinned] = useState(notice.pinned);
     const [syncedPinned, setSyncedPinned] = useState(notice.pinned);
     const [isPinning, startPinTransition] = useTransition();
     const [isDeleting, startDeleteTransition] = useTransition();
     const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+    const canPin = permissions.includes("NOTICE:PIN");
     const isAuthor = currentUserId !== null && currentUserId === notice.authorUserId;
     const deleteModal = useModal();
 
@@ -66,7 +69,7 @@ export default function NoticeDetailToolbar({ notice }: { notice: NoticeDetailDa
                 </span>
             )}
             <div className="ml-auto flex items-center gap-3 text-[#94A3B8]">
-                {isAuthor && (
+                {canPin && (
                     <button
                         aria-label={pinned ? "상단 고정 해제" : "상단 고정"}
                         aria-pressed={pinned}
@@ -78,16 +81,20 @@ export default function NoticeDetailToolbar({ notice }: { notice: NoticeDetailDa
                         <Pin className="size-4" strokeWidth={1.6} />
                     </button>
                 )}
-                <NoticeEditForm notice={notice} />
-                <button
-                    aria-label="공지 삭제"
-                    className="hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
-                    disabled={isDeleting}
-                    onClick={deleteModal.openModal}
-                    type="button"
-                >
-                    <Trash2 className="size-4" strokeWidth={1.6} />
-                </button>
+                {isAuthor && (
+                    <>
+                        <NoticeEditForm notice={notice} />
+                        <button
+                            aria-label="공지 삭제"
+                            className="hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
+                            disabled={isDeleting}
+                            onClick={deleteModal.openModal}
+                            type="button"
+                        >
+                            <Trash2 className="size-4" strokeWidth={1.6} />
+                        </button>
+                    </>
+                )}
             </div>
             {deleteModal.isModal && (
                 <TwoButtonModal

@@ -7,6 +7,7 @@ import { useMemo, useRef, useState } from "react";
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useNewTimetableWizard } from "@/components/hooks/useNewTimetableWizard";
+import { useUserStore } from "@/store/useUserStore";
 import {
   createTimetableSetAction,
   createTimetableSlotAction,
@@ -175,6 +176,8 @@ const downloadGridAsPng = async (node: HTMLElement, filename: string) => {
 };
 
 export default function TimetableContainer() {
+  const permissions = useUserStore((state) => state.permissions);
+  const canManage = permissions.includes("TIMETABLE:MANAGE");
   const [isTemplateMenuOpen, setIsTemplateMenuOpen] = useState(false);
   const [isClassRegistrationOpen, setIsClassRegistrationOpen] = useState(false);
   const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
@@ -492,6 +495,7 @@ export default function TimetableContainer() {
               {activeTemplateSummary && (
                 <TimetableTemplateSelector
                   activeTemplate={activeTemplateSummary}
+                  canManage={canManage}
                   getStatus={getTemplateStatus}
                   isOpen={isTemplateMenuOpen}
                   onCreate={openNewTimetable}
@@ -502,34 +506,38 @@ export default function TimetableContainer() {
               )}
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <button
-                className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-[#273548] px-4 text-[13px] font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
-                disabled={!activeTemplate}
-                onClick={() => {
-                  setEditingSlotId(null);
-                  setIsClassRegistrationOpen(true);
-                }}
-                type="button"
-              >
-                <Plus className="size-4" />
-                수업 등록
-              </button>
+              {canManage && (
+                <button
+                  className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-[#273548] px-4 text-[13px] font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+                  disabled={!activeTemplate}
+                  onClick={() => {
+                    setEditingSlotId(null);
+                    setIsClassRegistrationOpen(true);
+                  }}
+                  type="button"
+                >
+                  <Plus className="size-4" />
+                  수업 등록
+                </button>
+              )}
               <TimetableExportMenu
                 isExporting={exportMutation.isPending || pngExportMutation.isPending}
                 isOpen={isExportMenuOpen}
                 onExport={handleExport}
                 onToggle={() => setIsExportMenuOpen((isOpen) => !isOpen)}
               />
-              <button
-                className="h-10 rounded-lg border border-[#DCE9DF] bg-white px-4 text-[13px] font-medium text-[#526071]"
-                onClick={() => {
-                  setOpenTimetableOption(null);
-                  setIsTimetableManagementOpen(true);
-                }}
-                type="button"
-              >
-                시간표 관리
-              </button>
+              {canManage && (
+                <button
+                  className="h-10 rounded-lg border border-[#DCE9DF] bg-white px-4 text-[13px] font-medium text-[#526071]"
+                  onClick={() => {
+                    setOpenTimetableOption(null);
+                    setIsTimetableManagementOpen(true);
+                  }}
+                  type="button"
+                >
+                  시간표 관리
+                </button>
+              )}
             </div>
           </div>
 
@@ -540,14 +548,16 @@ export default function TimetableContainer() {
           ) : templates.length === 0 ? (
             <div className="flex flex-col items-center gap-3 py-16 text-center">
               <p className="text-[13px] text-[#718096]">등록된 시간표가 없습니다.</p>
-              <button
-                className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-[#273548] px-4 text-[13px] font-semibold text-white"
-                onClick={openNewTimetable}
-                type="button"
-              >
-                <Plus className="size-4" />
-                새 시간표 만들기
-              </button>
+              {canManage && (
+                <button
+                  className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-[#273548] px-4 text-[13px] font-semibold text-white"
+                  onClick={openNewTimetable}
+                  type="button"
+                >
+                  <Plus className="size-4" />
+                  새 시간표 만들기
+                </button>
+              )}
             </div>
           ) : isActiveTemplateError ? (
             <p className="py-10 text-center text-[13px] text-[#C65A50]">시간표 상세 정보를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.</p>
@@ -591,6 +601,7 @@ export default function TimetableContainer() {
       {selectedClass && activeTemplate && (
         <ClassDetailModal
           activeTemplate={activeTemplate}
+          canManage={canManage}
           onClose={() => setSelectedSlotId(null)}
           onDelete={deleteSelectedClass}
           onEdit={openEditForSelectedClass}

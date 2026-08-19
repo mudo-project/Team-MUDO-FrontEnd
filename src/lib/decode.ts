@@ -10,6 +10,7 @@ export interface MyTokenPayload {
     roleId: number;
     accountType: 'ADMIN' | 'MEMBER';
     adminScope: 'PLATFORM' | 'ACADEMY' | 'null';
+    role?: string;
     mustChangePw: boolean;
     iat: number; //발급시간
     exp: number; //만료 시간
@@ -21,6 +22,7 @@ const defaultUserInfo: MyTokenPayload = {
     roleId: 0,
     accountType: 'MEMBER',
     adminScope: 'null',
+    role: undefined,
     mustChangePw: true,
     iat: 0,
     exp: 0
