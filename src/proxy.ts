@@ -44,22 +44,30 @@ function redirectToAuth(request: NextRequest) {
     return response;
 }
 
-const APEX_HOSTS = ['ieum.store', 'www.ieum.store']
+const APEX_HOST = 'ieum.store';
 
 export async function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
-    const host = request.headers.get('host') ?? ''
-    const isApex = APEX_HOSTS.includes(host)
+    const forwardedHost = request.headers.get('x-forwarded-host')?.split(',')[0];
+    const host = (forwardedHost ?? request.headers.get('host') ?? '')
+        .trim()
+        .toLowerCase()
+        .split(':', 1)[0];
+    const isApex = host === APEX_HOST;
+
+    if (pathname === '/') {
+        if (isApex) {
+            return NextResponse.next();
+        }
+
+        return NextResponse.redirect(new URL('/auth', request.url));
+    }
 
     let response = NextResponse.next();
 
     if (!isApex) {
-        response.headers.set('X-Robots-Tag', 'noindex, nofollow')
-
-        if (request.nextUrl.pathname === '/') {
-            return NextResponse.redirect(new URL('/auth', request.url))
-        }
+        response.headers.set('X-Robots-Tag', 'noindex, nofollow');
     }
 
     let accessToken = request.cookies.get('accessToken')?.value;
@@ -142,6 +150,7 @@ export async function proxy(request: NextRequest) {
 //렌더링 전에 거칠 페이지들
 export const config = {
     matcher: [
+        '/',
         '/alarm/:path*',
         '/approval/:path*',
         '/attendance/:path*',

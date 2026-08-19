@@ -28,7 +28,7 @@ export default function WorkspaceSidebar() {
     const workspaceList = workspaceListData?.data ?? [];
 
     return (
-        <aside className={`${open ? 'w-[230px]' : 'w-[50px]'} h-full fixed md:static shrink-0 border-r border-[#E7EAF0] bg-white z-500`}>
+        <aside className={`${open ? 'w-[230px]' : 'w-[50px]'} h-dvh fixed md:static shrink-0 border-r border-[#E7EAF0] bg-white z-500`}>
             <div className={`${open && 'hidden'} flex h-[60px] items-center  px-4 pt-3.5 pb-[11px]`}>
                 <button onClick={() => { setOpen(!open) }} >
                     <ChevronsRight className="size-4" strokeWidth={1.5} />
