@@ -58,8 +58,8 @@ describe("MessageTemplateItem", () => {
         expect(screen.getByRole("heading", { name: "결석 안내" })).toBeInTheDocument();
         expect(screen.getByText("결석")).toBeInTheDocument();
         expect(screen.getByText("오늘 결석하셨습니다.")).toBeInTheDocument();
-        expect(screen.getByText("수정 2026.01.10")).toBeInTheDocument();
-        expect(screen.getByText("생성 2026.01.05")).toBeInTheDocument();
+        expect(screen.getByText("수정 2026-01-10")).toBeInTheDocument();
+        expect(screen.getByText("생성 2026-01-05")).toBeInTheDocument();
     });
 
     it("수정 버튼을 클릭하면 수정 모달을 노출한다", () => {

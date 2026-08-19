@@ -86,8 +86,8 @@ export default function MessageTemplateItem({ template }: { template: MessageTem
                 </p>
 
                 <div className="flex items-center text-[11px] leading-[16.5px] text-[#B0B8C1]">
-                    <span>수정 {format(parseISO(template.updatedAt), "yyyy.MM.dd")}</span>
-                    <span className="ml-auto">생성 {format(parseISO(template.createdAt), "yyyy.MM.dd")}</span>
+                    <span>수정 {format(parseISO(template.updatedAt), "yyyy-MM-dd")}</span>
+                    <span className="ml-auto">생성 {format(parseISO(template.createdAt), "yyyy-MM-dd")}</span>
                 </div>
             </article>
             {editTemplateModal.isModal && (
