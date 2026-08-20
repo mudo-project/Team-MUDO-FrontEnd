@@ -2,6 +2,7 @@
 > 배치 경로: `src/feature/setting/CONTEXT.md`
 > 목적: 이 문서를 읽은 사람 또는 AI 에이전트가 설정 도메인이 **무엇을 하는 도메인이고, 어떤 기능이 있으며, 어떤 조각으로 이루어져 있는지** 파악할 수 있게 한다.
 > 구현 상태: 근무시간 저장, 와이파이 IP(현재 IP 조회·등록(별칭 포함)·목록·삭제), 구글 계정 연동(상태 조회·연결·재연결·계정 교체·상태 확인·해제)이 실제 API에 연동되어 있다. 급여 지급일·알림 설정은 아직 화면 레이아웃과 더미 데이터만 존재하는 정적 UI 단계다. 근무시간 정책 자체의 조회 API는 없지만, 페이지(`setting/page.tsx`, 서버 컴포넌트)가 진입 시 근태(attendance) 도메인의 `getMyTodayAction`(내 오늘 근태 조회)을 서버에서 미리 호출해 `workStartTime`/`workEndTime`을 `SettingWorkingHours`의 초기 props로 내려준다(클라이언트에서 다시 불러오지 않아 하드코딩 기본값이 잠깐 보였다가 바뀌는 깜빡임이 없다). 아래 기능 목록의 "상태" 열로 항목별 구현 여부를 표시한다.
+> 근무시간·와이파이 IP·급여 지급일·구글 연동 카드는 `useUserStore`의 `permissions`를 확인해 필요한 권한이 없으면 카드를 아예 렌더링하지 않는다(서버가 아니라 클라이언트 UI 노출만 막는 방식). 알림 설정 카드는 권한 체크 없이 항상 노출된다.
 
 ---
 
@@ -191,6 +192,18 @@ Sidebar의 설정 메뉴(`src/components/layout/Sidebar.tsx`, `href: "/setting"`
 ## 6. 컴포넌트 구성
 
 `src/feature/setting/components/`에 아래 컴포넌트 파일이 있다. 각 카드는 자기 자신을 `SettingCard`로 감싸는 구조다(카드별 커스텀 스타일을 각 컴포넌트가 책임짐).
+
+### 카드별 권한
+
+각 카드는 `useUserStore`의 `permissions` state를 읽어 필요한 권한이 없으면 `null`을 반환한다(API 호출도 하지 않음). `SettingGoogleConnection`(`/setting/google`)은 카드가 아니라 화면 전체이므로, 권한이 없으면 빈 화면 대신 "구글 연동 관리 권한이 없습니다." 문구를 표시한다.
+
+| 카드 / 화면 | 필요 권한 |
+|---|---|
+| SettingWorkingHours(근무 시간) | `ATTENDANCE:POLICY_MANAGE` |
+| SettingWifi(와이파이 IP 등록) | `ATTENDANCE:WIFI_IP_MANAGE` |
+| SettingPayday(급여 지급일 설정) | `PAYROLL:MANAGE` |
+| SettingAlarm(알림 설정) | 없음 — 권한과 무관하게 항상 노출 |
+| SettingGoogle(구글 연동 카드) / SettingGoogleConnection(`/setting/google`) | `SHAREDFILE:MANAGE` |
 
 | 컴포넌트 | 책임 |
 |---|---|

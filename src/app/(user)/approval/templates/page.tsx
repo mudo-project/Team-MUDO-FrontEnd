@@ -1,11 +1,21 @@
+import PaginationPrev from "@/components/ui/PaginationPrev";
 import { ApprovalActionResult, getApprovalTemplateListAction } from "@/feature/approval/actions";
 import ApprovalNavBar from "@/feature/approval/components/ApprovalNavBar";
 import TemplateItem from "@/feature/approval/components/TemplateItem";
 import { ApprovalPageData, ApprovalTemplateListData } from "@/feature/approval/type";
 
+interface paramsProps {
+    searchParams: Promise<{
+        page: string;
+    }>
+}
 
-export default async function Page() {
-    const response: ApprovalActionResult<ApprovalPageData<ApprovalTemplateListData>> = await getApprovalTemplateListAction();
+export default async function Page({ searchParams }: paramsProps) {
+    const { page = "0" } = await searchParams;
+    const parsedPage = Number(page);
+    const currentPage = Number.isInteger(parsedPage) && parsedPage >= 0 ? parsedPage : 0;
+
+    const response: ApprovalActionResult<ApprovalPageData<ApprovalTemplateListData>> = await getApprovalTemplateListAction(currentPage);
 
     return (
         <main className="min-h-[calc(100dvh-52px)] w-full bg-[#FCFCFC] px-2 py-4 sm:px-2.5 md:px-4 md:py-5 lg:px-8 lg:py-7">
@@ -27,11 +37,15 @@ export default async function Page() {
                         <p className="col-span-3">결재 라인</p>
                         <p className="col-span-1">생성일</p>
                     </div>
-                    {response.data?.content.map((content) => {
-                        return <TemplateItem key={content.id} content={content} />
-                    })}
+                    <div className="h-[calc(100dvh-240px)] overflow-auto">
+                        {response.data?.content.map((content) => {
+                            return <TemplateItem key={content.id} content={content} />
+                        })}
+                    </div>
+
                 </section>
             )}
+            <PaginationPrev url="approval/templates" page={currentPage} hasNext={response.data?.hasNext} />
 
         </main>
     );

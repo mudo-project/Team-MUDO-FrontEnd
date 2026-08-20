@@ -14,6 +14,8 @@ import { getUnreadNotificationCountAction } from "@/feature/alarm/actions";
 import { useAlarmStore } from "@/store/useAlarmStore";
 import { useMessengerUnreadStore } from "@/store/useMessengerUnreadStore";
 import Image from "next/image";
+import Link from "next/link";
+import { LayoutDashboard } from "lucide-react";
 
 export type MenuHref =
     | "/alarm"
@@ -117,6 +119,8 @@ export default function Sidebar() {
         };
     }, []);
 
+    const isAcademyOwner = user.role === "ACADEMY:OWNER";
+
     const menuItems: MenuItem[] = [
         { label: "알림", href: "/alarm", icon: 'BellRing', count: unreadNotificationCount },
         { label: "공지사항", href: "/notice", icon: 'Bell' },
@@ -132,7 +136,7 @@ export default function Sidebar() {
         { label: "출결 관리", href: "/rollbook", icon: 'UserRoundPen' },
         { label: "SMS 관리", href: "/message", icon: 'Mail' },
         { label: "시간표", href: "/timetable", icon: 'Grid2X2', dividerAfter: true },
-        { label: "매출 리포트", href: "/revenue-report", icon: 'TrendingUp' },
+        ...(isAcademyOwner ? [{ label: "매출 리포트", href: "/revenue-report", icon: 'TrendingUp' } as MenuItem] : []),
         { label: "구성원", href: "/members", icon: 'Users' },
         { label: "역할 설정", href: "/role", icon: 'Shield' },
         { label: "데이터 세팅", href: "/initial", icon: 'HardDriveDownload' },
@@ -162,6 +166,17 @@ export default function Sidebar() {
                         {item.label}
                     </NavLink>))}
                 <OpenMemo />
+                {(user.accountType === 'ADMIN' && user.adminScope === 'PLATFORM') && (
+                    <div className={` px-2.5 py-1.5  rounded-[5px] text-[#CBD5E1] hover:bg-white/5`}>
+                        <Link className={`flex h-[25px] gap-2.5 w-full items-center text-[10px]`}
+                            href={'/superadmin'}>
+                            <LayoutDashboard className="h-3.5 w-3.5" strokeWidth={1.7} />
+                            <p className="ml-2 pt-[4px] text-[13px]">관리자 대시보드</p>
+
+                        </Link>
+                    </div>
+                )}
+
             </nav>
 
             <div ref={profileMenuRef} className="relative mt-auto shrink-0 border-t border-white/8">

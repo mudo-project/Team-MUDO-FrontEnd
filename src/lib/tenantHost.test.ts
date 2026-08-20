@@ -1,11 +1,8 @@
 import { parseFrontendHost } from "./tenantHost";
 
 describe("parseFrontendHost", () => {
-    it("루트 운영 도메인이면 academy-a를 반환한다", () => {
-        expect(parseFrontendHost("ieum.store")).toEqual({
-            type: "root",
-            tenantCode: "academy-a",
-        });
+    it("루트 운영 도메인이면 루트 요청으로 반환한다", () => {
+        expect(parseFrontendHost("ieum.store")).toEqual({ type: "root" });
     });
 
     it("프론트 서브도메인이면 테넌트 코드를 반환한다", () => {

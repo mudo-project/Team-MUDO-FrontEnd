@@ -98,6 +98,7 @@ describe("ViewTask", () => {
 
         expect(await screen.findByText("발표 자료 준비")).toBeInTheDocument();
         expect(screen.getByText(/홍길동/)).toBeInTheDocument();
+        expect(screen.getByText("변경 이력 없음")).toBeInTheDocument();
     });
 
     it("업무 조회에 실패하면 에러 메시지를 표시한다", async () => {

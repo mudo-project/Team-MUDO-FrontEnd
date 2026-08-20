@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import ScheduleDetailModal from "./ScheduleDetailModal";
 import { MEMO_COLORS } from "@/feature/memo/components/MemoColorPicker";
+import { useUserStore } from "@/store/useUserStore";
 import type { ScheduleEvent } from "../scheduleTypes";
 
 const baseEvent: ScheduleEvent = {
@@ -17,6 +18,18 @@ const baseEvent: ScheduleEvent = {
 };
 
 describe("ScheduleDetailModal", () => {
+  beforeEach(() => {
+    useUserStore.setState({ permissions: ["CALENDAR:MANAGE"] });
+  });
+
+  it("CALENDAR:MANAGE 권한이 없으면 수정/삭제 버튼을 노출하지 않는다", () => {
+    useUserStore.setState({ permissions: [] });
+    render(<ScheduleDetailModal event={baseEvent} onClose={jest.fn()} onDelete={jest.fn()} onEdit={jest.fn()} />);
+
+    expect(screen.queryByRole("button", { name: "수정" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "삭제" })).not.toBeInTheDocument();
+  });
+
   it("일정 제목과 작성일을 표시한다", () => {
     render(<ScheduleDetailModal event={baseEvent} onClose={jest.fn()} onDelete={jest.fn()} onEdit={jest.fn()} />);
 

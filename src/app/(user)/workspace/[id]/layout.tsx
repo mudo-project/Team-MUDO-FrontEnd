@@ -1,6 +1,6 @@
 import WorkspaceHeader from "@/feature/workspace/components/WorkspaceHeader";
-import WorkspaceRealtimeProvider from "@/feature/workspace/components/WorkspaceRealtimeProvider";
 import { getApiBaseUrl } from "@/lib/apiBaseUrl";
+import dynamic from "next/dynamic";
 import { connection } from "next/server";
 
 interface WorkspaceLayoutProps {
@@ -9,6 +9,11 @@ interface WorkspaceLayoutProps {
         id: string;
     }>;
 }
+
+const WorkspaceRealtimeProvider = dynamic(
+    () => import("@/feature/workspace/components/WorkspaceRealtimeProvider"),
+);
+
 
 export default async function Layout({ children, params }: WorkspaceLayoutProps) {
     await connection();

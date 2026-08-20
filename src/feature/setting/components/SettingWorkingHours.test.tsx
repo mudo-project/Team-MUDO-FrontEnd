@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { useUserStore } from "@/store/useUserStore";
 import { saveWorkingHoursPolicyAction } from "../actions";
 import SettingWorkingHours from "./SettingWorkingHours";
 
@@ -16,8 +17,20 @@ jest.mock("sonner", () => ({
 const mockedSaveWorkingHoursPolicyAction = saveWorkingHoursPolicyAction as jest.Mock;
 
 describe("SettingWorkingHours", () => {
+  beforeEach(() => {
+    useUserStore.setState({ permissions: ["ATTENDANCE:POLICY_MANAGE"] });
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
+  });
+
+  it("ATTENDANCE:POLICY_MANAGE 권한이 없으면 카드를 노출하지 않는다", () => {
+    useUserStore.setState({ permissions: [] });
+
+    const { container } = render(<SettingWorkingHours />);
+
+    expect(container).toBeEmptyDOMElement();
   });
 
   it("지각 유예는 0분 미만, 60분 초과로 내려가거나 올라가지 않는다", () => {

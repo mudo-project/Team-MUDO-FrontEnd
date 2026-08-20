@@ -16,6 +16,7 @@ const initUser: MyTokenPayload = {
     roleId: 0,
     accountType: 'MEMBER',
     adminScope: 'null',
+    role: undefined,
     mustChangePw: true,
     iat: 0,
     exp: 0

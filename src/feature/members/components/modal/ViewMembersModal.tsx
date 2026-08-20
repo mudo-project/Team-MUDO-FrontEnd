@@ -26,12 +26,10 @@ const status = {
 }
 
 export default function ViewMembersModal({ closeModal, member }: { closeModal: () => void, member: MemberListData }) {
-    const [role, setRole] = useState<number | "">(member.roleId ?? "");
     const [roles, setRoles] = useState<RoleOption[]>([]);
     const [isSaving, setIsSaving] = useState(false);
     const [selectedStatus, setSelectedStatus] = useState<MemberAccountStatus>("ACTIVE");
 
-    const modal = useModal(closeModal);
     const statusModal = useModal(clickButton);
 
     const router = useRouter();
@@ -80,16 +78,12 @@ export default function ViewMembersModal({ closeModal, member }: { closeModal: (
         const newJoinedAt = data.joinedAt === format(member.joinedAt, 'yyyy-MM-dd') ? ({}) : ({ joinedAt: `${data.joinedAt}T00:00:00` })
         const newEmail = data.email === member.email ? ({}) : ({ email: data.email });
         const newPhone = data.phone === member.phone ? ({}) : ({ phone: data.phone });
-        const newRole = data.roleId === member.roleId ? ({}) : ({ roleId: Number(role) })
+        const newRole = data.roleId === member.roleId ? ({}) : ({ roleId: Number(data.roleId) })
 
         const payload = {
             ...newName, ...newJoinedAt, ...newEmail, ...newPhone, ...newRole
         }
 
-        if (!role) {
-            toast.error("역할을 선택해주세요.");
-            return;
-        }
 
         setIsSaving(true);
 
@@ -112,13 +106,6 @@ export default function ViewMembersModal({ closeModal, member }: { closeModal: (
         }
     };
 
-    const handleClose = () => {
-        if (member.roleId !== role) {
-            modal.openModal();
-            return;
-        }
-        closeModal();
-    }
 
     //계정 상태 변경
     async function clickButton() {
@@ -135,9 +122,9 @@ export default function ViewMembersModal({ closeModal, member }: { closeModal: (
 
 
     return (
-        <div onClick={handleClose} className="fixed top-0 left-0 z-999 h-screen w-screen bg-[#162236]/45">
+        <div onClick={closeModal} className="fixed top-0 left-0 z-999 h-screen w-screen bg-[#162236]/45">
             <form onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit(onSubmit)} className="flex-col overflow-hidden flex max-h-[450px] md:max-h-[550px] w-[90%] sm:w-4/5 md:w-[580px] fixed top-1/2 left-1/2 z-1000  -translate-x-1/2 -translate-y-1/2 rounded-[12px] bg-white  shadow-[0_8px_12px_rgba(22,34,54,0.12)]">
-                <div className="flex shrink-0  w-full items-center gap-3.5 p-5 sm:p-6 md:p-7 pb-0">
+                <div className="flex shrink-0  w-full items-center gap-3.5 pb-0 px-5 pt-5 sm:px-6 md:px-7 ">
                     <div>
                         <h2 className="text-[15px] sm:text-base md:text-[18px] font-bold leading-[27px] text-[#0F172A]">{member.name}</h2>
                         <p className="pt-0.5 text-[13px] leading-[19.5px] text-[#64748B]">{member.roleName}</p>
@@ -147,7 +134,7 @@ export default function ViewMembersModal({ closeModal, member }: { closeModal: (
                         aria-label="구성원 정보 모달 닫기"
                         className="ml-auto flex size-[18px] items-center justify-center text-[#64748B]"
                         type="button"
-                        onClick={handleClose}
+                        onClick={closeModal}
                     >
                         <X className="size-[18px]" strokeWidth={1.5} />
                     </button>
@@ -163,7 +150,7 @@ export default function ViewMembersModal({ closeModal, member }: { closeModal: (
                                 placeholder="이름을 입력해주세요"
                                 className="mt-1.5 h-11 w-full rounded-[8px] border border-[#D7E8DB] px-3  text-[14px] font-normal text-[#0F172A] outline-none focus:border-2 focus:border-[#B7D5BE]" />
                         </label>
-                        {errors.name?.message && <p>{errors.name?.message}</p>}
+                        {errors.name?.message && <p className="-mt-[14px] text-[12px] text-[#C0483F]">{errors.name?.message}</p>}
 
                         <label className="relative col-span-2 text-[12px] font-medium leading-[18px] text-[#64748B]">
                             역할
@@ -181,27 +168,26 @@ export default function ViewMembersModal({ closeModal, member }: { closeModal: (
                             </select>
                             <ChevronDown className="pointer-events-none absolute right-3 bottom-[17px] size-3 text-[#64748B]" strokeWidth={1.5} />
                         </label>
-                        {errors.roleId?.message && <p>{errors.roleId?.message}</p>}
+                        {errors.roleId?.message && <p className="-mt-[14px] text-[12px] text-[#C0483F]">{errors.roleId?.message}</p>}
 
-
-                        <label className="text-[12px] font-medium leading-[18px] text-[#64748B]">
+                        <label className="col-span-2 text-[12px] font-medium leading-[18px] text-[#64748B]">
                             연락처
                             <input
                                 {...register('phone')}
                                 placeholder="전화번호를 입력해주세요"
                                 className="mt-1.5 h-11 w-full rounded-[8px] border border-[#D7E8DB] px-3  text-[14px] font-normal text-[#0F172A] outline-none focus:border-2 focus:border-[#B7D5BE]" />
                         </label>
-                        {errors.phone?.message && <p>{errors.phone?.message}</p>}
+                        {errors.phone?.message && <p className="-mt-[14px] text-[12px] text-[#C0483F]">{errors.phone?.message}</p>}
 
 
-                        <label className="text-[12px] font-medium leading-[18px] text-[#64748B]">
+                        <label className="col-span-2 text-[12px] font-medium leading-[18px] text-[#64748B]">
                             이메일
                             <input
                                 {...register('email')}
                                 placeholder="이메일을 입력해주세요"
                                 className="mt-1.5 h-11 w-full rounded-[8px] border border-[#D7E8DB] px-3  text-[14px] font-normal text-[#0F172A] outline-none focus:border-2 focus:border-[#B7D5BE]" />
                         </label>
-                        {errors.email?.message && <p>{errors.email?.message}</p>}
+                        {errors.email?.message && <p className="-mt-[14px] text-[12px] text-[#C0483F]">{errors.email?.message}</p>}
 
 
                         <label className="col-span-2 text-[12px] font-medium leading-[18px] text-[#64748B]">
@@ -212,7 +198,7 @@ export default function ViewMembersModal({ closeModal, member }: { closeModal: (
                                 placeholder="입사일을 선택해주세요"
                                 className="mt-1.5 h-11 w-full rounded-[8px] border border-[#D7E8DB] px-3  text-[14px] font-normal text-[#0F172A] outline-none focus:border-2 focus:border-[#B7D5BE]" />
                         </label>
-                        {errors.joinedAt?.message && <p>{errors.joinedAt?.message}</p>}
+                        {errors.joinedAt?.message && <p className="-mt-[14px] text-[12px] text-[#C0483F]">{errors.joinedAt?.message}</p>}
 
                     </div>
 
@@ -253,7 +239,7 @@ export default function ViewMembersModal({ closeModal, member }: { closeModal: (
                     <button
                         className="h-11 w-full rounded-[8px] border border-[#D7E8DB] bg-white px-5 text-[14px] text-[#0F172A]"
                         type="button"
-                        onClick={handleClose}
+                        onClick={closeModal}
                     >
                         취소
                     </button>
@@ -266,13 +252,7 @@ export default function ViewMembersModal({ closeModal, member }: { closeModal: (
                     </button>
                 </div>
             </form>
-            {modal.isModal && (
-                <TwoButtonModal
-                    closeModal={modal.closeModal}
-                    activeModal={modal.activeModal}
-                    content={`역할이 저장되지 않았습니다.\n저장하지 않고 나가시겠습니까?`}
-                    title="구성원" />
-            )}
+
             {statusModal.isModal &&
                 (
                     <TwoButtonModal

@@ -9,6 +9,7 @@ import {
     getLectureTermsAction,
 } from "@/feature/lecture/actions";
 import { LectureListQuery } from "@/feature/lecture/type";
+import PaginationPrev from "@/components/ui/PaginationPrev";
 
 type LecturePageSearchParams = Record<string, string | string[] | undefined>;
 
@@ -19,6 +20,8 @@ const getParam = (params: LecturePageSearchParams, name: string) => {
 
 export default async function LecturePage({ searchParams }: { searchParams: Promise<LecturePageSearchParams> }) {
     const params = await searchParams;
+    const parsedPage = Number(getParam(params, "page"));
+    const page = Number.isInteger(parsedPage) && parsedPage >= 0 ? parsedPage : 0;
     const [teachersResponse, subjectsResponse, classroomsResponse, termsResponse] = await Promise.all([
         getLectureTeachersAction(),
         getLectureSubjectsAction(),
@@ -33,7 +36,7 @@ export default async function LecturePage({ searchParams }: { searchParams: Prom
         teacherName: getParam(params, "teacherName"),
         classroomCode: getParam(params, "classroomCode"),
         termId: getParam(params, "termId") ? Number(getParam(params, "termId")) : undefined,
-        page: getParam(params, "page") ? Number(getParam(params, "page")) : 0,
+        page,
         size: 30,
     };
     const lectureResponse = await getLectureListAction(query);
@@ -60,6 +63,8 @@ export default async function LecturePage({ searchParams }: { searchParams: Prom
                 {!lectureResponse.success && <p className="mt-4 text-[13px] text-[#C0483F]">{lectureResponse.message}</p>}
                 <LectureList lectures={lectures} />
             </div>
+            <PaginationPrev url="lecture" page={lectureResponse.data?.page ?? page} hasNext={lectureResponse.data?.hasNext} searchParams={params} />
+
         </main>
     );
 }

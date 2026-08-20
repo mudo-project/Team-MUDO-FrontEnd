@@ -1,10 +1,22 @@
+import PaginationPrev from "@/components/ui/PaginationPrev";
 import { getReceivedApprovalListAction } from "@/feature/approval/actions";
 import ApprovalList from "@/feature/approval/components/ApprovalList";
 import ApprovalNavBar from "@/feature/approval/components/ApprovalNavBar";
 import NoneApproval from "@/feature/approval/components/NoneApproval";
 
-export default async function Page() {
-    const response = await getReceivedApprovalListAction();
+
+interface paramsProps {
+    searchParams: Promise<{
+        page: string;
+    }>
+}
+
+export default async function Page({ searchParams }: paramsProps) {
+    const { page = "0" } = await searchParams;
+    const parsedPage = Number(page);
+    const currentPage = Number.isInteger(parsedPage) && parsedPage >= 0 ? parsedPage : 0;
+
+    const response = await getReceivedApprovalListAction(currentPage);
     const approvals = response.data?.content ?? [];
 
     return (
@@ -14,6 +26,8 @@ export default async function Page() {
             {!response.success && <p className="mt-5 text-[12px] text-red-500">{response.message}</p>}
             {response.success && approvals.length > 0 && <ApprovalList approvals={approvals} />}
             {response.success && approvals.length === 0 && <NoneApproval />}
+            <PaginationPrev url="approval/received" page={currentPage} hasNext={response.data?.hasNext} />
+
         </main>
     );
 }

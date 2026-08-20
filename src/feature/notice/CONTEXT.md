@@ -14,7 +14,9 @@
 
 - 공지 작성 시 **제목·내용은 필수값**, **첨부파일·상단 고정은 선택값**이다.
 - 상단 고정된 공지는 목록 최상단에 위치하며 중요 표시·강조 표시가 함께 나타난다.
-- 상세조회 화면의 고정 등록 버튼은 **작성자에게만** 노출된다(`getCurrentUserIdAction`으로 얻은 로그인 사용자 id와 `authorUserId`를 비교). 수정/삭제 버튼은 아직 이 판별이 적용되지 않아 누구에게나 노출된다.
+- 목록 화면의 `공지 작성` 버튼은 `NOTICE:WRITE` 권한이 있어야 노출된다(`useUserStore`의 `permissions`).
+- 상세조회 화면의 고정 버튼은 `NOTICE:PIN` 권한이 있어야 노출된다.
+- 상세조회 화면의 수정/삭제 버튼은 **작성자에게만** 노출된다(`getCurrentUserIdAction`으로 얻은 로그인 사용자 id와 `authorUserId`를 비교).
 
 ### 진입점
 
@@ -73,7 +75,7 @@ Sidebar의 공지사항 메뉴(`src/components/layout/Sidebar.tsx`, `href: "/not
 │ [Header]                                          │
 │  (고정 표시) [고정 등록/수정/삭제]* 작성자 작성일 │
 │  조회수  읽음수                                   │
-│  * 작성자에게만 노출                              │
+│  * 고정: NOTICE:PIN 권한 / 수정·삭제: 작성자만 노출│
 ├───────────────────────────────────────────────────┤
 │ [본문]                                            │
 │  공지 내용                                        │
@@ -113,6 +115,7 @@ Sidebar의 공지사항 메뉴(`src/components/layout/Sidebar.tsx`, `href: "/not
 
 | 기능 | 트리거 | 동작 | 상태 |
 |---|---|---|---|
+| 작성 버튼 노출 제어 | — | `NOTICE:WRITE` 권한이 없으면 `공지 작성` 버튼이 렌더링되지 않는다(`NoticeCreateForm`) | 구현 완료 |
 | 작성 모달 열기/닫기 | 상단 `공지 작성` 클릭 / X·취소·오버레이 클릭 | 제목·내용·첨부파일·상단 고정 입력 모달 표시/닫힘 | 구현 완료 |
 | 파일 첨부/미리보기/삭제 | 첨부 영역 클릭 후 파일 선택 / 미리보기 / X | 선택한 파일을 목록에 추가/미리보기/제거 | 구현 완료 |
 | 모달 내부 스크롤 | 첨부파일이 많아 모달 내용이 길어짐 | 모달이 화면 밖으로 나가지 않고 내부에서 스크롤(스크롤바는 숨김) | 구현 완료 |
@@ -129,7 +132,8 @@ Sidebar의 공지사항 메뉴(`src/components/layout/Sidebar.tsx`, `href: "/not
 | 고정 표시 | 해당 공지가 상단 고정 상태 | 상세조회 상단에 고정 배지 표시 | 구현 완료 |
 | 조회수/읽음수 표시 | 상세 진입 | 조회수, 읽음수(`N/전체`)를 노출 | 구현 완료 |
 | 이전/다음 계산 | 상세 진입 | 목록에서 현재 공지의 앞/뒤 항목을 찾아 표시 | 구현 완료 (한 번에 조회하는 목록 범위 내에서만 계산 — 전용 이전/다음 API는 없음) |
-| 작성자 전용 버튼 노출 제어 | — | 고정 아이콘은 로그인 사용자 id와 `authorUserId`가 같을 때만 노출 | 구현 완료(고정만) — 수정/삭제 아이콘은 아직 미적용, 누구에게나 노출됨 |
+| 고정 버튼 노출 제어 | — | `NOTICE:PIN` 권한이 있을 때만 고정 아이콘 노출 | 구현 완료 |
+| 수정/삭제 버튼 노출 제어 | — | 로그인 사용자 id와 `authorUserId`가 같을 때(작성자)만 수정/삭제 아이콘 노출 | 구현 완료 |
 
 ### 4.5 수정 / 삭제
 
@@ -138,7 +142,7 @@ Sidebar의 공지사항 메뉴(`src/components/layout/Sidebar.tsx`, `href: "/not
 | 수정 모달 열기 | 상세조회 `연필` 아이콘 클릭 | 작성 모달과 동일한 구성(제목·내용·상단고정·기존 첨부파일)의 모달이 값이 채워진 상태로 열림 | 구현 완료 |
 | 수정 필수값 검증 | 수정 모달 `수정` 클릭 | 제목·내용 미입력 시 에러 표시 | 구현 완료 |
 | 수정 결과 저장 | 검증 통과 시 | 제목·내용·첨부파일은 하나의 수정 API로, 상단 고정 변경은 별도 API로 나눠 저장(제목·내용 수정 API가 상단 고정은 받지 않음). 모두 성공해야 모달이 닫히고 화면이 갱신됨 | 구현 완료 |
-| 수정 시 첨부파일 변경 | 수정 모달에서 파일 추가/기존 파일 삭제 후 `수정` 클릭 | 새로 추가한 파일만 `uploadFiles()`로 업로드해 `fileId`를 얻고, 삭제되지 않고 남아있는 기존 첨부(`fileId`)와 합쳐 전체 목록을 `attachments`로 수정 API에 실어 보냄(부분 추가가 아닌 전체 목록 치환) | 구현 완료 — 백엔드 문서에 수정 API의 첨부 필드가 명시돼 있지 않아, 작성 API와 동일한 형식(`{fileId, fileName, fileType}[]`)이라고 가정하고 구현함. 실제 백엔드 계약 확인 필요 |
+| 수정 시 첨부파일 변경 | 수정 모달에서 파일 추가/기존 파일 삭제 후 `수정` 클릭 | 새로 추가한 파일만 `uploadFiles()`로 업로드해 `fileId`를 얻고, 삭제되지 않고 남아있는 기존 첨부(`fileId`)와 합쳐 전체 목록을 `attachments`로 수정 API에 항상 명시적으로 실어 보냄(부분 추가/삭제가 아닌 전체 목록 치환; 첨부파일을 전부 지운 경우에도 `attachments: []`를 그대로 보내야 서버가 삭제로 반영한다 — 필드를 생략하면 서버는 기존 첨부파일을 그대로 유지한다) | 구현 완료 |
 | 삭제 | 상세조회 `휴지통` 아이콘 클릭 | 공지 삭제 후 목록으로 이동 | 구현 완료 |
 
 ### 4.6 상단 고정 등록/해제
@@ -207,7 +211,7 @@ Sidebar의 공지사항 메뉴(`src/components/layout/Sidebar.tsx`, `href: "/not
 | **NoticeListItem** | 목록 항목 1건을 위해 준비된 컴포넌트지만 아직 쓰이지 않는 뼈대 — `NoticeList`가 항목 마크업을 직접 들고 있다 |
 | **NoticeCreateForm** | 클라이언트 컴포넌트. `공지 작성` 트리거 버튼과 작성 모달을 함께 소유. 제목·내용·상단고정은 `react-hook-form` + `zod`(`src/lib/noticeCreateSchema.ts`)로 검증하고, 통과하면 `createNoticeAction`을 호출한다. `NoticeFileUpload`가 올려주는 File 목록을 `uploadFiles()`로 업로드해 받은 `fileId`를 `attachments`(`{fileId, fileName, fileType}[]`, 첨부가 없으면 인자 자체를 생략)로 실어 함께 전송한다 |
 | **NoticeFileUpload** | 클라이언트 컴포넌트. `NoticeCreateForm`/`NoticeEditForm`이 공유하는 첨부파일 UI. 새로 추가한 파일은 자체 상태로 관리하며 추가/미리보기/삭제가 가능하다. `initialFiles` prop으로 이미 저장된 파일(`id`(fileId)·`name`)을 목록에 미리 채운다(이 경우 파일명만 있고 삭제만 가능, 미리보기는 불가). `onFilesChange`(새 파일 목록)·`onExistingFilesChange`(삭제 후 남은 기존 파일 목록)로 현재 상태를 부모 폼에 올려준다. 확장자 배지·크기 포맷 함수는 `src/lib/file.ts`에서 가져와 `NoticeDetail`과 공유한다 |
-| **NoticeEditForm** | 클라이언트 컴포넌트. `notice`를 props로 받아 `공지 수정`(연필 아이콘) 트리거와 수정 모달을 소유. 작성 모달과 동일한 스키마(`noticeCreateSchema`)로 제목·내용·상단고정을 검증한다. 제출 시 `NoticeFileUpload`가 올려준 새 파일을 `uploadFiles()`로 업로드하고, 삭제되지 않고 남은 기존 첨부(`onExistingFilesChange`로 추적)와 합쳐 전체 `attachments` 목록을 만들어 제목·내용과 함께 수정 API로 보낸다. 상단 고정은 (값이 바뀐 경우에만) 별도로 고정/고정해제 API를 호출한다 |
+| **NoticeEditForm** | 클라이언트 컴포넌트. `notice`를 props로 받아 `공지 수정`(연필 아이콘) 트리거와 수정 모달을 소유. 작성 모달과 동일한 스키마(`noticeCreateSchema`)로 제목·내용·상단고정을 검증한다. 제출 시 `NoticeFileUpload`가 올려준 새 파일을 `uploadFiles()`로 업로드하고, 삭제되지 않고 남은 기존 첨부(`onExistingFilesChange`로 추적)와 합쳐 만든 전체 `attachments` 목록(빈 배열이어도 그대로)을 제목·내용과 함께 매번 명시적으로 수정 API에 보낸다. 상단 고정은 (값이 바뀐 경우에만) 별도로 고정/고정해제 API를 호출한다 |
 | **NoticeDetailToolbar** | 클라이언트 컴포넌트. `notice`를 props로 받아 고정 배지 + 고정/수정/삭제 아이콘 버튼 행을 소유한다. 고정 배지와 핀 버튼이 같은 상태를 공유해야 해서 `NoticeDetail`에서 분리된 하나의 클라이언트 컴포넌트로 묶여 있다. 핀 아이콘 클릭 시 고정/고정해제 API 호출 결과를 반영하고, 삭제 아이콘 클릭 시 공지를 삭제하고 목록으로 이동한다. `NoticeEditForm`을 이 버튼 그룹 안에 둔다 |
 | **NoticeDetail** | 상세조회 화면 본문(서버 컴포넌트). `id`를 props로 받아 공지를 조회하고(없으면 "공지를 찾을 수 없습니다"), 목록에서 이전/다음 항목을 계산한다. 목록으로 링크, `NoticeDetailToolbar`, 작성자·작성일·조회수·읽음수, 본문, 첨부파일 목록, 이전/다음 네비게이션을 전부 이 컴포넌트 안에서 직접 그린다 |
 | **NoticeFileList** | 클라이언트 컴포넌트. `attachments`를 props로 받아 첨부파일 목록을 그린다. 이미지 첨부는 마운트 시 각 항목의 `id`(fileId)로 `getFileDownloadUrlAction`을 호출해 받은 URL로 `<img>` 미리보기를 띄우고, 그 외 파일은 파일명 + 다운로드 아이콘(클릭 시 같은 방식으로 URL을 조회해 새 탭으로 연다) |
@@ -243,7 +247,7 @@ notice/[id]/page.tsx               (상세조회 화면, /notice/[id])
 | 공지 데이터 | 목록·상세조회·CRUD | 구현 완료 — `actions.ts` + `notice.service.ts`로 연동 |
 | 검색 상태 | 현재 검색어, 필터링된 목록 | 구현 완료 — URL의 `searchParams.keyword`로 관리 |
 | 첨부파일 업로드 | 새 파일을 서버에 올려 `fileId`를 받아오는 절차 | 구현 완료 — `src/feature/file`의 presigned URL 발급 → S3 PUT → 파일 등록 헬퍼(`uploadFiles()`) 재사용, 작성·수정 모두에서 사용 |
-| 작성자 권한 판별 | 고정/수정/삭제 버튼 노출 여부 결정 | 고정 버튼만 구현 완료(`getCurrentUserIdAction`), 수정/삭제는 미구현 |
+| 권한/작성자 판별 | 작성·고정·수정·삭제 버튼 노출 여부 결정 | 구현 완료 — 작성은 `NOTICE:WRITE`, 고정은 `NOTICE:PIN`(`useUserStore`), 수정/삭제는 작성자 여부(`getCurrentUserIdAction`)로 판별 |
 
 ---
 

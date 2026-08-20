@@ -5,6 +5,7 @@ import type { TemplateStatus } from "../viewModel";
 
 type TimetableTemplateSelectorProps = {
   activeTemplate: TimetableSetListData;
+  canManage: boolean;
   getStatus: (status: TimetableSetStatus) => TemplateStatus;
   isOpen: boolean;
   onCreate: () => void;
@@ -15,6 +16,7 @@ type TimetableTemplateSelectorProps = {
 
 export default function TimetableTemplateSelector({
   activeTemplate,
+  canManage,
   getStatus,
   isOpen,
   onCreate,
@@ -71,13 +73,15 @@ export default function TimetableTemplateSelector({
               );
             })}
           </div>
-          <button
-            className="flex h-11 w-full items-center gap-2 px-4 text-sm font-medium text-[#526071] hover:bg-[#F8FAF8]"
-            onClick={onCreate}
-            type="button"
-          >
-            <Plus className="size-4" /> 새 시간표 만들기
-          </button>
+          {canManage && (
+            <button
+              className="flex h-11 w-full items-center gap-2 px-4 text-sm font-medium text-[#526071] hover:bg-[#F8FAF8]"
+              onClick={onCreate}
+              type="button"
+            >
+              <Plus className="size-4" /> 새 시간표 만들기
+            </button>
+          )}
         </div>
       )}
     </div>

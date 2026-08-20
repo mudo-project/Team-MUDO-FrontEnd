@@ -4,8 +4,8 @@ import { X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { getUserListAction } from "@/feature/auth/actions";
 import { createWorkspaceAction } from "../../actions";
-import WorkspaceAttends from "../WorkspaceAttends";
 import WorkspaceAttendItem from "../WorkspaceAttendItem";
+import WorkspaceMemberSearchResults from "../WorkspaceMemberSearchResults";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
@@ -16,6 +16,7 @@ export default function CreateWorkspaceModal({ closeModal }: { closeModal: () =>
     const [selectedMembers, setSelectedMembers] = useState<UserListResponse[]>([]);
     const [searchError, setSearchError] = useState("");
     const [createError, setCreateError] = useState("");
+    const [memberSearchRect, setMemberSearchRect] = useState<DOMRect | null>(null);
     const queryClient = useQueryClient();
     const createWorkspaceMutation = useMutation({
         mutationFn: (formData: FormData) =>
@@ -150,31 +151,24 @@ export default function CreateWorkspaceModal({ closeModal }: { closeModal: () =>
                                 id="workspace-member-search"
                                 onBlur={() => setIsMemberListOpen(false)}
                                 onChange={(event) => setSearchInput(event.target.value)}
-                                onFocus={() => setIsMemberListOpen(true)}
+                                onFocus={(event) => {
+                                    setMemberSearchRect(event.currentTarget.parentElement?.getBoundingClientRect() ?? null);
+                                    setIsMemberListOpen(true);
+                                }}
                                 placeholder="이름으로 검색"
                                 type="search"
                                 value={searchInput}
                             />
                         </label>
-
-                        {isMemberListOpen && (
-                            <div className="absolute top-full left-0 z-10 mt-0.5 max-h-[280px] w-full overflow-y-auto rounded-[8px] bg-white py-1 shadow-[0_8px_16px_rgba(22,34,54,0.16)]">
-                                {searchError && (
-                                    <p className="px-3 py-2.5 text-[12px] text-red-500">{searchError}</p>
-                                )}
-                                {!searchError && searchInput && members.length === 0 && (
-                                    <p className="px-3 py-2.5 text-[12px] text-[#64748B]">검색 결과가 없습니다.</p>
-                                )}
-                                {members.map((member) => (
-                                    <WorkspaceAttends
-                                        key={member.userId}
-                                        member={member}
-                                        onSelect={addMember}
-                                    />
-                                ))}
-                            </div>
-                        )}
                     </div>
+                    <WorkspaceMemberSearchResults
+                        anchorRect={memberSearchRect}
+                        error={searchError}
+                        isOpen={isMemberListOpen}
+                        members={members}
+                        onSelect={addMember}
+                        showEmptyMessage={Boolean(searchInput) && members.length === 0}
+                    />
                 </div>
 
                 {createError && (
